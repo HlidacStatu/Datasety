@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -11,15 +11,45 @@ namespace Dataset_RozhodnutiUOHS
     {
         static void Main(string[] args)
         {
-            string datasetId = "rozhodnuti-uohs-test"; //zvol vlastni unikatni jmeno
-            datasetId = Register(datasetId); //registrace datasetu, a pripadne smazani puvodniho
+            string datasetId = "rozhodnuti-uohs"; //zvol vlastni unikatni jmeno
+
+            if (args.Count() > 1) //predany token a URL v parametrech volani? Pouzij je
+            {
+                apiToken = "Token " + args[0];
+                apiRoot = args[1];
+            }
+            if (args.Contains("update"))
+            {
+
+                //find last ID
+                HttpClient httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Add("Authorization", apiToken);
+                string jsonResult = httpClient.GetAsync(apiRoot + "/Datasetsearch/" + datasetId+"?q=*&sort=PravniMoc+desc")
+                            .Result.Content
+                            .ReadAsStringAsync().Result;
+                var result = JObject.Parse(jsonResult);
+                if (result["error"] == null)
+                {
+                    int? lastId = result["results"]?.First()?["Id"]?.Value<int>();
+                    lastId = lastId.HasValue ? lastId.Value-200 : 1;
+                    //vratim se zpet o 200 cisel zpet a dalsich 1500 pro jistotu (nevime, kolik pribylo)
+                    ParsePages(datasetId, lastId.Value,1500); //stahnuti, parsovani dat z UOHS a vlozeni do Datasetu
+                }
+                else
+                {
+                    Console.WriteLine("Chyba " + result["error"]["description"]);
+                }
+                return;
+            }
+
+            //datasetId = Register(datasetId); //registrace datasetu, a pripadne smazani puvodniho
                                             // funkce vrati jmeno vytvoreneho datasetu
             SetTemplates(datasetId); //nastaveni templatu v extra kroku
 
             ParsePages(datasetId); //stahnuti, parsovani dat z UOHS a vlozeni do Datasetu
         }
 
-        static string apiToken = "Token ...."; //svůj najdes na HlidacStatu.cz/API
+        static string apiToken = "Token ..."; //svůj najdes na HlidacStatu.cz/API
         static string apiRoot = "https://www.hlidacstatu.cz/api/v1";
 
         public static string Register(string datasetId)
@@ -37,6 +67,7 @@ namespace Dataset_RozhodnutiUOHS
                 betaversion = true, // pokud true, pak dataset neni videt v seznam datasetu na HlidacStatu.cz/data
                 allowWriteAccess = false, // pokud true, pak data v datasetu muze kdokoliv přepsat nebo smazat. Stejně tak údaje v registraci.
                                           // pokud false, pak kdokoliv muze data pridat, ale nemuze je prepsat či smazat
+                orderList = new string[,] {  { "Nabytí právní moci","PravniMoc" }, { "Účastníci","Ucastnici.Jmeno"} } ,
             };
 
             HttpClient httpClient = new HttpClient();
@@ -216,7 +247,10 @@ namespace Dataset_RozhodnutiUOHS
                 datasetId = datasetId,
                 origUrl = "http://www.uohs.cz/cs/verejne-zakazky/sbirky-rozhodnuti/",
                 searchResultTemplate = searchTemplateHtml,
-                detailTemplate = detailTemplateHtml
+                detailTemplate = detailTemplateHtml,
+                orderList = new string[,] { { "Nabytí právní moci", "PravniMoc" }, { "Účastníci", "Ucastnici.Jmeno" } },
+                betaversion = false, // pokud true, pak dataset neni videt v seznam datasetu na HlidacStatu.cz/data
+                allowWriteAccess = false, // pokud true, pak data v datasetu muze kdokoliv přepsat nebo smazat. Stejně tak údaje v registraci.
             };
 
             HttpClient httpClient = new HttpClient();
@@ -235,9 +269,13 @@ namespace Dataset_RozhodnutiUOHS
             HttpClient httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("Authorization", apiToken);
 
+            ParallelOptions parOpt = new ParallelOptions() { MaxDegreeOfParallelism = 2 };
+            if (System.Diagnostics.Debugger.IsAttached)
+                parOpt.MaxDegreeOfParallelism = 1;
+
             //jedeme v 2 threadech, bud ohleduplny a nedavej vice
             Parallel.ForEach<int>(Enumerable.Range(startFrom, count),
-                    new ParallelOptions() { MaxDegreeOfParallelism = 2 },
+                    parOpt,
                     (i) =>
                     {
 
