@@ -3,7 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.RegularExpressions;
-using HlidacStatu.Api.Dataset.Connector;
+
+using HlidacStatu.Api.Dataset.Connector; //use component from https://github.com/HlidacStatu/API/tree/master/DatasetConnector
+
+
 namespace MostyRSD
 {
     class Program
