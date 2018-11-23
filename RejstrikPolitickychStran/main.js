@@ -38,7 +38,7 @@ const extractDataFromPage = async (page) => {
             const data = $(this).find('td:eq(1)').text().trim().split('\n');
             try{
                 people.push({
-                    jmeno: data[0].trim(),
+                    celeJmeno: data[0].trim(),
                     narozeni: parseDate(data[1].trim()),
                     adresa: data[2].trim() + ", " + data[3].trim(),
                     platiOd: parseDate(data[4].trim().replace("Platí od: ","")),
