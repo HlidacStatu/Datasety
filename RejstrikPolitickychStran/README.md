@@ -1,4 +1,4 @@
-#Actor pro extrakci seznamu politickych stran
+# Actor pro extrakci seznamu politickych stran
 
 Actor stahuje informace o politickych stanach a hnuti z webu https://aplikace.mvcr.cz/seznam-politickych-stran/.
 
