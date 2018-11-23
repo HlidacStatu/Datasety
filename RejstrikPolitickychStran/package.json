@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+	"apify": "^0.9.7",
+	"request-promise": "latest"
+    },
+    "scripts": {
+        "start": "node main.js"
+    }
+}
