@@ -1,6 +1,7 @@
 # Actor pro extrakci seznamu politickych stran
 
 Actor stahuje informace o politickych stanach a hnuti z webu https://aplikace.mvcr.cz/seznam-politickych-stran/
+Je dostupny na platforme Apify, lze pouzit z library zde: https://www.apify.com/jakubbalada/HS-strany 
 
 Jelikoz je web napsany v ASP, nejde jednoduse requestovat html, proto Actor prochazi web v jednom threadu. Flow vypada nasledovne:
 1. Actor otevre https://aplikace.mvcr.cz/seznam-politickych-stran/
