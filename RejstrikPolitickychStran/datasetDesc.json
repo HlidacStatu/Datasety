@@ -52,7 +52,7 @@
                 "null"
               ]
             },
-						"OsobaId": {
+	    "OsobaId": {
               "type": [
                 "string",
                 "null"
