@@ -1,0 +1,137 @@
+
+  {
+    "id": "seznam-politickych-stran",
+    "name": "Seznam politických stran a hnutí",
+    "datasetId": "seznam-politickych-stran",
+    "origUrl": "https://aplikace.mvcr.cz/seznam-politickych-stran/Default.aspx",
+  	"sourcecodeUrl":"https://github.com/HlidacStatu/Datasety/tree/master/RejstrikPolitickychStran",
+    "description": "Rejstřík politických stran a politických hnutí vedený Ministerstvem vnitra od 1. ledna 2001 na základě § 9 zákona č. 424/1991 Sb., o sdružování v politických stranách a v politických hnutích.",
+    "jsonSchema": {
+      "definitions": {
+        "osoba": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "celeJmeno": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "narozeni": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            },
+            "adresa": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "platiOd": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            },
+            "funkce": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "HsProcessType": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+	    "OsobaId": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      },
+      "type": "object",
+      "properties": {
+        "nazev": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "zkratka": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "adresaSidla": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "denRegistrace": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "cisloRegistrace": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "identifikacniCislo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "statutarniOrgan": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "Osoby": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/osoba"
+          }
+        }
+      }
+    },
+    "createdBy": "jakub.balada@gmail.com",
+    "betaversion": false,
+    "allowWriteAccess": false,
+    "searchResultTemplate": {
+      "header": "<table class=\"table table-hover\">\r\n                        <thead>\r\n                            <tr><th>IČO</th>\r\n<th>Název strany</th>\r\n<th>Orgán strany</th>\r\n<th>Osoby</th>\r\n<th>Registrována dne</th>\r\n</tr>\r\n                        </thead>\r\n                        <tbody>",
+      "body": "<tr><td ><a href=\"@(fn_DatasetItemUrl(item.id))\">@item.identifikacniCislo</a></td>\r\n<td >@fn_ShortenText(item.nazev,80)</td>\r\n<td >@fn_ShortenText(item.statutarniOrgan,80)</td>\r\n<td >@if (item.osoby != null)\r\n{\r\n    foreach (var o in item.osoby)\r\n    {\r\n        <div>@o.celeJmeno</div>\r\n    }\r\n}\r\n</td>\r\n<td >@fn_FormatDate(item.denRegistrace, \"dd.MM.yyyy\")</td>\r\n</tr>",
+      "footer": "</tbody></table>",
+      "title": null,
+      "properties": null
+    },
+    "detailTemplate": {
+      "header": "",
+      "body": "<table class=\"table table-hover\"><tbody>\r\n<tr><td>IČO</td><td ><a href=\"@(fn_DatasetItemUrl(item.id))\">@item.identifikacniCislo</a></td>\r\n<tr><td>Název strany</td><td >@item.nazev</td>\r\n<tr><td>Zkratka</td><td >@item.zkratka</td>\r\n<tr><td>Orgán strany</td><td >@item.statutarniOrgan</td>\r\n<tr><td>Osoby</td><td >@if (item.osoby != null)\r\n{\r\n<ul>\r\n    @foreach (var o in item.osoby)\r\n    {\r\n        <li><b>@o.celeJmeno</b> (* @fn_FormatDate(o.narozeni,\"yyyy\")), @o.funkce<br/>@o.adresa</li>\r\n    }\r\n</ul>\r\n}\r\n</td>\r\n<tr><td>Registrována dne</td><td >@fn_FormatDate(item.denRegistrace, \"dd.MM.yyyy\")</td>\r\n<tr><td>Sídlo</td><td >@item.adresaSidla</td>\r\n<tr><td>Číslo registrace</td><td >@item.cisloRegistrace</td>\r\n</tr></table>",
+      "footer": "",
+      "title": null,
+      "properties": null
+    }
+  }
