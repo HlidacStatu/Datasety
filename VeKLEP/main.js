@@ -5,7 +5,7 @@ const request = require('request-promise');
 const pushItemToHS = async (item) => {
     try {
         const response = await request({
-            url: "https://www.hlidacstatu.cz/api/v1/DatasetItem/veklep/" + item.Id,
+            url: "https://www.hlidacstatu.cz/api/v1/DatasetItem/veklep/" + item.Id + "?mode=merge",
             body: item,
             method: "POST",
             json: true,
@@ -214,6 +214,20 @@ Apify.main(async () => {
                     selector: '.results-grid .results-row a',
                     userData: {label: 'DETAIL'}
                 });
+
+                // check the date of actualization for the last listing on a page 
+                const datePosted = await page.evaluate(() => {
+                    return window.apifyParseDate($(".results-grid .results-row:last li:contains('Aktualizováno:')").text().replace("Aktualizováno:","").trim());
+                })
+                
+                // stop crawling pagination if the listing actualization date is older than 7 days 
+                let dateCheck = new Date();
+                dateCheck.setDate(dateCheck.getDate() - 7);
+                if ((new Date(datePosted)) < dateCheck) {
+                    console.log("Not crawling further to older listings");
+                    return;
+                }
+
 
                 // enqueue next page if exists
                 const infos = await Apify.utils.enqueueLinks({
