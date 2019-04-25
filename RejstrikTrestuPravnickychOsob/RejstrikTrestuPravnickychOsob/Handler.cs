@@ -1,6 +1,8 @@
 ﻿using HtmlAgilityPack;
 using System;
+using System.Globalization;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RejstrikTrestuPravnickychOsob
@@ -11,6 +13,7 @@ namespace RejstrikTrestuPravnickychOsob
 
 		private readonly Dataset DatasetConnector;
 		private int id = 0;
+		private readonly Regex DateRegex = new Regex(@"Dat. rozhodnutí: (\d{2}.\d{2}.\d{4})", RegexOptions.Compiled);
 
 		public Handler(Dataset datasetConnector)
 		{
@@ -62,6 +65,7 @@ namespace RejstrikTrestuPravnickychOsob
 				var country = row.ChildNodes[4].InnerText.Trim();
 				var link = row.ChildNodes[5].ChildNodes[1].ChildNodes[0].GetAttributeValue("href", string.Empty);
 				var convictionText = string.Empty;
+				var date = new DateTime?();
 
 				if (!string.IsNullOrEmpty(link))
 				{
@@ -74,16 +78,24 @@ namespace RejstrikTrestuPravnickychOsob
 					detailDoc.LoadHtml(detailContent);
 					var p = detailDoc.DocumentNode.SelectSingleNode("//td/span/p");
 					convictionText = p.InnerText;
+
+					var match = DateRegex.Match(convictionText);
+					if (match.Success)
+					{
+						date = DateTime.ParseExact(match.Groups[1].Value, "dd.MM.yyyy", CultureInfo.InvariantCulture);
+					}
+
 				}
 
 				var item = new Trest
 				{
-					Id = (++id).ToString(),
+					Id = $"{date?.ToString("yyyyMMdd") ?? "00010101"}-{id++}",
 					ICO = ico,
 					ObchodniJmeno = name,
 					Sidlo = address,
 					Stat = country,
-					TextOdsouzeni = convictionText
+					TextOdsouzeni = convictionText,
+					DatumRozhodnuti = date
 				};
 				await DatasetConnector.Add(item);
 

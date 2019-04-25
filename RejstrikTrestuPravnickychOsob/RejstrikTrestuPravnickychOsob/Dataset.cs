@@ -1,4 +1,5 @@
 ﻿using HlidacStatu.Api.Dataset.Connector;
+using System;
 using System.Threading.Tasks;
 
 namespace RejstrikTrestuPravnickychOsob
@@ -33,10 +34,10 @@ namespace RejstrikTrestuPravnickychOsob
 			"RejstrikTrestuPravnickychOsob",
 			"https://eservice-po.rejtr.justice.cz/public/odsouzeni",
 			"",
-			"",
-			true,
+			"https://github.com/HlidacStatu/Datasety",
 			false,
-			new string[,] { { "IČO", "ICO" }, { "Obchodní jméno", "ObchodniJmeno" }, { "Sídlo", "Sidlo" }, { "Stát", "Stat" } },
+			false,
+			new string[,] { { "DatumRozhodnuti", "DatumRozhodnuti" } },
 			new Template { Body = @"<table class=""table table-hover"" >
     <thead>
         <tr>
@@ -45,11 +46,12 @@ namespace RejstrikTrestuPravnickychOsob
             <th>Obchodní jméno</th>
             <th>Sídlo</th>
             <th>Stát</th>
+			<th>Rozhodnutí</th>
         </tr>
     </thead>
     <tbody>
                         
-{{for item in model.Result}}
+{{for item in model.Result | array.sort ""DatumRozhodnuti"" | array.reverse}}
            <tr>
                 <td style=""white-space: nowrap;"">
                     <a href=""{{fn_DatasetItemUrl item.Id}}"" >Detail</a>
@@ -66,6 +68,9 @@ namespace RejstrikTrestuPravnickychOsob
                 <td style=""white-space: nowrap;"" >
                     {{item.Stat}}
                 </td>
+				<td>
+					{{fn_FormatDate item.DatumRozhodnuti}}
+				</td>
             </tr>
 {{end}}
 </tbody></table>" }, 
@@ -104,5 +109,6 @@ namespace RejstrikTrestuPravnickychOsob
 		public string Sidlo { get; set; }
 		public string Stat { get; set; }
 		public string TextOdsouzeni { get; set; }
+		public DateTime? DatumRozhodnuti { get; set; }
 	}
 }

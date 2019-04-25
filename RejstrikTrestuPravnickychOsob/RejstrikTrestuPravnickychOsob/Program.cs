@@ -21,9 +21,6 @@ namespace RejstrikTrestuPravnickychOsob
 
 			var handler = new Handler(dataset);
 			handler.Execute().Wait();
-
-
-			Console.ReadKey();
 		}
 
 		private static void Help()
