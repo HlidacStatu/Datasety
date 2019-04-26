@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="HlidacStatu.Api.Dataset.Connector" Version="1.2.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.3" />
+    <PackageReference Include="TinyCsvParser" Version="2.3.0" />
   </ItemGroup>
 
 </Project>
