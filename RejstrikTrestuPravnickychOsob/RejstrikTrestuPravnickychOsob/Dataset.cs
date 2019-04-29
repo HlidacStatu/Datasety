@@ -45,6 +45,7 @@ namespace RejstrikTrestuPravnickychOsob
             <th></th>
             <th>IČO</th>
             <th>Obchodní jméno</th>
+			<th>Vztahy se státem</th>
             <th>Sídlo</th>
             <th>Stát</th>
 			<th>Rozhodnutí</th>
@@ -63,6 +64,9 @@ namespace RejstrikTrestuPravnickychOsob
                 <td style=""white-space: nowrap;"" >
                     {{fn_RenderCompanyWithLink item.ICO}}
                 </td>
+			    <td style=""white -space: nowrap;"" >
+					{{ fn_RenderCompanyStatistic item.ICO }}
+				</td>
                 <td style=""white-space: nowrap;"" >
                     {{item.Sidlo}}
                 </td>
@@ -86,6 +90,10 @@ namespace RejstrikTrestuPravnickychOsob
                 <td>Obchodní jméno</td>
                 <td>{{fn_RenderCompanyWithLink item.ICO}}</td>
             </tr>
+			<tr>
+			  <td>Vztahy se státem</td>
+			  <td>{{fn_RenderCompanyStatistic item.ICO}}</td>
+			</tr>
             <tr>
                 <td>Sídlo</td>
                 <td>{{item.Sidlo}}</td>
