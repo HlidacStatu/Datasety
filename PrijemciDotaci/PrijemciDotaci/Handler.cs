@@ -15,6 +15,7 @@ namespace PrijemciDotaci
 
 		private readonly Dataset DatasetConnector;
 		private readonly ApiClient ApiClient;
+		private readonly Logger Logger = new Logger(nameof(Handler));
 
 		public Handler(Dataset datasetConnector, ApiClient apiClient)
 		{
@@ -28,8 +29,6 @@ namespace PrijemciDotaci
 			var page = 1;
 			var rows = 0;
 
-			await DatasetConnector.Recreate();
-
 			do
 			{
 				rows = await ProcessPage(client, year, page++);
@@ -38,9 +37,7 @@ namespace PrijemciDotaci
 
 		private async Task<int> ProcessPage(HttpClient client, int year, int page)
 		{
-			Console.WriteLine();
-			Console.WriteLine($"Strana {page}");
-			Console.WriteLine();
+			Logger.Info($"Strana {page}");
 			var content = await client.GetStringAsync(string.Format(Url, year, page));
 			var doc = new HtmlDocument();
 			doc.LoadHtml(content);
@@ -51,7 +48,7 @@ namespace PrijemciDotaci
 				var detailUrl = RootUrl + row.ChildNodes[1].ChildNodes[1].ChildNodes[0].GetAttributeValue("href", string.Empty);
 				var companyName = row.ChildNodes[1].ChildNodes[1].InnerText;
 
-				Console.Write(companyName + " ");
+				Logger.Info(companyName + " ");
 
 				var address = row.ChildNodes[1].ChildNodes[3].InnerText;
 				var icoResult = CompanyNameToIco.GetIco(companyName);
@@ -59,7 +56,6 @@ namespace PrijemciDotaci
 				{
 					icoResult = await ApiClient.GetIcoByName(companyName);
 				}
-				var normalizedCompanyName = Normalize(companyName);
 
 				var detailContent = await client.GetStringAsync(detailUrl);
 
@@ -67,7 +63,6 @@ namespace PrijemciDotaci
 				detail.LoadHtml(detailContent);
 
 				var tableRows = detail.DocumentNode.SelectNodes("//div[@class='container-table']/table/tbody/tr").ToArray();
-				var rowIndex = 0;
 				foreach (var detailRow in tableRows)
 				{
 					var cells = detailRow.Descendants("td").Select(c => c.InnerText.Trim()).ToArray();
@@ -75,7 +70,6 @@ namespace PrijemciDotaci
 
 					var result = await DatasetConnector.Add(new PrijemceDotace
 					{
-						Id = $"{normalizedCompanyName}-{cells[0]}-{rowIndex++}",
 						ICO = icoResult.Nalezeno ? icoResult.ICO : string.Empty,
 						Jmeno = companyName,
 						Adresa = address,
@@ -88,20 +82,13 @@ namespace PrijemciDotaci
 						ZdrojeCelkem = isEu ? ParsePrice(cells[5]) : ParsePrice(cells[3])
 					});
 
-					Console.Write(isEu ? "E" : "C");
+					Logger.Debug(isEu ? "E" : "C");
 				}
 
-				Console.WriteLine(" - done");
+				Logger.Debug(" - done");
 			}
 
 			return page;
-		}
-
-		private Regex NormalizePattern = new Regex("[^a-zA-Z0-9-]", RegexOptions.Compiled);
-
-		private string Normalize(string value)
-		{
-			return NormalizePattern.Replace(value, "_");
 		}
 
 		private double ParsePrice(string value)

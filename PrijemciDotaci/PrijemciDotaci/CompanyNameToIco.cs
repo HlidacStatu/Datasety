@@ -6,6 +6,7 @@ namespace PrijemciDotaci
 {
 	static class CompanyNameToIco
 	{
+		private static readonly Logger Logger = new Logger(nameof(CompanyNameToIco));
 
 		private static Dictionary<string, string[]> PreparedData = null;
 
@@ -20,12 +21,11 @@ namespace PrijemciDotaci
 			{
 				var result = PreparedData[companyName];
 
-				Console.Write($" < {result.First()} ");
+				Logger.Info($"{companyName} <{result.First()}>");
 				if (result.Length > 1)
 				{
-					Console.Write($"= {result.Length} ");
+					Logger.Warn($"Nalezeno {result.Length}x ruzne ICO pro {companyName}");
 				}
-				Console.Write("> ");
 
 				return new GetIcoByNameResult { ICO = result.First(), Jmeno = companyName, Nalezeno = true };
 			}

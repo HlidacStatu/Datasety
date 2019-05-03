@@ -8,6 +8,7 @@ namespace PrijemciDotaci
 	class ApiClient
 	{
 		private readonly HttpClient Client;
+		private readonly Logger Logger = new Logger(nameof(ApiClient));
 
 		public ApiClient(string token)
 		{
@@ -23,16 +24,14 @@ namespace PrijemciDotaci
 			if (result.Jmeno != name)
 			{
 				var color = Console.ForegroundColor;
-				Console.ForegroundColor = ConsoleColor.Red;
-				Console.Write($" !!!!!!!!!!! ");
-				Console.ForegroundColor = color;
+				Logger.Warn($"ICO nenalezeno pro firmu {name}");
 
 				result.ICO = result.ICO;
 				result.Nalezeno = false;
 				return result;
 			}
 
-			Console.Write($" ({result.ICO}) ");
+			Logger.Info($"{name} ({result.ICO}) ");
 
 			result.Nalezeno = true;
 			return result;

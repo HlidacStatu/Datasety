@@ -16,6 +16,7 @@ namespace PrijemciDotaci
 				Help();
 				return;
 			}
+
 			var yearArg = args.FirstOrDefault(a => a.StartsWith("--rok="))?.Substring(6);
 			var year = 2017;
 			if (yearArg == null || !int.TryParse(yearArg, out year))
@@ -27,8 +28,19 @@ namespace PrijemciDotaci
 			var dataset = new Dataset(token);
 			var apiClient = new ApiClient(token);
 
-			var handler = new Handler(dataset, apiClient);
-			handler.Execute(year).Wait();
+			//dataset.Recreate().Wait();
+
+			var csvFile = args.FirstOrDefault(a => a.StartsWith("--csv="))?.Substring(6);
+			if (csvFile != null)
+			{
+				var parser = new CsvParser(dataset);
+				parser.Execute(year, csvFile).Wait();
+			}
+			else
+			{
+				var handler = new Handler(dataset, apiClient);
+				handler.Execute(year).Wait();
+			}
 
 			Console.WriteLine();
 			Console.WriteLine("Done");
@@ -40,6 +52,7 @@ namespace PrijemciDotaci
 			Console.WriteLine("Parametry spusteni:");
 			Console.WriteLine("  --rok=<rok> - rok, pro ktery se stahuji prijemci dotaci");
 			Console.WriteLine("  --token=<token> - autorizacni token do Hlidace Statu");
+			Console.WriteLine("  --csv=<cesta k souboru> - nepovinny, cesta k souboru CSV s importovanymi data (primarne pro data z dotacni-parazit.cz)");
 			Console.WriteLine();
 			Console.WriteLine("Ukazka volani:");
 			Console.WriteLine("  RejstrikTrestuPravnickychOsob --rok=2017 --token=0123456789ABCDEF");

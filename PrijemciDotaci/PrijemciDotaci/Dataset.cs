@@ -30,7 +30,7 @@ namespace PrijemciDotaci
 		}
 
 		private readonly Dataset<PrijemceDotace> Definition = new Dataset<PrijemceDotace>(
-			"Příjemci dotací", 
+			"Příjemci dotací",
 			"PrijemciDotaci",
 			"http://www.szif.cz/cs/seznam-prijemcu-dotaci",
 			"Seznam příjemců dotací z fondů EU a ze státního rozpočtu ČR prostřednictvím administrace Státního zemědělského intervenčního fondu (SZIF)",
@@ -84,7 +84,7 @@ namespace PrijemciDotaci
 				</td>
             </tr>
 {{end}}
-</tbody></table>" }, 
+</tbody></table>" },
 			new Template { Body = @"{{this.item = model }}
 <table class=""table table-hover"" >
         <tbody>
@@ -150,7 +150,13 @@ namespace PrijemciDotaci
 
 	public class PrijemceDotace : IDatasetItem
 	{
-		public string Id { get; set; }
+		public string Id
+		{
+			get
+			{
+				return Utils.CalculateMD5Hash($"{ICO}-{Jmeno}-{Rok}-{Fond}-{ZdrojeCelkem}");
+			}
+		}
 		public string ICO { get; set; }
 		public string Jmeno { get; set; }
 		public string Adresa { get; set; }
