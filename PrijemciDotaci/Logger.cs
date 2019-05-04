@@ -32,9 +32,14 @@ namespace PrijemciDotaci
 			WriteToFile(message, "WARN");
 		}
 
+		private static readonly object LockRoot = new object();
+
 		private void WriteToFile(string message, string type)
 		{
-			File.AppendAllLines("app.log", new[] { $"{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")} {type}: {message}" });
+			lock (LockRoot)
+			{
+				File.AppendAllLines("app.log", new[] { $"{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")} {type}: {message}" });
+			}
 		}
 	}
 }

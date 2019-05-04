@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace PrijemciDotaci
 {
@@ -34,7 +37,7 @@ namespace PrijemciDotaci
 			if (csvFile != null)
 			{
 				var parser = new CsvParser(dataset);
-				parser.Execute(year, csvFile).Wait();
+				parser.Execute(year, csvFile);
 			}
 			else
 			{

@@ -37,7 +37,7 @@ namespace PrijemciDotaci
 			"https://github.com/HlidacStatu/Datasety",
 			true,
 			false,
-			new string[,] { { "Rok", "Rok" }, { "Název", "Nazev" }, { "Fond", "Fond" }, { "Zdroje ČR", "ZdrojeCr" }, { "Zdroje EU", "ZdrojeEu" }, { "Zdroje celkem", "ZdrojeCelkem" } },
+			new string[,] { { "Rok", "Rok" }, { "Název", "Nazev" }, { "Fond", "Fond" }, { "Zdroje celkem", "ZdrojeCelkem" } },
 			new Template { Body = @"<table class=""table table-hover"" >
     <thead>
         <tr>
