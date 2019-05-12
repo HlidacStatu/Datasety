@@ -1,6 +1,6 @@
 {
   "dependencies": {
-	"apify": "^0.9.7",
+	"apify": "latest",
 	"request-promise": "latest"
     },
     "scripts": {

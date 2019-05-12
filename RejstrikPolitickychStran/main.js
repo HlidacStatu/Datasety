@@ -25,8 +25,9 @@ const extractDataFromPage = async (page) => {
     const result = await page.evaluate(() => {
         
         const parseDate = (date) => {
-            // 12.9.1954 => 1954-09-12T00:00Z
+            // 12.9.1954 => 1954-09-12
             const dateParts = date.split('.');
+            if (dateParts.length != 3) return null;
             const month = dateParts[1].length === 1 ? "0" + dateParts[1] : dateParts[1];
             const day = dateParts[0].length === 1 ? "0" + dateParts[0] : dateParts[0];
             return dateParts[2] + "-" + month + "-" + day;// + "T00:00Z";
@@ -73,7 +74,7 @@ Apify.main(async () => {
     const data = [];
     
     const queue = await Apify.openRequestQueue();
-    const browser = await Apify.launchPuppeteer({ liveView: true, dumpio: true });
+    const browser = await Apify.launchPuppeteer({ liveView: true });
     
     // Go to search.
     const page = await browser.newPage();
@@ -100,6 +101,9 @@ Apify.main(async () => {
             const links = await page.$$('#searchResults a');
             await links[i].click();
             await page.waitForSelector('#ctl00_Application_lblNazevStrany');
+
+            // slow down crawling process
+            await Apify.utils.sleep(2000);
 
             // Extract data.
             const extracted = await extractDataFromPage(page);
