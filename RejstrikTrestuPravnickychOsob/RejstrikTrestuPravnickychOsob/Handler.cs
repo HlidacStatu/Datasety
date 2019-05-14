@@ -27,7 +27,6 @@ namespace RejstrikTrestuPravnickychOsob
 			var content = await client.GetStringAsync(Url);
 			var id = 0;
 
-			await DatasetConnector.Recreate();
 
 			var csvParser = new CsvParser<Trest>(new CsvParserOptions(true, ','), new TrestMapping());
 			var data = csvParser.ReadFromString(new CsvReaderOptions(new[] { "\n" }), content.Trim());
