@@ -41,7 +41,7 @@ namespace MostyRSD
                 );
 
 
-            var datasetId = dsc.CreateDataset<Most>(dsDef).Result;
+           // var datasetId = dsc.CreateDataset<Most>(dsDef).Result;
 
             //use this later for updating dataset
             //var datasetId = dsc.UpdateDataset<Most>(dsDef).Result;
@@ -122,7 +122,7 @@ namespace MostyRSD
                              System.Globalization.DateTimeStyles.AssumeLocal, out var datum))
                             m.PosledniProhlidka = datum;
                     }
-
+                    Console.WriteLine(m.Jmeno);
                     var id = dsc.AddItemToDataset<Most>(ds, m).Result;
                 }
 
