@@ -37,19 +37,20 @@ namespace StenozaznamyPSP
                 new ClassicTemplate.ClassicSearchResultTemplate()
                     .AddColumn("Id", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}</a>")
                     .AddColumn("Začátek volebního období", "{{ item.rok_zahajeni_vo }}")
-                    .AddColumn("Osoba", "{{ fn_RenderPersonWithLink o.OsobaId o.celeJmeno \"\" }}")
+                    .AddColumn("Osoba", "{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno \"\" }}")
                     .AddColumn("Téma", "{{ fn_ShortenText item.tema 50 }}")
                 ,
                 new ClassicTemplate.ClassicDetailTemplate()
                     .AddColumn("Id", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}</a>")
                     .AddColumn("Začátek volebního období", "{{ item.rok_zahajeni_vo }}")
-                    .AddColumn("Osoba", "{{ fn_RenderPersonWithLink o.OsobaId o.celeJmeno \"\" }}")
+                    .AddColumn("Osoba", "{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno \"\" }}")
                     .AddColumn("Funkce", "{{ item.funkce }}")
                     .AddColumn("Téma", "{{ item.tema }}")
                     .AddColumn("Vystoupení", "{{ item.text }}")
                 );
 
             string datasetid = dsDef.DatasetId;
+
             if (!dsc.DatasetExists<Steno>(dsDef).Result)
                 datasetid = dsc.CreateDataset<Steno>(dsDef).Result;
             else
@@ -95,10 +96,11 @@ namespace StenozaznamyPSP
                         item.Id = item.CalcId(num);
                         item.OsobaId = GetOsobaId(item.celeJmeno, item.funkce);
 
-                        if (num % 50 == 0)
-                            Console.WriteLine($"{fn} - {num} record");
+                        //if (num % 50 == 0)
+                        //    Console.WriteLine($"{fn} - {num} records");
 
                         var id = dsc.AddItemToDataset<Steno>(ds, item, DatasetConnector.AddItemMode.Rewrite).Result;
+                        Console.WriteLine(id);
                     }
                 }
             }
