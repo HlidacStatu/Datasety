@@ -9,12 +9,21 @@ namespace StenozaznamyPSP
     public class Steno : HlidacStatu.Api.Dataset.Connector.IDatasetItem
     {
         //csv rok,datum,schuze,fn,autor,funkce,tema,text
-        public string CalcId(int num)
+        public string CalcId(int row)
         {
-            return $"{rok_zahajeni_vo}_{schuze}_{num:00000}";
+            return $"{obdobi}_{schuze}_{row:00000}";
         }
+        public int GetRowFromId()
+        {
+            var p = this.Id.Split('_');
+            if (p.Length == 3)
+                return Convert.ToInt32(p[2]);
+            else
+                return 0;
+        }
+
         public string Id { get; set; }
-        public int rok_zahajeni_vo { get; set; }
+        public int obdobi { get; set; }
         public DateTime? datum { get; set; }
         public int schuze { get; set; }
         public string fn { get; set; }
