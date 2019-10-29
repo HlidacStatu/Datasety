@@ -17,14 +17,26 @@ namespace StenozaznamyPSP
     {
         static string apikey = System.Configuration.ConfigurationManager.AppSettings["apikey"];
         static HlidacStatu.Api.Dataset.Connector.DatasetConnector dsc;
+        internal static Random rnd = new Random();
+
         static void Main(string[] args)
         {
+
+            //Parse.net.Encoding = System.Text.Encoding.GetEncoding("windows-1250");
+
+            //read poslanci jmena
+            jmena = poslanci
+               .Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries)
+               .Select(m => m.Split('\t'))
+               .Where(m => m.Length == 3)
+               .Select(m => new string[] { m[0].Trim() + " " + m[1].Trim(), m[2].Trim() });
+
+
+
             if (args.Length < 1)
                 return;
-            string fn = System.IO.Path.GetFullPath(args[0]);
 
-            if (args.Length > 1)
-                apikey = args[1];
+            apikey = args[0];
 
             dsc = new HlidacStatu.Api.Dataset.Connector.DatasetConnector(apikey);
 
@@ -36,43 +48,114 @@ namespace StenozaznamyPSP
                 new string[,] { { "Podle datumu", "Id" }, { "Podle volebního období", "období" }, { "Podle datumu", "Id" }, },
                 new ClassicTemplate.ClassicSearchResultTemplate()
                     .AddColumn("Id", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}</a>")
-                    .AddColumn("Začátek volebního období", "{{ item.obdobi }}")
+                    .AddColumn("Datum", "{{ fn_FormatDate item.datum }}")
                     .AddColumn("Osoba", "{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno \"\" }}")
                     .AddColumn("Téma", "{{ fn_ShortenText item.tema 50 }}")
                 ,
                 new ClassicTemplate.ClassicDetailTemplate()
                     .AddColumn("Id", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}</a>")
-                    .AddColumn("Začátek volebního období", "{{ item.obdobi }}")
+                    .AddColumn("Datum", "{{ fn_FormatDate item.datum }}")
                     .AddColumn("Osoba", "{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno \"\" }}")
                     .AddColumn("Funkce", "{{ item.funkce }}")
                     .AddColumn("Téma", "{{ item.tema }}")
-                    .AddColumn("Vystoupení", "{{ item.text }}")
+                    .AddColumn("Vystoupení", "{{ fn_HighlightText highlightingData item.text \"text\" }}")
                 );
 
             string datasetid = dsDef.DatasetId;
-
-            if (!dsc.DatasetExists<Steno>(dsDef).Result)
-                datasetid = dsc.CreateDataset<Steno>(dsDef).Result;
-            else
+            if (apikey != "csv")
             {
-                //dsc.UpdateDataset<Steno>(dsDef).Result;
+                if (!dsc.DatasetExists<Steno>(dsDef).Result)
+                    datasetid = dsc.CreateDataset<Steno>(dsDef).Result;
+                else
+                {
+                    //dsc.UpdateDataset<Steno>(dsDef).Result;
+                }
             }
 
+            //var data = ParsePSPWeb.ParseSchuze(2010, 5).ToArray();
+            //System.Diagnostics.Debugger.Break();
+
+            StreamWriter reader = null;
+            CsvWriter csv = null;
+
+            HashSet<string> jmena2Check = new HashSet<string>();
+
+            int[] roky = new int[] { 2010, 2013, 2017 };
+            foreach (var rok in roky)
+            {
+                if (apikey == "csv")
+                {
+                    reader = new StreamWriter($"{rok}.csv");
+                    csv = new CsvWriter(reader,
+                        new CsvHelper.Configuration.Configuration()
+                        {
+                            HasHeaderRecord = true,
+                            Delimiter = ","
+                        });
+                    csv.WriteHeader<Steno>();
+                    csv.NextRecord();
+                }
+
+                var pocetSchuzi = ParsePSPWeb.PocetSchuzi(rok);
+
+                //find latest item already in DB
+
+                var lastSchuzeInDb = 1;
+                try
+                {
+                    var last = dsc.SearchItemsInDataset<Steno>(dsDef.DatasetId, $"obdobi:{rok}", 1, "schuze", true)
+                        .Result.results.FirstOrDefault();
+                    lastSchuzeInDb = last?.schuze ?? 1;
+                }
+                catch (Exception)
+                {
+                }
+
+
+                for (int s = lastSchuzeInDb; s <= pocetSchuzi; s++)
+                {
+                    foreach (var item in ParsePSPWeb.ParseSchuze(rok, s))
+                    {
+                        if (item.celeJmeno?.Split(' ')?.Count() > 2)
+                            if (!jmena2Check.Contains(item.celeJmeno))
+                                jmena2Check.Add(item.celeJmeno);
+
+                        if (apikey == "csv")
+                        {
+                            csv.WriteRecord<Steno>(item);
+                            csv.NextRecord();
+                            if (item.poradi % 10 == 0)
+                                csv.Flush();
+                        }
+                        else
+                            SaveItem(dsDef, item, true);
+                    }
+                }
+
+                if (apikey == "csv")
+                {
+                    csv.Flush();
+                    csv.Dispose();
+                    reader.Close();
+                }
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Podezrela jmena:");
+            foreach (var k in jmena2Check)
+                Console.WriteLine(k);
+
+            return;
 
 
             //download, parse and save data into dataset
-            GetData(dsDef, datasetid, fn);
+            //GetData(dsDef, datasetid, fn);
         }
+
 
         static void GetData(Dataset<Steno> ds, string datasetId, string fn, bool rewrite = false)
         {
 
-            //read poslanci jmena
-            jmena = poslanci
-               .Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries)
-               .Select(m => m.Split('\t'))
-               .Where(m => m.Length == 3)
-               .Select(m => new string[] { m[0].Trim() + " " + m[1].Trim(), m[2].Trim() });
 
 
             int num = 0;
@@ -99,7 +182,7 @@ namespace StenozaznamyPSP
                             obdobi = csv.GetField<int>("rok"),
                             datum = null,
                             schuze = csv.GetField<int>("schuze"),
-                            fn = csv.GetField<string>("fn"),
+                            url = csv.GetField<string>("fn"),
                             celeJmeno = csv.GetField<string>("autor"),
                             funkce = csv.GetField<string>("funkce"),
                             tema = csv.GetField<string>("tema"),
@@ -112,18 +195,17 @@ namespace StenozaznamyPSP
                             var last = dsc.SearchItemsInDataset<Steno>(ds.DatasetId, $"rok_zahajeni_vo:{item.obdobi}", 1, "DbCreated", true)
                                 .Result.results.FirstOrDefault();
 
-                            skip = last?.GetRowFromId() ?? 0;
+                            skip = last?.poradi ?? 0;
 
                         }
                         num++;
                         if (num < skip - 10)
                             continue;
 
-                        item.Id = item.CalcId(num);
 
                         var osobaId = fromJmeno(item.celeJmeno);
                         if (string.IsNullOrEmpty(osobaId))
-                            osobaId= findInHS(item.celeJmeno, item.funkce);
+                            osobaId = findInHS(item.celeJmeno, item.funkce);
 
                         item.OsobaId = osobaId;
 
@@ -155,6 +237,41 @@ namespace StenozaznamyPSP
             }
         }
 
+        static void SaveItem(Dataset<Steno> ds, Steno item, bool loadOsobaId)
+        {
+
+            if (string.IsNullOrEmpty(item.OsobaId) && loadOsobaId)
+            {
+                var osobaId = fromJmeno(item.celeJmeno);
+                if (string.IsNullOrEmpty(osobaId))
+                    osobaId = findInHS(item.celeJmeno, item.funkce);
+
+                item.OsobaId = osobaId;
+            }
+
+            int tries = 0;
+        AddAgain:
+            try
+            {
+                tries++;
+                var id = dsc.AddItemToDataset<Steno>(ds, item, DatasetConnector.AddItemMode.Rewrite).Result;
+                Console.Write("s");
+
+            }
+            catch (Exception e)
+            {
+                if (tries < 300)
+                {
+                    Console.Write("S");
+                    System.Threading.Thread.Sleep(10 * 1000);
+                    goto AddAgain;
+                }
+                else
+                    Console.WriteLine(e.Message);
+            }
+
+        }
+
         public static string findInHS(string fullname, string fce)
         {
             using (var net = new System.Net.WebClient())
@@ -170,6 +287,8 @@ namespace StenozaznamyPSP
 
         public static string fromJmeno(string fullname)
         {
+            if (string.IsNullOrEmpty(fullname))
+                return fullname;
             //using (var net = new System.Net.WebClient())
             //{
             //    net.Encoding = System.Text.Encoding.UTF8;

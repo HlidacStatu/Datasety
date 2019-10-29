@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{0B313521-DD9F-40D6-A86A-8A36FBEE4568}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>StenoprotokolyPSP</RootNamespace>
+    <RootNamespace>StenozaznamyPSP</RootNamespace>
     <AssemblyName>StenozaznamyPSP</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -51,8 +51,20 @@
     <Reference Include="CsvHelper, Version=12.0.0.0, Culture=neutral, PublicKeyToken=8c4959082be5c823, processorArchitecture=MSIL">
       <HintPath>packages\CsvHelper.12.1.2\lib\net45\CsvHelper.dll</HintPath>
     </Reference>
+    <Reference Include="Devmasters.Core, Version=1.462.2.30, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Devmasters.Core.1.462.2.30\lib\net40\Devmasters.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Devmasters.Net, Version=1.472.3.24, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Devmasters.Net.1.472.3.24\lib\Net45\Devmasters.Net.dll</HintPath>
+    </Reference>
     <Reference Include="HlidacStatu.Api.Dataset.Connector, Version=1.3.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\HlidacStatu.Api.Dataset.Connector.1.3.3\lib\net462\HlidacStatu.Api.Dataset.Connector.dll</HintPath>
+    </Reference>
+    <Reference Include="HtmlAgilityPack, Version=1.11.16.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>packages\HtmlAgilityPack.1.11.16\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -79,9 +91,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ParsePSPWeb.cs" />
     <Compile Include="Steno.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XPath.cs" />
+    <Compile Include="XPath.Tools.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -99,6 +114,11 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="pozice.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
