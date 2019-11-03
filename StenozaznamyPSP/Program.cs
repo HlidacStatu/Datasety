@@ -33,11 +33,17 @@ namespace StenozaznamyPSP
 
 
 
-            if (args.Length < 1)
+            if (args.Length < 2)
+            {
+                Console.WriteLine("StenozaznamyPSP {csv/API_KEY} {rok} [rewrite]")
                 return;
+            }
 
             apikey = args[0];
             int rok = Convert.ToInt32(args[1]);
+            bool rewrite = false;
+            if (args.Length == 3 && args[2].ToLower() == "rewrite")
+                rewrite = true;
 
             dsc = new HlidacStatu.Api.Dataset.Connector.DatasetConnector(apikey);
 
@@ -46,20 +52,147 @@ namespace StenozaznamyPSP
                 "Stenozáznamy Poslanecké sněmovny Parlamentu ČR", "stenozaznamy-psp", "http://www.psp.cz", "Stenozáznamy (těsnopisecké záznamy) jednání Poslanecké sněmovny a jejích orgánů. S využitím Open dat knihovny Ondřeje Kokeše https://github.com/kokes/od/tree/master/data/psp/steno",
                 "https://github.com/HlidacStatu/Datasety/tree/master/StenozaznamyPSP",
                 true, true,
-                new string[,] { { "Podle datumu", "Id" }, { "Podle volebního období", "období" }, { "Podle datumu", "Id" }, },
-                new ClassicTemplate.ClassicSearchResultTemplate()
-                    .AddColumn("Id", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}</a>")
-                    .AddColumn("Datum", "{{ fn_FormatDate item.datum }}")
-                    .AddColumn("Osoba", "{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno \"\" }}")
-                    .AddColumn("Téma", "{{ fn_ShortenText item.tema 50 }}")
-                ,
-                new ClassicTemplate.ClassicDetailTemplate()
-                    .AddColumn("Id", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}</a>")
-                    .AddColumn("Datum", "{{ fn_FormatDate item.datum }}")
-                    .AddColumn("Osoba", "{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno \"\" }}")
-                    .AddColumn("Funkce", "{{ item.funkce }}")
-                    .AddColumn("Téma", "{{ item.tema }}")
-                    .AddColumn("Vystoupení", "{{ fn_HighlightText highlightingData item.text \"text\" }}")
+                new string[,] {  
+                    { "Podle konání", "Id.keyword" }, 
+                    { "Podle volebního období", "období" }, 
+                    { "Podle osoby", "celeJmeno" },
+                    { "Podle délky projevu", "pocetSlov" },
+                },
+                new Template() { 
+                    Body = @"
+<!-- scriban {{ date.now }} --> 
+  <table class=""table table-hover"">                                                                                                                    
+    <thead>
+      <tr>                                                                                                                                                                                        
+        <th>Id
+        </th>
+        <th>Datum
+        </th>
+        <th>Schůze
+        </th>
+        <th>Osoba        
+        </th>
+        <th>Délka projevu        
+        </th>
+        <th>Téma        
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ for item in model.Result }}                                                                                                                                    
+      <tr>        
+        <td >                                                                                                                                                                                                                            
+          <a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}          
+          </a>
+        </td>
+        <td >{{ fn_FormatDate item.datum }}                                                                                                                                                                                
+        </td>
+        <td>                                                                                          
+          <a href=""/data/Hledat/stenozaznamy-psp?Q=obdobi%3A{{ item.obdobi }}%20AND%20schuze%3A{{ item.schuze}}&order=Id.keyword%20asc"">Schůze
+            {{ item.schuze }}/{{ item.obdobi}}                                                                                          
+          </a>
+        </td>
+        <td >{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno """" }}                                                                                                                
+        </td>
+        <td>{{  string.to_long item.pocetSlov | math.divided_by 200 | fn_Pluralize ""pár sekund"" ""minuta"" ""{0} minuty"" ""{0} minut"" }}                                                                                        
+        </td>
+        <td >{{ fn_ShortenText item.tema 50 }}                                                                                                        
+        </td>
+      </tr>
+      {{ end }}                                        
+    </tbody>
+  </table>
+" },
+                new Template() { 
+                Body= @"
+<!-- scriban {{ date.now }} -->
+  {{this.item = model}}                                              
+  <table class=""table table-hover"">
+    <tbody>                                                                                                                                          
+      <tr>
+        <td>Id                                                                                                                                                                                        
+        </td>
+        <td >                                                                                                                                                                                                                                      
+          <a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>Datum                                                                                                                                                                                        
+        </td>
+        <td >{{ fn_FormatDate item.datum }}                                                                                                                                                                                        
+        </td>
+      </tr>
+      <tr>
+        <td>Schůze                                                                
+        </td>
+        <td>                                                                                
+          <a href=""/data/Hledat/stenozaznamy-psp?Q=obdobi%3A{{ item.obdobi }}%20AND%20schuze%3A{{ item.schuze}}&order=Id.keyword%20asc"">Schůze
+            {{ item.schuze }}/{{ item.obdobi}}                                                                                
+          </a>
+        </td>
+      </tr>
+      <tr>                                                                
+        <td>Osoba                                                                                                                        
+        </td>
+        <td >{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno """" }}                                                                                                                        
+        </td>
+      </tr>
+      <tr>                                                                
+        <td>Funkce                                                                                                                        
+        </td>
+        <td >{{ item.funkce }}                                                                                                                        
+        </td>
+      </tr>
+      <tr>                                                                
+        <td>Téma                                                                                                                        
+        </td>
+        <td >{{ item.tema }}                                                                                                                        
+        </td>
+      </tr>
+      <tr>                                                                
+        <td>Vystoupení                                                                                                                        
+        </td>
+        <td >                                                                                                                                            
+          <pre>{{ fn_HighlightText highlightingData item.text ""text"" }}                                                                                
+          </pre>
+        </td>
+      </tr>
+      <tr>        
+        <td colspan=""2"">
+          {{ if item.poradi > 1 }}                      
+          <a href=""{{ item.obdobi + ""_""+item.schuze + ""_"" + (string.to_long item.poradi | math.minus 1 | object.format ""00000"" ) | fn_DatasetItemUrl  }}"" target=""_blank"">&lt;&lt; Předchozí projev
+          </a>
+{{else}}
+&nbsp;{{ end }}          
+          <a style=""padding-left:30px;"" href=""{{ item.obdobi + ""_""+item.schuze + ""_"" + (string.to_long item.poradi | math.plus 1 | object.format ""00000"" ) | fn_DatasetItemUrl  }}"" target=""_blank"">Následující projev  &gt;&gt;                                                                   
+          </a>
+        </td>
+      </tr>
+      <tr>                                                
+        <td>Zdroj                                                 
+        </td>
+        <td >                                        
+          <a href=""{{ item.url }}"" target=""_blank"">{{ item.url }}                                                            
+          </a>
+        </td>
+      </tr>
+    </table>
+"}
+
+                //new ClassicTemplate.ClassicSearchResultTemplate()
+                //    .AddColumn("Id", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}</a>")
+                //    .AddColumn("Datum", "{{ fn_FormatDate item.datum }}")
+                //    .AddColumn("Osoba", "{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno \"\" }}")
+                //    .AddColumn("Téma", "{{ fn_ShortenText item.tema 50 }}")
+                //,
+                //new ClassicTemplate.ClassicDetailTemplate()
+                //    .AddColumn("Id", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}</a>")
+                //    .AddColumn("Datum", "{{ fn_FormatDate item.datum }}")
+                //    .AddColumn("Osoba", "{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno \"\" }}")
+                //    .AddColumn("Funkce", "{{ item.funkce }}")
+                //    .AddColumn("Téma", "{{ item.tema }}")
+                //    .AddColumn("Vystoupení", "{{ fn_HighlightText highlightingData item.text \"text\" }}")
                 );
 
             string datasetid = dsDef.DatasetId;
@@ -100,17 +233,18 @@ namespace StenozaznamyPSP
             //find latest item already in DB
 
             var lastSchuzeInDb = 1;
-            try
-            {
-                var last = dsc.SearchItemsInDataset<Steno>(dsDef.DatasetId, $"obdobi:{rok}", 1, "schuze", true)
-                    .Result.results.FirstOrDefault();
-                lastSchuzeInDb = last?.schuze ?? 1;
+            if (rewrite == false)
+            { try
+                {
+                    var last = dsc.SearchItemsInDataset<Steno>(dsDef.DatasetId, $"obdobi:{rok}", 1, "schuze", true)
+                        .Result.results.FirstOrDefault();
+                    lastSchuzeInDb = last?.schuze ?? 1;
+                }
+                catch (Exception e)
+                {
+                    //Console.WriteLine(e.ToString());
+                }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-
 
             for (int s = lastSchuzeInDb; s <= pocetSchuzi; s++)
             {

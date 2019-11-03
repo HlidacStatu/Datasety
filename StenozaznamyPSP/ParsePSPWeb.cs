@@ -133,6 +133,7 @@ namespace StenozaznamyPSP
                     var mluvci = XPath.Tools.GetNodeText(b, "./a[starts-with(@href,'/sqw/detail')]")
                         ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'/sqw/detail')]")
                         ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'/ff/')]") //2002
+                        ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'/sqw/p.sqw')]") //1998 
                         ?? XPath.Tools.GetNodeText(b, "./b/b/a[string-length(@href)=0]") //1998
                         ?? GetRegexGroupValue(b.InnerHtml, @"^\s*<b> ((?<name>(\w*\s*){2,})) [:]?  </b> \s? [:]? ", "name") //v 2006 a starsich jsou i jmena v <b> bez <a>
                         ;
