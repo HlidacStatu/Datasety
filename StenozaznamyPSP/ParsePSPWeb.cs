@@ -148,6 +148,7 @@ namespace StenozaznamyPSP
                             {
                                 funkce = f;
                                 mluvci = mluvci.Substring(f.Length).Trim();
+                                mluvci = mluvci.Replace(":", "").Trim();
                                 break;
                             }
                         }

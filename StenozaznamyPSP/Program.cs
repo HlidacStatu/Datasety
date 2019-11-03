@@ -35,7 +35,7 @@ namespace StenozaznamyPSP
 
             if (args.Length < 2)
             {
-                Console.WriteLine("StenozaznamyPSP {csv/API_KEY} {rok} [rewrite]")
+                Console.WriteLine("StenozaznamyPSP {csv/API_KEY} {rok} [rewrite]");
                 return;
             }
 
@@ -233,6 +233,7 @@ namespace StenozaznamyPSP
             //find latest item already in DB
 
             var lastSchuzeInDb = 1;
+
             if (rewrite == false)
             { try
                 {
@@ -245,6 +246,9 @@ namespace StenozaznamyPSP
                     //Console.WriteLine(e.ToString());
                 }
             }
+
+            if (args.Length == 4)
+                lastSchuzeInDb = Convert.ToInt32(args[3]);
 
             for (int s = lastSchuzeInDb; s <= pocetSchuzi; s++)
             {
