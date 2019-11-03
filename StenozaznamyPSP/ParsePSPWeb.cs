@@ -29,7 +29,10 @@ namespace StenozaznamyPSP
                 {"prosince","12." },
             };
 
-        static string[] vsechnyFunkce = System.IO.File.ReadAllLines("pozice.txt");
+        static string[] vsechnyFunkce = System.IO.File.ReadAllLines("pozice.txt")
+                                            .Select(t=>t.Trim())
+                                            .Where(t=>t.Length>0)
+                                            .ToArray();
 
         public static int PocetSchuzi(int rok)
         {
@@ -131,12 +134,19 @@ namespace StenozaznamyPSP
                     bool newProslov = false;
                     //nekdy je v <b><a>, nekdy pouze <a>
                     var mluvci = XPath.Tools.GetNodeText(b, "./a[starts-with(@href,'/sqw/detail')]")
-                        ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'/sqw/detail')]")
+                        ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'http')]") //obcas odkaz mimo psp
+                        ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'/sqw/')]")  //obcas ruzne a v 1998
+                        ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@HREF,'/sqw/')]")  //obcas HREF 
                         ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'/ff/')]") //2002
-                        ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'/sqw/p.sqw')]") //1998 
                         ?? XPath.Tools.GetNodeText(b, "./b/b/a[string-length(@href)=0]") //1998
                         ?? GetRegexGroupValue(b.InnerHtml, @"^\s*<b> ((?<name>(\w*\s*){2,})) [:]?  </b> \s? [:]? ", "name") //v 2006 a starsich jsou i jmena v <b> bez <a>
                         ;
+
+                    mluvci = mluvci?.Trim();
+                    if (mluvci?.EndsWith(":") == true)
+                        mluvci = mluvci.Substring(0, mluvci.Length - 1);
+                    if (mluvci?.Contains("&nbsp;") == true)
+                        mluvci = mluvci.Replace("&nbsp;", " ").Trim();
 
                     string funkce = "";
                     if (!string.IsNullOrEmpty(mluvci))
@@ -148,7 +158,6 @@ namespace StenozaznamyPSP
                             {
                                 funkce = f;
                                 mluvci = mluvci.Substring(f.Length).Trim();
-                                mluvci = mluvci.Replace(":", "").Trim();
                                 break;
                             }
                         }
@@ -330,3 +339,6 @@ namespace StenozaznamyPSP
 
     }
 }
+
+
+

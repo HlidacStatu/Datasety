@@ -61,9 +61,9 @@ namespace StenozaznamyPSP
                 new Template() { 
                     Body = @"
 <!-- scriban {{ date.now }} --> 
-  <table class=""table table-hover"">                                                                                                                    
+  <table class=""table table-hover"">                                                                                                                            
     <thead>
-      <tr>                                                                                                                                                                                        
+      <tr>                                                                                                                                                                                                        
         <th>Id
         </th>
         <th>Datum
@@ -79,100 +79,107 @@ namespace StenozaznamyPSP
       </tr>
     </thead>
     <tbody>
-      {{ for item in model.Result }}                                                                                                                                    
+      {{ for item in model.Result }}                                                                                                                                                
       <tr>        
-        <td >                                                                                                                                                                                                                            
+        <td >                                                                                                                                                                                                                                                
           <a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}          
           </a>
         </td>
-        <td >{{ fn_FormatDate item.datum }}                                                                                                                                                                                
+        <td >{{ fn_FormatDate item.datum }}                                                                                                                                                                                                
         </td>
-        <td>                                                                                          
+        <td>                                                                                                              
           <a href=""/data/Hledat/stenozaznamy-psp?Q=obdobi%3A{{ item.obdobi }}%20AND%20schuze%3A{{ item.schuze}}&order=Id.keyword%20asc"">Schůze
-            {{ item.schuze }}/{{ item.obdobi}}                                                                                          
+            {{ item.schuze }}/{{ item.obdobi}}                                                                                                              
           </a>
         </td>
         <td >{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno """" }}                                                                                                                
         </td>
-        <td>{{  string.to_long item.pocetSlov | math.divided_by 200 | fn_Pluralize ""pár sekund"" ""minuta"" ""{0} minuty"" ""{0} minut"" }}                                                                                        
+        <td>{{  string.to_long item.pocetSlov | math.divided_by 200 | fn_Pluralize ""do minuty"" ""minuta"" ""{0} minuty"" ""{0} minut"" }}                                                                                        
         </td>
         <td >{{ fn_ShortenText item.tema 50 }}                                                                                                        
         </td>
       </tr>
-      {{ end }}                                        
+      {{ end }}                                                
     </tbody>
   </table>
+
 " },
                 new Template() { 
                 Body= @"
 <!-- scriban {{ date.now }} -->
-  {{this.item = model}}                                              
+  {{this.item = model}}                                                  
   <table class=""table table-hover"">
-    <tbody>                                                                                                                                          
+    <tbody>                                                                                                                                                      
       <tr>
-        <td>Id                                                                                                                                                                                        
+        <td>Id                                                                                                                                                                                                        
         </td>
-        <td >                                                                                                                                                                                                                                      
+        <td >                                                                                                                                                                                                                                                          
           <a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}
           </a>
         </td>
       </tr>
       <tr>
-        <td>Datum                                                                                                                                                                                        
+        <td>Datum                                                                                                                                                                                                        
         </td>
-        <td >{{ fn_FormatDate item.datum }}                                                                                                                                                                                        
+        <td >{{ fn_FormatDate item.datum }}                                                                                                                                                                                                        
         </td>
       </tr>
       <tr>
-        <td>Schůze                                                                
+        <td>Schůze                                                                                
         </td>
-        <td>                                                                                
+        <td>                                                                                                    
           <a href=""/data/Hledat/stenozaznamy-psp?Q=obdobi%3A{{ item.obdobi }}%20AND%20schuze%3A{{ item.schuze}}&order=Id.keyword%20asc"">Schůze
-            {{ item.schuze }}/{{ item.obdobi}}                                                                                
+            {{ item.schuze }}/{{ item.obdobi}}                                                                                                    
           </a>
         </td>
       </tr>
-      <tr>                                                                
+      <tr>                                                                                
         <td>Osoba                                                                                                                        
         </td>
         <td >{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno """" }}                                                                                                                        
         </td>
       </tr>
-      <tr>                                                                
+      <tr>                                                                                
         <td>Funkce                                                                                                                        
         </td>
         <td >{{ item.funkce }}                                                                                                                        
         </td>
       </tr>
-      <tr>                                                                
+      <tr>                                                                                
         <td>Téma                                                                                                                        
         </td>
         <td >{{ item.tema }}                                                                                                                        
         </td>
       </tr>
-      <tr>                                                                
+      <tr>                                                                                
+        <td>Délka projevu                                                                                                                        
+        </td>
+        <td >{{  string.to_long item.pocetSlov | math.divided_by 200 | fn_Pluralize ""do minuty"" ""minuta"" ""{0} minuty"" ""{0} minut"" }} ({{ item.pocetSlov |fn_Pluralize ""{0} slov"" ""{1} slovo"" ""{0} slova"" ""{0} slov"" }})                                                                                                                        
+        </td>
+      </tr>
+      <tr>                                                                                
         <td>Vystoupení                                                                                                                        
         </td>
         <td >                                                                                                                                            
-          <pre>{{ fn_HighlightText highlightingData item.text ""text"" }}                                                                                
+          <pre>{{ fn_HighlightText highlightingData item.text ""text"" }}                                                                                                    
           </pre>
         </td>
       </tr>
-      <tr>        
+      <tr>                        
         <td colspan=""2"">
-          {{ if item.poradi > 1 }}                      
-          <a href=""{{ item.obdobi + ""_""+item.schuze + ""_"" + (string.to_long item.poradi | math.minus 1 | object.format ""00000"" ) | fn_DatasetItemUrl  }}"" target=""_blank"">&lt;&lt; Předchozí projev
+          {{ if item.poradi > 1 }}                                          
+          <a href=""{{ item.obdobi + ""_""+item.schuze + ""_"" + (string.to_long item.poradi | math.minus 1 | object.format ""00000"" ) | fn_DatasetItemUrl  }}"" >&lt;&lt; Předchozí projev
           </a>
 {{else}}
-&nbsp;{{ end }}          
-          <a style=""padding-left:30px;"" href=""{{ item.obdobi + ""_""+item.schuze + ""_"" + (string.to_long item.poradi | math.plus 1 | object.format ""00000"" ) | fn_DatasetItemUrl  }}"" target=""_blank"">Následující projev  &gt;&gt;                                                                   
+&nbsp;{{ end }}                              
+          <a style=""padding-left:30px;"" href=""{{ item.obdobi + ""_""+item.schuze + ""_"" + (string.to_long item.poradi | math.plus 1 | object.format ""00000"" ) | fn_DatasetItemUrl  }}"" >Následující projev  &gt;&gt;                                                                   
           </a>
         </td>
       </tr>
       <tr>                                                
-        <td>Zdroj                                                 
+        <td>Zdroj                                                                 
         </td>
-        <td >                                        
+        <td >                                                            
           <a href=""{{ item.url }}"" target=""_blank"">{{ item.url }}                                                            
           </a>
         </td>
@@ -248,7 +255,10 @@ namespace StenozaznamyPSP
             }
 
             if (args.Length == 4)
+            {
                 lastSchuzeInDb = Convert.ToInt32(args[3]);
+                pocetSchuzi = lastSchuzeInDb;
+            }
 
             for (int s = lastSchuzeInDb; s <= pocetSchuzi; s++)
             {
