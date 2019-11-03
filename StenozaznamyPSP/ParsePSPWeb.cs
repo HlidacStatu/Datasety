@@ -39,8 +39,9 @@ namespace StenozaznamyPSP
 
             var doc = new XPath(html);
 
-            var maxSchuze = doc.GetNodes("//a[contains(@href,'schuz/index')]")
+            var maxSchuze = doc.GetNodes("//a[contains(@href,'schuz/index')] | //a[contains(@href,'schuz/')]")
                                 .Select(d => d.InnerText)
+                                .Where(t=> t?.Contains(". schůze")==true)
                                 .Select(t => System.Text.RegularExpressions.Regex.Replace(t, "\\D", ""))
                                 .Select(t => Convert.ToInt32(t))
                                 .Max();
@@ -127,9 +128,14 @@ namespace StenozaznamyPSP
                     if (blokNum < 5 && plaintext.StartsWith("(") && plaintext.EndsWith(")"))
                         continue;
 
+                    bool newProslov = false;
                     //nekdy je v <b><a>, nekdy pouze <a>
                     var mluvci = XPath.Tools.GetNodeText(b, "./a[starts-with(@href,'/sqw/detail')]")
-                        ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'/sqw/detail')]");
+                        ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'/sqw/detail')]")
+                        ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'/ff/')]") //2002
+                        ?? XPath.Tools.GetNodeText(b, "./b/b/a[string-length(@href)=0]") //1998
+                        ?? GetRegexGroupValue(b.InnerHtml, @"^\s*<b> ((?<name>(\w*\s*){2,})) [:]?  </b> \s? [:]? ", "name") //v 2006 a starsich jsou i jmena v <b> bez <a>
+                        ;
 
                     string funkce = "";
                     if (!string.IsNullOrEmpty(mluvci))
@@ -151,7 +157,7 @@ namespace StenozaznamyPSP
                             mluvci = mluvci.Substring(nalez + 3).Trim();
                         }
                     }
-
+                    newProslov = !string.IsNullOrEmpty(mluvci);
 
                     string tema = null;
                     if (string.IsNullOrEmpty(mluvci))
@@ -171,7 +177,7 @@ namespace StenozaznamyPSP
 
 
                     string text = rawtext;
-                    if (!string.IsNullOrEmpty(mluvci))
+                    if (newProslov)
                     {
                         string regex = "^" + funkce.Replace(" ", @"\s{1,5}")
                             + @"\s{0,5}"
@@ -184,6 +190,7 @@ namespace StenozaznamyPSP
 
                     //hlasovaniUrl
                     //http://www.psp.cz/sqw/hlasy.sqw?G=69684
+                    //nebo https://www.psp.cz/ff/fa/4c/01.htm s redirectem, to zatim ignoruju
                     string hlasovani = GetRegexGroupValue(b.InnerHtml, @"/sqw/hlasy\.sqw\?g=(?<n>\d*)", "n");
 
                     int? hlasovaniId = null;
@@ -193,8 +200,7 @@ namespace StenozaznamyPSP
                     }
 
 
-                    if (!string.IsNullOrEmpty(mluvci)
-                        && item.celeJmeno != mluvci
+                    if (newProslov
                         && first == false
                         )
                     {
@@ -293,13 +299,22 @@ namespace StenozaznamyPSP
         {
             if (string.IsNullOrEmpty(txt))
                 return null;
-            Regex myRegex = new Regex(regex, RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace | RegexOptions.CultureInvariant);
-            foreach (Match match in myRegex.Matches(txt))
+            Regex myRegex = new Regex(regex, RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+
+            try
             {
-                if (match.Success)
+                foreach (Match match in myRegex.Matches(txt))
                 {
-                    return match.Groups[groupname].Value;
+                    if (match.Success)
+                    {
+                        return match.Groups[groupname].Value;
+                    }
                 }
+
+            }
+            catch (Exception)
+            {
+
             }
             return string.Empty;
         }

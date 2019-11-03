@@ -37,6 +37,7 @@ namespace StenozaznamyPSP
                 return;
 
             apikey = args[0];
+            int rok = Convert.ToInt32(args[1]);
 
             dsc = new HlidacStatu.Api.Dataset.Connector.DatasetConnector(apikey);
 
@@ -80,65 +81,64 @@ namespace StenozaznamyPSP
 
             HashSet<string> jmena2Check = new HashSet<string>();
 
-            int[] roky = new int[] { 2010, 2013, 2017 };
-            foreach (var rok in roky)
+            //int roky = new int[] { 2002 };// 2006 , 2002, 1998, 1996, 1993};
+            if (apikey == "csv")
             {
-                if (apikey == "csv")
-                {
-                    reader = new StreamWriter($"{rok}.csv");
-                    csv = new CsvWriter(reader,
-                        new CsvHelper.Configuration.Configuration()
-                        {
-                            HasHeaderRecord = true,
-                            Delimiter = ","
-                        });
-                    csv.WriteHeader<Steno>();
-                    csv.NextRecord();
-                }
-
-                var pocetSchuzi = ParsePSPWeb.PocetSchuzi(rok);
-
-                //find latest item already in DB
-
-                var lastSchuzeInDb = 1;
-                try
-                {
-                    var last = dsc.SearchItemsInDataset<Steno>(dsDef.DatasetId, $"obdobi:{rok}", 1, "schuze", true)
-                        .Result.results.FirstOrDefault();
-                    lastSchuzeInDb = last?.schuze ?? 1;
-                }
-                catch (Exception)
-                {
-                }
-
-
-                for (int s = lastSchuzeInDb; s <= pocetSchuzi; s++)
-                {
-                    foreach (var item in ParsePSPWeb.ParseSchuze(rok, s))
+                reader = new StreamWriter($"{rok}.csv");
+                csv = new CsvWriter(reader,
+                    new CsvHelper.Configuration.Configuration()
                     {
-                        if (item.celeJmeno?.Split(' ')?.Count() > 2)
-                            if (!jmena2Check.Contains(item.celeJmeno))
-                                jmena2Check.Add(item.celeJmeno);
+                        HasHeaderRecord = true,
+                        Delimiter = ","
+                    });
+                csv.WriteHeader<Steno>();
+                csv.NextRecord();
+            }
 
-                        if (apikey == "csv")
-                        {
-                            csv.WriteRecord<Steno>(item);
-                            csv.NextRecord();
-                            if (item.poradi % 10 == 0)
-                                csv.Flush();
-                        }
-                        else
-                            SaveItem(dsDef, item, true);
-                    }
-                }
+            var pocetSchuzi = ParsePSPWeb.PocetSchuzi(rok);
 
-                if (apikey == "csv")
+            //find latest item already in DB
+
+            var lastSchuzeInDb = 1;
+            try
+            {
+                var last = dsc.SearchItemsInDataset<Steno>(dsDef.DatasetId, $"obdobi:{rok}", 1, "schuze", true)
+                    .Result.results.FirstOrDefault();
+                lastSchuzeInDb = last?.schuze ?? 1;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+
+            for (int s = lastSchuzeInDb; s <= pocetSchuzi; s++)
+            {
+                foreach (var item in ParsePSPWeb.ParseSchuze(rok, s))
                 {
-                    csv.Flush();
-                    csv.Dispose();
-                    reader.Close();
+                    if (item.celeJmeno?.Split(' ')?.Count() > 2)
+                        if (!jmena2Check.Contains(item.celeJmeno))
+                            jmena2Check.Add(item.celeJmeno);
+
+                    if (apikey == "csv")
+                    {
+                        csv.WriteRecord<Steno>(item);
+                        csv.NextRecord();
+                        if (item.poradi % 10 == 0)
+                            csv.Flush();
+                    }
+                    else
+                        SaveItem(dsDef, item, true);
                 }
             }
+
+            if (apikey == "csv")
+            {
+                csv.Flush();
+                csv.Dispose();
+                reader.Close();
+            }
+
 
             Console.WriteLine();
             Console.WriteLine("Podezrela jmena:");
