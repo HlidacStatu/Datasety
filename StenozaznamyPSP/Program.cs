@@ -299,6 +299,13 @@ namespace StenozaznamyPSP
             //download, parse and save data into dataset
             //GetData(dsDef, datasetid, fn);
         }
+        public static string GetExecutingDirectoryName(bool endsWithBackslash)
+        {
+            var location = new Uri(System.Reflection.Assembly.GetEntryAssembly().GetName().CodeBase);
+            var dir = new FileInfo(location.AbsolutePath).Directory.FullName + (endsWithBackslash ? @"\" : "");
+            return dir;
+        }
+
 
 
         static void GetData(Dataset<Steno> ds, string datasetId, string fn, bool rewrite = false)

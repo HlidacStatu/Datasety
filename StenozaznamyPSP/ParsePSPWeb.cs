@@ -29,9 +29,10 @@ namespace StenozaznamyPSP
                 {"prosince","12." },
             };
 
-        static string[] vsechnyFunkce = System.IO.File.ReadAllLines("pozice.txt")
-                                            .Select(t=>t.Trim())
-                                            .Where(t=>t.Length>0)
+        static string[] vsechnyFunkce = System.IO.File.ReadAllLines(Program.GetExecutingDirectoryName(true) + "pozice.txt")
+                                            .Select(t => t.Trim())
+                                            .Where(t => t.Length > 0)
+                                            .OrderByDescending(t => t.Length)
                                             .ToArray();
 
         public static int PocetSchuzi(int rok)
@@ -44,7 +45,7 @@ namespace StenozaznamyPSP
 
             var maxSchuze = doc.GetNodes("//a[contains(@href,'schuz/index')] | //a[contains(@href,'schuz/')]")
                                 .Select(d => d.InnerText)
-                                .Where(t=> t?.Contains(". schůze")==true)
+                                .Where(t => t?.Contains(". schůze") == true)
                                 .Select(t => System.Text.RegularExpressions.Regex.Replace(t, "\\D", ""))
                                 .Select(t => Convert.ToInt32(t))
                                 .Max();
