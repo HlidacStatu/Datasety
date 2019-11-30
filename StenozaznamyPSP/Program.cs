@@ -1,6 +1,8 @@
 ﻿using CsvHelper;
 using HlidacStatu.Api.Dataset.Connector;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema.Generation;
 using SharpKml.Dom;
 using System;
 using System.Collections.Generic;
@@ -21,6 +23,14 @@ namespace StenozaznamyPSP
 
         static void Main(string[] args)
         {
+
+
+            //var jsonGen = new JSchemaGenerator
+            //{
+            //    DefaultRequired = Required.Default
+            //};
+            //var JsonSchema = jsonGen.Generate(typeof(Steno)).ToString();
+
 
             //Parse.net.Encoding = System.Text.Encoding.GetEncoding("windows-1250");
 
@@ -52,13 +62,14 @@ namespace StenozaznamyPSP
                 "Stenozáznamy Poslanecké sněmovny Parlamentu ČR", "stenozaznamy-psp", "http://www.psp.cz", "Stenozáznamy (těsnopisecké záznamy) jednání Poslanecké sněmovny a jejích orgánů. S využitím Open dat knihovny Ondřeje Kokeše https://github.com/kokes/od/tree/master/data/psp/steno",
                 "https://github.com/HlidacStatu/Datasety/tree/master/StenozaznamyPSP",
                 true, true,
-                new string[,] {  
-                    { "Podle konání", "Id.keyword" }, 
-                    { "Podle volebního období", "období" }, 
+                new string[,] {
+                    { "Podle konání", "Id.keyword" },
+                    { "Podle volebního období", "období" },
                     { "Podle osoby", "celeJmeno" },
                     { "Podle délky projevu", "pocetSlov" },
                 },
-                new Template() { 
+                new Template()
+                {
                     Body = @"
 <!-- scriban {{ date.now }} --> 
   <table class=""table table-hover"">                                                                                                                            
@@ -103,9 +114,11 @@ namespace StenozaznamyPSP
     </tbody>
   </table>
 
-" },
-                new Template() { 
-                Body= @"
+"
+                },
+                new Template()
+                {
+                    Body = @"
 <!-- scriban {{ date.now }} -->
   {{this.item = model}}                                                  
   <table class=""table table-hover"">
@@ -185,21 +198,9 @@ namespace StenozaznamyPSP
         </td>
       </tr>
     </table>
-"}
+"
+                }
 
-                //new ClassicTemplate.ClassicSearchResultTemplate()
-                //    .AddColumn("Id", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}</a>")
-                //    .AddColumn("Datum", "{{ fn_FormatDate item.datum }}")
-                //    .AddColumn("Osoba", "{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno \"\" }}")
-                //    .AddColumn("Téma", "{{ fn_ShortenText item.tema 50 }}")
-                //,
-                //new ClassicTemplate.ClassicDetailTemplate()
-                //    .AddColumn("Id", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{ item.Id }}</a>")
-                //    .AddColumn("Datum", "{{ fn_FormatDate item.datum }}")
-                //    .AddColumn("Osoba", "{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno \"\" }}")
-                //    .AddColumn("Funkce", "{{ item.funkce }}")
-                //    .AddColumn("Téma", "{{ item.tema }}")
-                //    .AddColumn("Vystoupení", "{{ fn_HighlightText highlightingData item.text \"text\" }}")
                 );
 
             string datasetid = dsDef.DatasetId;
@@ -242,7 +243,8 @@ namespace StenozaznamyPSP
             var lastSchuzeInDb = 1;
 
             if (rewrite == false)
-            { try
+            {
+                try
                 {
                     var last = dsc.SearchItemsInDataset<Steno>(dsDef.DatasetId, $"obdobi:{rok}", 1, "schuze", true)
                         .Result.results.FirstOrDefault();
@@ -267,6 +269,10 @@ namespace StenozaznamyPSP
                     if (item.celeJmeno?.Split(' ')?.Count() > 2)
                         if (!jmena2Check.Contains(item.celeJmeno))
                             jmena2Check.Add(item.celeJmeno);
+
+                    var politiciZminky = Politici.FindCitations(item.text);
+                    item.politiciZminky = politiciZminky;
+
 
                     if (apikey == "csv")
                     {

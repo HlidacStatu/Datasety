@@ -332,3 +332,5 @@ ASALocalRun/
 
 # Local History for Visual Studio
 .localhistory/
+StenozaznamyPSP/App.Debug.config
+StenozaznamyPSP/App.Release.config

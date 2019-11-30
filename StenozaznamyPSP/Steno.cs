@@ -29,5 +29,8 @@ namespace StenozaznamyPSP
         public string text { get; set; }
 
         public long pocetSlov { get { return ParsePSPWeb.CountWords(this.text ?? ""); } set { } }
+
+        public string[] politiciZminky { get; set; }
+        public string[] temata { get; set; }
     }
 }
