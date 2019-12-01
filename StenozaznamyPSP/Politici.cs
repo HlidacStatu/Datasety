@@ -12,8 +12,8 @@ namespace StenozaznamyPSP
         public static List<Tuple<string, string[]>> politiciStems = new List<Tuple<string, string[]>>();
         static HashSet<string> slova = new HashSet<string>();
 
-        static string[] prefixes = ("kolega poslanec předseda místopředseda prezident"
-            + " kolegyně poslankyně předsedkyně místopředsedkyně prezidentka")
+        static string[] prefixes = ("pan kolega poslanec předseda místopředseda prezident"
+            + "paní slečna kolegyně poslankyně předsedkyně místopředsedkyně prezidentka")
             .Split(' ');
         static string[] blacklist = { "poslanec celý" };
 
@@ -71,10 +71,9 @@ namespace StenozaznamyPSP
 
         public static void InitPol()
         {
+            politiciStems = new List<Tuple<string, string[]>>();
             foreach (var s in System.IO.File.ReadAllLines(@"Czech.3-2-5.dic"))
             {
-                //var s1 = s.ToLower();
-                //if (slova.Contains())
                 slova.Add(s);
             }
             string[] p = System.IO.File.ReadAllLines("politici.tsv");
@@ -83,6 +82,7 @@ namespace StenozaznamyPSP
                 var cols = l.Split('\t');
                 var key = cols[0];
                 List<string> variants = new List<string>();
+
 
                 List<string> names = new List<string>();
                 for (int i = 1; i < cols.Length; i++)
@@ -95,11 +95,21 @@ namespace StenozaznamyPSP
                 }
 
                 foreach (var n in names)
+                {
+                    var fname = (n).Split(' ');
+                    if (!blacklist.Contains(n) && fname.Length>1)
+                        politiciStems.Add(new Tuple<string, string[]>(key, fname ));
+
                     foreach (var pref in prefixes)
                     {
                         if (!blacklist.Contains(pref + " " + n))
-                            politiciStems.Add(new Tuple<string, string[]>(key, (pref + " " + n).Split(' ')));
+                        {
+                            var nn = (pref + " " + n).Split(' ');
+                            if (nn.Length>1)
+                                politiciStems.Add(new Tuple<string, string[]>(key, nn));
+                        }
                     }
+                }
             }
             System.IO.File.WriteAllText(@"c:\!\pol.json", Newtonsoft.Json.JsonConvert.SerializeObject(politiciStems));
 
