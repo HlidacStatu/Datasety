@@ -81,7 +81,7 @@ StenozaznamyPSP /gendb
             //Parse.net.Encoding = System.Text.Encoding.GetEncoding("windows-1250");
 
             //read poslanci jmena
-            jmena = System.IO.File.ReadAllLines("politici.tsv")
+            jmena = System.IO.File.ReadAllLines(GetExecutingDirectoryName(true) + "politici.tsv")
                    .Select(m => m.Split('\t'))
                    .Where(m => m.Length > 2)
                    .SelectMany(m =>
@@ -163,6 +163,15 @@ StenozaznamyPSP /gendb
             {
                 foreach (var item in ParsePSPWeb.ParseSchuze(rok, s))
                 {
+                    try
+                    {
+                        var exists = dsc.GetItemFromDataset<Steno>(dsDef.DatasetId, item.Id).Result;
+                        continue; //exists, skip
+                    }
+                    catch (Exception) //doesnt exists
+                    {
+                    }
+
                     if (item.celeJmeno?.Split(' ')?.Count() > 2)
                         if (!jmena2Check.Contains(item.celeJmeno))
                             jmena2Check.Add(item.celeJmeno);

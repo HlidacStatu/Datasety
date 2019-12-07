@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,7 +22,7 @@ namespace StenozaznamyPSP
         static Politici()
         {
             politiciStems = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Tuple<string, string[]>>>(
-        System.IO.File.ReadAllText(@"pol.json")
+        System.IO.File.ReadAllText(Program.GetExecutingDirectoryName(true)+ @"pol.json")
         );
 
         }
@@ -68,15 +70,21 @@ namespace StenozaznamyPSP
 
         }
 
+        public static string GetExecutingDirectoryName(bool endsWithBackslash)
+        {
+            var location = new Uri(Assembly.GetEntryAssembly().GetName().CodeBase);
+            var dir = new FileInfo(location.AbsolutePath).Directory.FullName + (endsWithBackslash ? @"\" : "");
+            return dir;
+        }
 
         public static void InitPol()
         {
             politiciStems = new List<Tuple<string, string[]>>();
-            foreach (var s in System.IO.File.ReadAllLines(@"Czech.3-2-5.dic"))
+            foreach (var s in System.IO.File.ReadAllLines(GetExecutingDirectoryName(true) + @"Czech.3-2-5.dic"))
             {
                 slova.Add(s);
             }
-            string[] p = System.IO.File.ReadAllLines("politici.tsv");
+            string[] p = System.IO.File.ReadAllLines(GetExecutingDirectoryName(true)+"politici.tsv");
             foreach (var l in p)
             {
                 var cols = l.Split('\t');
