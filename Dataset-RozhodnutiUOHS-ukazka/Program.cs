@@ -1,9 +1,9 @@
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
 
 namespace Dataset_RozhodnutiUOHS
 {
@@ -24,16 +24,16 @@ namespace Dataset_RozhodnutiUOHS
                 //find last ID
                 HttpClient httpClient = new HttpClient();
                 httpClient.DefaultRequestHeaders.Add("Authorization", apiToken);
-                string jsonResult = httpClient.GetAsync(apiRoot + "/Datasetsearch/" + datasetId+"?q=*&sort=PravniMoc+desc")
+                string jsonResult = httpClient.GetAsync(apiRoot + "/Datasetsearch/" + datasetId + "?q=*&sort=PravniMoc+desc")
                             .Result.Content
                             .ReadAsStringAsync().Result;
                 var result = JObject.Parse(jsonResult);
                 if (result["error"] == null)
                 {
                     int? lastId = result["results"]?.First()?["Id"]?.Value<int>();
-                    lastId = lastId.HasValue ? lastId.Value-200 : 1;
+                    lastId = lastId.HasValue ? lastId.Value - 200 : 1;
                     //vratim se zpet o 200 cisel zpet a dalsich 1500 pro jistotu (nevime, kolik pribylo)
-                    ParsePages(datasetId, lastId.Value,1500); //stahnuti, parsovani dat z UOHS a vlozeni do Datasetu
+                    ParsePages(datasetId, lastId.Value, 1500); //stahnuti, parsovani dat z UOHS a vlozeni do Datasetu
                 }
                 else
                 {
@@ -43,7 +43,7 @@ namespace Dataset_RozhodnutiUOHS
             }
 
             //datasetId = Register(datasetId); //registrace datasetu, a pripadne smazani puvodniho
-                                            // funkce vrati jmeno vytvoreneho datasetu
+            // funkce vrati jmeno vytvoreneho datasetu
             SetTemplates(datasetId); //nastaveni templatu v extra kroku
 
             ParsePages(datasetId); //stahnuti, parsovani dat z UOHS a vlozeni do Datasetu
@@ -67,7 +67,7 @@ namespace Dataset_RozhodnutiUOHS
                 betaversion = true, // pokud true, pak dataset neni videt v seznam datasetu na HlidacStatu.cz/data
                 allowWriteAccess = false, // pokud true, pak data v datasetu muze kdokoliv přepsat nebo smazat. Stejně tak údaje v registraci.
                                           // pokud false, pak kdokoliv muze data pridat, ale nemuze je prepsat či smazat
-                orderList = new string[,] {  { "Nabytí právní moci","PravniMoc" }, { "Účastníci","Ucastnici.Jmeno"} } ,
+                orderList = new string[,] { { "Nabytí právní moci", "PravniMoc" }, { "Účastníci", "Ucastnici.Jmeno" } },
             };
 
             HttpClient httpClient = new HttpClient();
@@ -85,7 +85,7 @@ namespace Dataset_RozhodnutiUOHS
                             .Result.Content
                             .ReadAsStringAsync().Result;
 
-             }
+            }
 
             //vytvoreni nove registrace
 
@@ -158,7 +158,7 @@ namespace Dataset_RozhodnutiUOHS
                 footer = @"</tbody></table>"
             };
 
-            var detailTemplateHtml = new 
+            var detailTemplateHtml = new
             {
                 title = "@item.Vec",
                 header = "",
@@ -278,120 +278,128 @@ namespace Dataset_RozhodnutiUOHS
                     parOpt,
                     (i) =>
                     {
-
-                        //stahnutí HTML stránky s rozhodnutím UOHS.
-                        //rozhodnutí jsou na samostatnych stránkach, s jednoduchym URL, kde cislo stranky s rozhodnutim postupně roste.
-                        // k 1.9.2018 ma posledni rozhodnuti cislo asi 15500
-                        string html = "";
-                        var url = $"http://www.uohs.cz/cs/verejne-zakazky/sbirky-rozhodnuti/detail-{i}.html";
-
-                        //stahnuti HTML
-                        System.Net.WebClient wc = new System.Net.WebClient();
-                        wc.Encoding = System.Text.Encoding.UTF8;
-                        html = wc.DownloadString(url);
-
-                        //prevedeni do XHTML pomoci HTMLAgilityPacku.
-                        //XPath je trida a sada funkci pro jednodusi XPath parsovani
-                        XPath page = new XPath(html);
-
-                        //vsechna ziskavana data jsou ziskana pomoci XPATH
-
-
-                        //stranka neexistuje, tak ji preskocime 
-                        if (page.GetNodeText("//head/title")?.Contains("stránka neexistuje") == true)
-                            return;
-
-                        //do item davam postupně získané údaje
-                        var item = new UOHSData();
-                        item.Url = url;
-                        item.Id = i.ToString();
-
-                        //žádný obsah není mimo tento DIV, tak si ho sem dam, abych tento retezec nemusel porad opakovat
-                        var root = "//div[@id='content']";
-
-                        //parsování pomocí XPath.
-                        item.Cj = "ÚOHS-" + page.GetNodeText(root + "//div/h1").Replace("Rozhodnutí: ", "");
-                        item.Instance = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Instance')]/parent::tr/td");
-
-                        item.Vec = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Věc')]/parent::tr/td");
-
-                        var ucastniciNode = page.GetNodes(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Účastníci')]/parent::tr/td/ol/li");
-                        List<UOHSData.Ucastnik> ucastnici = new List<UOHSData.Ucastnik>();
-                        if (ucastniciNode != null)
+                        string url = "";
+                        try
                         {
-                            foreach (var node in ucastniciNode)
+
+                            //stahnutí HTML stránky s rozhodnutím UOHS.
+                            //rozhodnutí jsou na samostatnych stránkach, s jednoduchym URL, kde cislo stranky s rozhodnutim postupně roste.
+                            // k 1.9.2018 ma posledni rozhodnuti cislo asi 15500
+                            string html = "";
+                            url = $"http://www.uohs.cz/cs/verejne-zakazky/sbirky-rozhodnuti/detail-{i}.html";
+
+                            //stahnuti HTML
+                            System.Net.WebClient wc = new System.Net.WebClient();
+                            wc.Encoding = System.Text.Encoding.UTF8;
+                            html = wc.DownloadString(url);
+
+                            //prevedeni do XHTML pomoci HTMLAgilityPacku.
+                            //XPath je trida a sada funkci pro jednodusi XPath parsovani
+                            XPath page = new XPath(html);
+
+                            //vsechna ziskavana data jsou ziskana pomoci XPATH
+
+
+                            //stranka neexistuje, tak ji preskocime 
+                            if (page.GetNodeText("//head/title")?.Contains("stránka neexistuje") == true)
+                                return;
+
+                            //do item davam postupně získané údaje
+                            var item = new UOHSData();
+                            item.Url = url;
+                            item.Id = i.ToString();
+
+                            //žádný obsah není mimo tento DIV, tak si ho sem dam, abych tento retezec nemusel porad opakovat
+                            var root = "//div[@id='content']";
+
+                            //parsování pomocí XPath.
+                            item.Cj = "ÚOHS-" + page.GetNodeText(root + "//div/h1").Replace("Rozhodnutí: ", "");
+                            item.Instance = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Instance')]/parent::tr/td");
+
+                            item.Vec = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Věc')]/parent::tr/td");
+
+                            var ucastniciNode = page.GetNodes(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Účastníci')]/parent::tr/td/ol/li");
+                            List<UOHSData.Ucastnik> ucastnici = new List<UOHSData.Ucastnik>();
+                            if (ucastniciNode != null)
                             {
-                                var firmaJmeno = System.Net.WebUtility.HtmlDecode(node.InnerText); //konverze HTML entity to UTF-8;  &eacute; -> é
-
-                                //dohledat ICO
-                                var ico = httpClient.GetAsync(apiRoot + "/CompanyId?companyName=" + System.Net.WebUtility.UrlEncode(firmaJmeno))
-                                                .Result.Content
-                                                .ReadAsStringAsync().Result;
-                                try
+                                foreach (var node in ucastniciNode)
                                 {
-                                    var icoRes = Newtonsoft.Json.Linq.JObject.Parse(ico);
-                                    if (icoRes["ICO"] == null)
+                                    var firmaJmeno = System.Net.WebUtility.HtmlDecode(node.InnerText); //konverze HTML entity to UTF-8;  &eacute; -> é
+
+                                    //dohledat ICO
+                                    var ico = httpClient.GetAsync(apiRoot + "/CompanyId?companyName=" + System.Net.WebUtility.UrlEncode(firmaJmeno))
+                                                    .Result.Content
+                                                    .ReadAsStringAsync().Result;
+                                    try
+                                    {
+                                        var icoRes = Newtonsoft.Json.Linq.JObject.Parse(ico);
+                                        if (icoRes["ICO"] == null)
+                                            ucastnici.Add(new UOHSData.Ucastnik() { Jmeno = firmaJmeno });
+                                        else
+                                            ucastnici.Add(new UOHSData.Ucastnik()
+                                            {
+                                                Jmeno = firmaJmeno,
+                                                ICO = icoRes["ICO"].Value<string>()
+                                            });
+
+                                    }
+                                    catch (Exception)
+                                    {
                                         ucastnici.Add(new UOHSData.Ucastnik() { Jmeno = firmaJmeno });
-                                    else
-                                        ucastnici.Add(new UOHSData.Ucastnik()
-                                        {
-                                            Jmeno = firmaJmeno,
-                                            ICO = icoRes["ICO"].Value<string>()
-                                        });
+                                    }
 
                                 }
-                                catch (Exception)
-                                {
-                                    ucastnici.Add(new UOHSData.Ucastnik() { Jmeno = firmaJmeno });
-                                }
-
                             }
+                            item.Ucastnici = ucastnici.ToArray();
+
+                            item.Typ_spravniho_rizeni = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Typ správního řízení')]/parent::tr/td");
+                            item.Typ_rozhodnuti = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Typ rozhodnutí')]/parent::tr/td");
+                            item.Rok = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Rok')]/parent::tr/td");
+
+                            item.PravniMoc = ToDateTimeFromCZ(
+                                page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Datum nabytí právní moci')]/parent::tr/td")
+                                );
+
+                            var souvis_urls = page.GetNodes(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Související rozhodnutí')]/parent::tr/td/a");
+                            if (souvis_urls != null)
+                            {
+                                item.SouvisejiciUrl = souvis_urls
+                                    .Select(m => m.Attributes["href"]?.Value)
+                                    .Where(m => m != null)
+                                    .Select(u => "http://www.uohs.cz" + u)
+                                    .ToArray();
+                            }
+
+
+                            item.Rozhodnuti = new UOHSData.Dokument();
+
+                            var documents = page.GetNodes(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Dokumenty')]/parent::tr/td/a");
+
+
+                            item.Rozhodnuti.Url = page.GetNode(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Dokumenty')]/parent::tr/td/a")
+                                ?.Attributes["href"]?.Value;
+                            if (!string.IsNullOrEmpty(item.Rozhodnuti.Url))
+                                item.Rozhodnuti.Url = "http://www.uohs.cz" + item.SouvisejiciUrl;
+
+                            item.Rozhodnuti.PlainText = page.GetNode("//div[@id='content']//div[@class='res_text']")?.InnerText ?? "";
+
+
+                            //parsovani hotovo, jdu ulozit zaznam do Datasetu
+
+                            var content = new System.Net.Http.StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(item));
+                            var s = httpClient.PostAsync(apiRoot + $"/DatasetItem/{datasetId}/{item.Id}", content).Result.Content.ReadAsStringAsync().Result;
+                            JObject result = JObject.Parse(s);
+                            if (result["error"] == null)
+                            {
+                                Console.WriteLine($"OK {i} - {result["id"].Value<string>()}");
+                            }
+                            else
+                                Console.WriteLine($"ERR {i} - {result["error"]["description"].Value<string>()}");
                         }
-                        item.Ucastnici = ucastnici.ToArray();
-
-                        item.Typ_spravniho_rizeni = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Typ správního řízení')]/parent::tr/td");
-                        item.Typ_rozhodnuti = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Typ rozhodnutí')]/parent::tr/td");
-                        item.Rok = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Rok')]/parent::tr/td");
-
-                        item.PravniMoc = ToDateTimeFromCZ(
-                            page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Datum nabytí právní moci')]/parent::tr/td")
-                            );
-
-                        var souvis_urls = page.GetNodes(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Související rozhodnutí')]/parent::tr/td/a");
-                        if (souvis_urls != null)
+                        catch (Exception e)
                         {
-                            item.SouvisejiciUrl = souvis_urls
-                                .Select(m => m.Attributes["href"]?.Value)
-                                .Where(m => m != null)
-                                .Select(u => "http://www.uohs.cz" + u)
-                                .ToArray();
+                            Console.Error.WriteLine($"Exception {url} : {e.ToString()}");
                         }
-
-
-                        item.Rozhodnuti = new UOHSData.Dokument();
-
-                        var documents = page.GetNodes(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Dokumenty')]/parent::tr/td/a");
-
-
-                        item.Rozhodnuti.Url = page.GetNode(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Dokumenty')]/parent::tr/td/a")
-                            ?.Attributes["href"]?.Value;
-                        if (!string.IsNullOrEmpty(item.Rozhodnuti.Url))
-                            item.Rozhodnuti.Url = "http://www.uohs.cz" + item.SouvisejiciUrl;
-
-                        item.Rozhodnuti.PlainText = page.GetNode("//div[@id='content']//div[@class='res_text']")?.InnerText ?? "";
-
-
-                        //parsovani hotovo, jdu ulozit zaznam do Datasetu
-
-                        var content = new System.Net.Http.StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(item));
-                        var s = httpClient.PostAsync(apiRoot + $"/DatasetItem/{datasetId}/{item.Id}", content).Result.Content.ReadAsStringAsync().Result;
-                        JObject result = JObject.Parse(s);
-                        if (result["error"] == null)
-                        {
-                            Console.WriteLine($"OK {i} - {result["id"].Value<string>()}");
-                        }
-                        else
-                            Console.WriteLine($"ERR {i} - {result["error"]["description"].Value<string>()}");
 
                     }
               ); //parallels.For    
