@@ -48,6 +48,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Devmasters.Core">
+      <HintPath>..\..\HlidacStatu\packages\Devmasters.Core.1.472.4\lib\net40\Devmasters.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Elasticsearch.Net, Version=7.0.0.0, Culture=neutral, PublicKeyToken=96c599bbe3e70f5d, processorArchitecture=MSIL">
       <HintPath>packages\Elasticsearch.Net.7.5.1\lib\net461\Elasticsearch.Net.dll</HintPath>
     </Reference>
