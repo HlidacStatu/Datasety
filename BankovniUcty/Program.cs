@@ -111,7 +111,7 @@ namespace BankovniUcty
                     Active = ucet.Active
                 };
 
-                dsc.AddItemToDataset<BankovniUcet>(ds, bu);
+                var id = dsc.AddItemToDataset<BankovniUcet>(ds, bu).Result;
             }
         }
 
@@ -139,7 +139,7 @@ namespace BankovniUcty
                     Zprava = polozka.ZpravaProPrijemce
                 };
 
-                dsc.AddItemToDataset<BankovniPolozka>(ds, bp);
+                var id = dsc.AddItemToDataset<BankovniPolozka>(ds, bp).Result;
             }
         }
 
