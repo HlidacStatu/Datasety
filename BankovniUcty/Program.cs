@@ -46,37 +46,42 @@ namespace BankovniUcty
                     .AddColumn("Typ Účtu", "@item.TypUctu")
                 );
 
-            //create dataset účtu
+            //create dataset transakcí
             var dsPolozka = new Dataset<BankovniPolozka>(
                 "Transakce z transparentních účtů",
-                "Transakce-ucty",
+                "Transparentni-ucty-transakce",
                 "http://www.hlidacstatu.cz",
                 "Seznam transakcí z transparentních účtů.",
                 "https://github.com/HlidacStatu/Datasety/tree/master/BankovniUcty",
                 false,
                 true,
-                new string[,] { { "Číslo účtu", "CisloUctu" }, { "Naposledy parsováno", "LastSuccessfullParsing" } },
+                new string[,] { { "Číslo účtu", "CisloUctu" }, { "Datum", "Datum" }, { "Částka", "Castka" } },
                 new ClassicTemplate.ClassicSearchResultTemplate()
                     .AddColumn("ID transakce", @"<a href=""@(fn_DatasetItemUrl(item.Id))"">@item.Id</a>")
                     .AddColumn("Číslo účtu", "@item.CisloUctu")
-                    .AddColumn("Subjekt", "@item.Subjekt")
-                    .AddColumn("Naposledy parsováno", "@fn_FormatDate(item.LastSuccessfullParsing,\"dd.MM.yyyy\")")
+                    .AddColumn("Částka", "@item.Castka")
+                    .AddColumn("Číslo protiúčtu", "@item.CisloProtiuctu")
+                    .AddColumn("Datum", "@fn_FormatDate(item.Datum,\"dd.MM.yyyy\")")
                 ,
                 new ClassicTemplate.ClassicDetailTemplate()
+                    .AddColumn("ID transakce", "@item.Id")
                     .AddColumn("Číslo účtu", "@item.CisloUctu")
-                    .AddColumn("Název", "@item.Nazev")
-                    .AddColumn("Subjekt", "@item.Subjekt")
-                    .AddColumn("Typ Subjektu", "@item.TypSubjektu")
-                    .AddColumn("Měna", "@item.Mena")
-                    .AddColumn("Naposledy parsováno", "@fn_FormatDate(item.LastSuccessfullParsing,\"dd.MM.yyyy\")")
-                    .AddColumn("Zdroj", "@item.Url")
-                    .AddColumn("Je aktivní", "@item.Active")
-                    .AddColumn("Typ Účtu", "@item.TypUctu")
+                    .AddColumn("Částka", "@item.Castka")
+                    .AddColumn("Popis transakce", "@item.PopisTransakce")
+                    .AddColumn("Zpráva", "@item.Zprava")
+                    .AddColumn("VS", "@item.VS")
+                    .AddColumn("KS", "@item.KS")
+                    .AddColumn("SS", "@item.SS")
+                    .AddColumn("Název protiúčtu", "@item.NazevProtiuctu")
+                    .AddColumn("Číslo protiúčtu", "@item.CisloProtiuctu")
+                    .AddColumn("Datum", "@fn_FormatDate(item.Datum,\"dd.MM.yyyy\")")
+                    .AddColumn("Zdroj", "@item.ZdrojUrl")
+
                 );
 
             // create dataset in hlidac
-            var datasetUcet = dsc.CreateDataset<BankovniUcet>(dsUcet).Result;
-            var datasetPolozka = dsc.CreateDataset<BankovniPolozka>(dsPolozka).Result;
+            //var datasetUcet = dsc.CreateDataset<BankovniUcet>(dsUcet).Result;
+            //var datasetPolozka = dsc.CreateDataset<BankovniPolozka>(dsPolozka).Result;
 
             // populate dataset with data
             ImportBankovniUcty(dsUcet);
