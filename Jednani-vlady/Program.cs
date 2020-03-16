@@ -10,13 +10,24 @@ namespace Jednani_vlady
     class Program
     {
         static HlidacStatu.Api.Dataset.Connector.DatasetConnector dsc;
-        static void Main(string[] args)
+        public static Dictionary<string, string> args = new Dictionary<string, string>();
+
+        static void Main(string[] arguments)
         {
             dsc = new HlidacStatu.Api.Dataset.Connector.DatasetConnector(
                 System.Configuration.ConfigurationManager.AppSettings["apikey"]
                 );
-            if (args.Count() > 0 && args[0] == "/debug")
+
+            args = arguments
+                .Select(m => m.Split('='))
+                .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1]);
+
+            if (args.ContainsKey("/debug"))
                 Parse.parallel = false;
+
+            int? from = null;
+            if (args.ContainsKey("/from"))
+                from = int.Parse(args["/from"]);
 
             //create dataset
             var dsDef = new HlidacStatu.Api.Dataset.Connector.Dataset<jednani>(
@@ -116,16 +127,16 @@ namespace Jednani_vlady
             }
 
             //Parse.ParseUsneseni(new DateTime(2019,8,26), "624");
-            //var js = Parse.ParseAgenda("2018-12-17");
-            IEnumerable<jednani> js = new jednani[] { };
+            //var js = Parse.ParseAgenda("2020-03-16");
+            //IEnumerable<jednani> js = new jednani[] { };
             //js = Parse.ParseAgenda("2020-02-17");
-            var ids = js.Select(m => m.Id).Distinct().ToArray();
-            if (ids.Count() != js.Count())
-            {
-                System.Diagnostics.Debugger.Break();
-            }
+            ///var ids = js.Select(m => m.Id).Distinct().ToArray();
+            //if (ids.Count() != js.Count())
+            //{
+            //    System.Diagnostics.Debugger.Break();
+            //}
 
-            Parse.DownloadAllData(dsc);
+            Parse.DownloadAllData(dsc,from);
         }
 
 

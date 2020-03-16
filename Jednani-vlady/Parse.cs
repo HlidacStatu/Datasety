@@ -17,9 +17,10 @@ namespace Jednani_vlady
         static string listUrl = "https://apps.odok.cz/djv-agenda-list?year={0}";
         static string agendaUrl = "https://apps.odok.cz/djv-agenda?date={0}";
         static string usneseniUrl = "https://apps.odok.cz/zvlady/usneseni/-/usn/{0}/{1}";
-        public static void DownloadAllData(DatasetConnector dsc)
+        public static void DownloadAllData(DatasetConnector dsc, int? fromYear = null)
         {
-            var years = Enumerable.Range(2007, DateTime.Now.Year - 2007 + 1);
+            int ifromYear = fromYear ?? 2007;
+            var years = Enumerable.Range(ifromYear, DateTime.Now.Year - ifromYear + 1);
             int totalSave = 0;
 
             List<string> agendy = new List<string>();
