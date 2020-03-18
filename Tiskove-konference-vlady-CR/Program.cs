@@ -20,10 +20,22 @@ namespace Tiskove_konference_vlady_CR
                 .Select(m => m.Split('='))
                 .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1]);
 
+            if (args.ContainsKey("/?") || args.ContainsKey("/h"))
+            {
+                Console.WriteLine("Tiskove konference vlady downloader");
+                Console.WriteLine("[/h] [/daysback=] [/from=yyyy-MM-dd]");
+                return;
+            }
+
             if (args.ContainsKey("/debug"))
                 Parse.parallel = false;
 
             DateTime? from = null;
+            if (args.ContainsKey("/daysback"))
+            {
+                var db = int.Parse(args["/daysback"]);
+                from = DateTime.Now.Date.AddDays(-1 * db);
+            }
             if (args.ContainsKey("/from"))
                 from = DateTime.ParseExact(args["/from"], "yyyy-MM-dd", System.Globalization.CultureInfo.GetCultureInfo("en-US"), System.Globalization.DateTimeStyles.AssumeLocal);
 
