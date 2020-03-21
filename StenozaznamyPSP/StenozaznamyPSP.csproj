@@ -99,8 +99,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ParsePSPWeb.cs" />
-    <Compile Include="Politici.cs" />
-    <Compile Include="Stem.cs" />
     <Compile Include="Steno.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -123,12 +121,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-    <None Include="pol.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="politici.tsv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>

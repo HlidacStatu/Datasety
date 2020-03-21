@@ -129,8 +129,9 @@ namespace Tiskove_konference_vlady_CR
                         vyj = new zapis.vstup();
                         vyj.poradi = poradi;
                     }
-                    using (var net = new Devmasters.Net.Web.URLContent($"https://www.hlidacstatu.cz/api/v1/OsobaFromText?text={System.Net.WebUtility.UrlEncode(mluvci)}&Authorization={System.Configuration.ConfigurationManager.AppSettings["apikey"]}"))
+                    using (var net = new Devmasters.Net.Web.URLContent($"https://www.hlidacstatu.cz/api/v1/PolitikFromText?text={System.Net.WebUtility.UrlEncode(mluvci)}&Authorization={System.Configuration.ConfigurationManager.AppSettings["apikey"]}"))
                     {
+                        net.Timeout = 60 * 1000;
                         var osobahtml = net.GetContent().Text;
                         var osoba = Newtonsoft.Json.Linq.JObject.Parse(osobahtml);
                         if (!string.IsNullOrEmpty(osoba.Value<string>("jmeno")))

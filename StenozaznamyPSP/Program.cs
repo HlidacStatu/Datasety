@@ -28,9 +28,6 @@ namespace StenozaznamyPSP
 Zpracování steno záznamů:
 StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [/rewrite] 
 
-Vygenerovani db politiku:
-StenozaznamyPSP /gendb
-
 ");
 
         }
@@ -48,13 +45,7 @@ StenozaznamyPSP /gendb
                 .Select(m => m.Split('='))
                 .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1]);
 
-            if (arguments.TryGetValue("/gendb", out argValue))
-            {
-                Politici.InitPol();
-                return;
-            }
 
-            string apikey = "";
             if (!arguments.TryGetValue("/apikey", out apikey))
             {
                 Help(); return;
@@ -74,25 +65,7 @@ StenozaznamyPSP /gendb
 
             int? schuze = null;
             if (arguments.TryGetValue("/schuze", out argValue))
-                rok = Convert.ToInt32(argValue);
-
-
-
-            //Parse.net.Encoding = System.Text.Encoding.GetEncoding("windows-1250");
-
-            //read poslanci jmena
-            jmena = System.IO.File.ReadAllLines(GetExecutingDirectoryName(true) + "politici.tsv")
-                   .Select(m => m.Split('\t'))
-                   .Where(m => m.Length > 2)
-                   .SelectMany(m =>
-                   {
-                       var variants = new List<string[]>();
-                       for (int l = 2; l < m.Length; l++)
-                       {
-                           variants.Add(new string[] { m[0].Trim(), m.Skip(1).Take(l).Aggregate((f, s) => f + " " + s) });
-                       }
-                       return variants;
-                   });
+                schuze = Convert.ToInt32(argValue);
 
 
             dsc = new HlidacStatu.Api.Dataset.Connector.DatasetConnector(apikey);
@@ -119,19 +92,6 @@ StenozaznamyPSP /gendb
 
             HashSet<string> jmena2Check = new HashSet<string>();
 
-            //int roky = new int[] { 2002 };// 2006 , 2002, 1998, 1996, 1993};
-            //if (apikey == "csv")
-            //{
-            //    reader = new StreamWriter($"{rok}.csv");
-            //    csv = new CsvWriter(reader,
-            //        new CsvHelper.Configuration.Configuration()
-            //        {
-            //            HasHeaderRecord = true,
-            //            Delimiter = ","
-            //        });
-            //    csv.WriteHeader<Steno>();
-            //    csv.NextRecord();
-            //}
 
             var pocetSchuzi = ParsePSPWeb.PocetSchuzi(rok);
 
@@ -165,8 +125,11 @@ StenozaznamyPSP /gendb
                 {
                     try
                     {
-                        var exists = dsc.GetItemFromDataset<Steno>(dsDef.DatasetId, item.Id).Result;
-                        continue; //exists, skip
+                        if (rewrite == false)
+                        {
+                            var exists = dsc.GetItemFromDataset<Steno>(dsDef.DatasetId, item.Id).Result;
+                            continue; //exists, skip
+                        }
                     }
                     catch (Exception) //doesnt exists
                     {
@@ -176,8 +139,21 @@ StenozaznamyPSP /gendb
                         if (!jmena2Check.Contains(item.celeJmeno))
                             jmena2Check.Add(item.celeJmeno);
 
-                    var politiciZminky = Politici.FindCitations(item.text);
-                    item.politiciZminky = politiciZminky;
+                    using (var net = new Devmasters.Net.Web.URLContent($"https://www.hlidacstatu.cz/api/v1/PoliticiFromText?Authorization={apikey}"))
+                    {
+                        net.Method = Devmasters.Net.Web.MethodEnum.POST;
+                        net.RequestParams.Form.Add("text", item.text);
+                        net.Timeout = 60*1000;
+                        var sosoby = net.GetContent().Text;
+                        var osoby = Newtonsoft.Json.Linq.JArray.Parse(sosoby);
+                        if (osoby != null && osoby.Count > 0)
+                        {
+                            item.politiciZminky = osoby
+                                .Select(ja => ja.Value<string>("osobaid"))
+                                .Where(o => !string.IsNullOrWhiteSpace(o))
+                                .ToArray();
+                        }
+                    }
 
 
                     if (apikey == "csv")
@@ -271,9 +247,7 @@ StenozaznamyPSP /gendb
                             continue;
 
 
-                        var osobaId = fromJmeno(item.celeJmeno);
-                        if (string.IsNullOrEmpty(osobaId))
-                            osobaId = findInHS(item.celeJmeno, item.funkce);
+                        var osobaId = findInHS(item.celeJmeno, item.funkce);
 
                         item.OsobaId = osobaId;
 
@@ -310,9 +284,7 @@ StenozaznamyPSP /gendb
 
             if (string.IsNullOrEmpty(item.OsobaId) && loadOsobaId)
             {
-                var osobaId = fromJmeno(item.celeJmeno);
-                if (string.IsNullOrEmpty(osobaId))
-                    osobaId = findInHS(item.celeJmeno, item.funkce);
+                var osobaId = findInHS(item.celeJmeno, item.funkce);
 
                 item.OsobaId = osobaId;
             }
@@ -342,21 +314,6 @@ StenozaznamyPSP /gendb
 
         public static string findInHS(string fullname, string fce)
         {
-            using (var net = new System.Net.WebClient())
-            {
-                net.Encoding = System.Text.Encoding.UTF8;
-                string url = $"https://www.hlidacstatu.cz/api/v1/FindOsobaId?Authorization={apikey}&"
-                    + $"celejmeno={System.Net.WebUtility.UrlEncode(fullname)}&funkce={System.Net.WebUtility.UrlEncode(fce)}";
-                var json = net.DownloadString(url);
-                return Newtonsoft.Json.Linq.JObject.Parse(json).Value<string>("OsobaId");
-            }
-
-        }
-
-        public static string fromJmeno(string fullname)
-        {
-            if (string.IsNullOrEmpty(fullname))
-                return fullname;
             //using (var net = new System.Net.WebClient())
             //{
             //    net.Encoding = System.Text.Encoding.UTF8;
@@ -365,12 +322,18 @@ StenozaznamyPSP /gendb
             //    var json = net.DownloadString(url);
             //    return Newtonsoft.Json.Linq.JObject.Parse(json).Value<string>("OsobaId");
             //}
-            fullname = fullname.ToLower();
-            var found = jmena.Where(m => m[1] == fullname.Trim()).FirstOrDefault();
-            if (found == null)
-                return null;
-            return found[0];
+            using (var net = new Devmasters.Net.Web.URLContent($"https://www.hlidacstatu.cz/api/v1/PolitikFromText?Authorization={apikey}"))
+            {
+                net.Method = Devmasters.Net.Web.MethodEnum.POST;
+                net.RequestParams.Form.Add("text", $"{fullname} {fce}");
+                net.Timeout = 60 * 1000;
+                var sosoba = net.GetContent().Text;
+                var osoba = Newtonsoft.Json.Linq.JObject.Parse(sosoba);
+                return osoba.Value<string>("osobaid");
+            }
+
         }
+
 
 
         public static string GetRegexGroupValue(string txt, string regex, string groupname)
@@ -530,7 +493,6 @@ StenozaznamyPSP /gendb
                     );
         }
 
-        static IEnumerable<string[]> jmena = null;
 
     }
 }
