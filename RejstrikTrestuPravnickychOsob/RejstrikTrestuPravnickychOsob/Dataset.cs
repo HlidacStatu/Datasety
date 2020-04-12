@@ -33,7 +33,7 @@ namespace RejstrikTrestuPravnickychOsob
 			"Rejstřík trestů právnických osob", 
 			"rejstrik-trestu-pravnickych-osob",
 			"https://eservice-po.rejtr.justice.cz/public/odsouzeni",
-			"",
+            "V souvislosti s přijetím zákona č. 418/2011 Sb., o trestní odpovědnosti právnických osob a řízení proti nim a zákona č. 420/2011 Sb., o změně některých zákonů v souvislosti s přijetím zákona o trestní odpovědnosti právnických osob a řízení proti nim vznikla na Ministerstvu spravedlnosti evidence Rejstříku trestů právnické osoby.",
 			"https://github.com/HlidacStatu/Datasety",
 			false,
 			false,
@@ -48,10 +48,6 @@ namespace RejstrikTrestuPravnickychOsob
       <th>Obchodní jméno
       </th>
       <th>Vztahy se státem
-      </th>
-      <th>Sídlo
-      </th>
-      <th>Stát
       </th>
       <th>Rozhodnutí
       </th>
@@ -73,15 +69,8 @@ namespace RejstrikTrestuPravnickychOsob
       <td style=""white-space: nowrap;"" >
         {{ fn_RenderCompanyStatistic item.ICO }}                
       </td>
-
-      <td style=""white-space: nowrap;"" >
-        {{item.Sidlo}}                
-      </td>
-      <td style=""white-space: nowrap;"" >
-        {{item.Stat}}
-      </td>
       <td>
-        {{fn_FormatDate item.DatumRozhodnuti}}    
+        {{fn_FormatDate item.DatumPravniMoci }}    
       </td>
     </tr>
 {{end}}
@@ -116,27 +105,59 @@ namespace RejstrikTrestuPravnickychOsob
       </td>
     </tr>
     <tr>                
-      <td>Stát
-      </td>
-      <td>{{item.Stat}}
-      </td>
-    </tr>
-    <tr>                
       <td>Datum odsouzení
       </td>
       <td>
-        {{fn_FormatDate item.DatumRozhodnuti}}        
+        {{fn_FormatDate item.DatumPravniMoci }}        
       </td>
     </tr>
     <tr>                
-      <td>Text odsouzení
+      <td>Odsouzení
       </td>
       <td>
-        <pre>{{item.TextOdsouzeni}}</pre>
+{{ if item.Odsouzeni}}
+    {{ item.Odsouzeni.PrvniInstance.DruhRozhodnuti }} - {{ item.Odsouzeni.PrvniInstance.Jmeno}}, dne {{ fn_FormatDate item.Odsouzeni.PrvniInstance.DatumRozhodnuti}}, č.j. {{ item.Odsouzeni.PrvniInstance.SpisovaZnacka}}
+
+    {{ if (item.Odsouzeni.OdvolaciSoud.empty? == false) }}
+        <p>Odvolání: 
+        {{ item.Odsouzeni.OdvolaciSoud.DruhRozhodnuti }} - {{ item.Odsouzeni.OdvolaciSoud.Jmeno}}, dne {{ fn_FormatDate item.Odsouzeni.OdvolaciSoud.DatumRozhodnuti}}, č.j. {{ item.Odsouzeni.OdvolaciSoud.SpisovaZnacka}}
+        </p>
+    {{end}}
+
+
+{{end}}
       </td>
     </tr>
+
+{{ if item.Tresty}}
+    <tr>                
+      <td>Trest
+      </td>
+      <td> {{ for t in item.Tresty}}{{ t.DruhText }}, {{end}}
+      </td>
+    </tr>
+{{ end }}
+
+{{ if item.Paragrafy}}
+    <tr>                
+      <td>Překročené zákony
+      </td>
+      <td><ul>
+         {{ for p in item.Paragrafy}}  
+             <li>{{p.Zavineni }}
+                 <a href='https://www.zakonyprolidi.cz/cs/{{p.Zakon.Rok}}-{{p.Zakon.ZakonCislo}}#p{{p.Zakon.ParagrafCislo}}'>{{p.ZakonPopis}} §{{p.Zakon.ParagrafCislo}}
+{{if p.Zakon.OdstavecPismeno }}odst. {{p.Zakon.OdstavecPismeno}} {{end}}</a>
+{{if (fn_IsNullOrEmpty p.Doplneni) == false}}, <i>{{p.Doplneni}}</i>{{end}}
+</li>
+         {{end }}
+         </ul>
+      </td>
+    </tr>
+{{ end }}
+
   </tbody>
-    </table>
+</table>
+
 " });
 	}
 
