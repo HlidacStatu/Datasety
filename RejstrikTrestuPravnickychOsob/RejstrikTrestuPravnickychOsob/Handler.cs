@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TinyCsvParser;
+using System.Collections.Generic;
 
 namespace RejstrikTrestuPravnickychOsob
 {
@@ -20,6 +21,7 @@ namespace RejstrikTrestuPravnickychOsob
 		{
 			DatasetConnector = datasetConnector;
 		}
+
 
 		public async Task Execute()
 		{
@@ -38,7 +40,7 @@ namespace RejstrikTrestuPravnickychOsob
 				{
 					item.DatumRozhodnuti = DateTime.ParseExact(match.Groups[1].Value, "dd.MM.yyyy", CultureInfo.InvariantCulture);
 				}
-				item.Id = $"{item.DatumRozhodnuti?.ToString("yyyyMMdd") ?? "00010101"}-{id++}";
+				item.Id =  $"{item.ICO}-{item.DatumRozhodnuti?.ToString("yyyyMMdd") ?? "00010101"}";
 				await DatasetConnector.Add(item);
 
 				Console.WriteLine($" - {item.ICO};{item.ObchodniJmeno}");

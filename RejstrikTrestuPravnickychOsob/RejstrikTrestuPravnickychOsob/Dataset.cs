@@ -1,5 +1,6 @@
 ﻿using HlidacStatu.Api.Dataset.Connector;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TinyCsvParser.Mapping;
 
@@ -13,7 +14,6 @@ namespace RejstrikTrestuPravnickychOsob
 		{
 			Connector = new DatasetConnector(token);
 		}
-
 		public async Task<string> Recreate()
 		{
 			var datasetExists = await Connector.DatasetExists(Definition);
@@ -27,12 +27,12 @@ namespace RejstrikTrestuPravnickychOsob
 
 		public async Task<string> Add(Trest item)
 		{
-			return await Connector.AddItemToDataset(Definition, item);
+			return await Connector.AddItemToDataset(Definition, item, DatasetConnector.AddItemMode.Skip);
 		}
 
 		private readonly Dataset<Trest> Definition = new Dataset<Trest>(
 			"Rejstřík trestů právnických osob", 
-			"RejstrikTrestuPravnickychOsob",
+			"rejstrik-trestu-pravnickych-osob",
 			"https://eservice-po.rejtr.justice.cz/public/odsouzeni",
 			"",
 			"https://github.com/HlidacStatu/Datasety",
@@ -40,74 +40,105 @@ namespace RejstrikTrestuPravnickychOsob
 			false,
 			new string[,] { { "DatumRozhodnuti", "DatumRozhodnuti" } },
 			new Template { Body = @"<table class=""table table-hover"" >
-    <thead>
-        <tr>
-            <th></th>
-            <th>IČO</th>
-            <th>Obchodní jméno</th>
-			<th>Vztahy se státem</th>
-            <th>Sídlo</th>
-            <th>Stát</th>
-			<th>Rozhodnutí</th>
-        </tr>
-    </thead>
-    <tbody>
-                        
-{{for item in model.Result | array.sort ""DatumRozhodnuti"" | array.reverse}}
-           <tr>
-                <td style=""white-space: nowrap;"">
-                    <a href=""{{fn_DatasetItemUrl item.Id}}"" >Detail</a>
-                </td>
-                <td style=""white-space: nowrap;"" >
-                    {{item.ICO}}
-                </td>
-                <td style=""white-space: nowrap;"" >
-                    {{fn_RenderCompanyWithLink item.ICO}}
-                </td>
-			    <td style=""white -space: nowrap;"" >
-					{{ fn_RenderCompanyStatistic item.ICO }}
-				</td>
-                <td style=""white-space: nowrap;"" >
-                    {{item.Sidlo}}
-                </td>
-                <td style=""white-space: nowrap;"" >
-                    {{item.Stat}}
-                </td>
-				<td>
-					{{fn_FormatDate item.DatumRozhodnuti}}
-				</td>
-            </tr>
+  <thead>        
+    <tr>
+      <th>
+      </th>
+      <th>IČO
+      </th>
+      <th>Obchodní jméno
+      </th>
+      <th>Vztahy se státem
+      </th>
+      <th>Sídlo
+      </th>
+      <th>Stát
+      </th>
+      <th>Rozhodnutí
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {{for item in model.Result | array.sort ""DatumRozhodnuti"" | array.reverse}}           
+    <tr>
+      <td style=""white-space: nowrap;"">                    
+        <a href=""{{fn_DatasetItemUrl item.Id}}"" >Detail
+        </a>
+      </td>
+      <td style=""white-space: nowrap;"" >
+        {{item.ICO}}                
+      </td>
+      <td style=""white-space: nowrap;"" >
+        {{fn_RenderCompanyWithLink item.ICO}}
+      </td>
+      <td style=""white-space: nowrap;"" >
+        {{ fn_RenderCompanyStatistic item.ICO }}                
+      </td>
+
+      <td style=""white-space: nowrap;"" >
+        {{item.Sidlo}}                
+      </td>
+      <td style=""white-space: nowrap;"" >
+        {{item.Stat}}
+      </td>
+      <td>
+        {{fn_FormatDate item.DatumRozhodnuti}}    
+      </td>
+    </tr>
 {{end}}
-</tbody></table>" }, 
+  </tbody>
+</table>" }, 
 			new Template { Body = @"{{this.item = model }}
-<table class=""table table-hover"" >
-        <tbody>
-            <tr>
-                <td>IČO</td>
-                <td>{{item.ICO}}</td>
-            </tr>
-            <tr>
-                <td>Obchodní jméno</td>
-                <td>{{fn_RenderCompanyWithLink item.ICO}}</td>
-            </tr>
-			<tr>
-			  <td>Vztahy se státem</td>
-			  <td>{{fn_RenderCompanyStatistic item.ICO}}</td>
-			</tr>
-            <tr>
-                <td>Sídlo</td>
-                <td>{{item.Sidlo}}</td>
-            </tr>
-            <tr>
-                <td>Stát</td>
-                <td>{{item.Stat}}</td>
-            </tr>
-            <tr>
-                <td>Text odsouzení</td>
-                <td><pre>{{item.TextOdsouzeni}}</pre></td>
-            </tr>
-        </tbody>
-    </table>" });
+<table class=""table table-hover"" >        
+  <tbody>
+    <tr>                
+      <td>IČO
+      </td>
+      <td>{{item.ICO}}
+      </td>
+    </tr>
+    <tr>                
+      <td>Obchodní jméno
+      </td>
+      <td>{{fn_RenderCompanyWithLink item.ICO}}
+      </td>
+    </tr>
+    <tr>                
+      <td>Vztahy se státem
+      </td>
+      <td>{{fn_RenderCompanyStatistic item.ICO}}
+      </td>
+    </tr>
+
+    <tr>                
+      <td>Sídlo
+      </td>
+      <td>{{item.Sidlo}}
+      </td>
+    </tr>
+    <tr>                
+      <td>Stát
+      </td>
+      <td>{{item.Stat}}
+      </td>
+    </tr>
+    <tr>                
+      <td>Datum odsouzení
+      </td>
+      <td>
+        {{fn_FormatDate item.DatumRozhodnuti}}        
+      </td>
+    </tr>
+    <tr>                
+      <td>Text odsouzení
+      </td>
+      <td>
+        <pre>{{item.TextOdsouzeni}}</pre>
+      </td>
+    </tr>
+  </tbody>
+    </table>
+" });
 	}
 
 	public class Trest : IDatasetItem
