@@ -7,12 +7,15 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TinyCsvParser;
 using System.Collections.Generic;
+using System.Xml;
+using System.Xml.Serialization;
+using System.IO;
 
 namespace RejstrikTrestuPravnickychOsob
 {
 	class Handler
 	{
-		private const string Url = "https://eservice-po.rejtr.justice.cz/public/odsouzeni_csv";
+		private const string Url = "https://eservice-po.rejtr.justice.cz/public/odsouzeni_xml";
 
 		private readonly Dataset DatasetConnector;
 		private readonly Regex DateRegex = new Regex(@"Dat. rozhodnutí: (\d{2}.\d{2}.\d{4})", RegexOptions.Compiled);
@@ -23,27 +26,30 @@ namespace RejstrikTrestuPravnickychOsob
 		}
 
 
-		public async Task Execute()
+		public void Execute()
 		{
 			var client = new HttpClient();
-			var content = await client.GetStringAsync(Url);
-			var id = 0;
+			var content = client.GetStringAsync("https://eservice-po.rejtr.justice.cz/public/odsouzeni_xml").Result;
 
-
-			var csvParser = new CsvParser<Trest>(new CsvParserOptions(true, ','), new TrestMapping());
-			var data = csvParser.ReadFromString(new CsvReaderOptions(new[] { "\n" }), content.Trim());
-
-			foreach (var item in data.Select(d => d.Result).ToArray())
+			//XmlDocument doc = new XmlDocument();
+			//doc.LoadXml(content);
+			VypisXML.vypisList data = null;
+			XmlSerializer serializer = new XmlSerializer(typeof(VypisXML.vypisList));
+			using (TextReader reader = new StringReader(content))
 			{
-				var match = DateRegex.Match(item.TextOdsouzeni);
-				if (match.Success)
-				{
-					item.DatumRozhodnuti = DateTime.ParseExact(match.Groups[1].Value, "dd.MM.yyyy", CultureInfo.InvariantCulture);
-				}
-				item.Id =  $"{item.ICO}-{item.DatumRozhodnuti?.ToString("yyyyMMdd") ?? "00010101"}";
-				await DatasetConnector.Add(item);
+				data = (VypisXML.vypisList)serializer.Deserialize(reader);
+			}
+			List<Trest> tresty = new List<Trest>();
+			foreach (var item in data.vypis)
+			{
+				var jd = new Trest(item);
+				tresty.Add(jd);
+			}
+			foreach (var item in tresty)
+			{
+				DatasetConnector.Add(item).Wait();
 
-				Console.WriteLine($" - {item.ICO};{item.ObchodniJmeno}");
+				Console.WriteLine($" - {item.ICO};{item.NazevFirmy}");
 			}
 		}
 	}

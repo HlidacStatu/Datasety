@@ -1,12 +1,11 @@
 ﻿using HlidacStatu.Api.Dataset.Connector;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TinyCsvParser.Mapping;
 
 namespace RejstrikTrestuPravnickychOsob
 {
-	class Dataset
+    class Dataset
 	{
 		private readonly IDatasetConnector Connector;
 
@@ -141,26 +140,4 @@ namespace RejstrikTrestuPravnickychOsob
 " });
 	}
 
-	public class Trest : IDatasetItem
-	{
-		public string Id { get; set; }
-		public string ICO { get; set; }
-		public string ObchodniJmeno { get; set; }
-		public string Sidlo { get; set; }
-		public string Stat { get; set; }
-		public string TextOdsouzeni { get; set; }
-		public DateTime? DatumRozhodnuti { get; set; }
-	}
-
-	public class TrestMapping : CsvMapping<Trest>
-	{
-		public TrestMapping() : base()
-		{
-			MapProperty(0, x => x.ICO);
-			MapProperty(1, x => x.ObchodniJmeno);
-			MapProperty(2, x => x.Sidlo);
-			MapProperty(3, x => x.Stat);
-			MapProperty(4, x => x.TextOdsouzeni);
-		}
-	}
 }

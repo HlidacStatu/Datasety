@@ -1,7 +1,8 @@
 {
   "profiles": {
     "RejstrikTrestuPravnickychOsob": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "--token=51b94da7b1b542ffa6355533855e305f --create"
     }
   }
 }

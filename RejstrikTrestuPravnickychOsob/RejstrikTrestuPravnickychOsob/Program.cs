@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Xml.Serialization;
 
 namespace RejstrikTrestuPravnickychOsob
 {
@@ -7,6 +11,7 @@ namespace RejstrikTrestuPravnickychOsob
 	{
 		static void Main(string[] args)
 		{
+
 			Console.WriteLine("Rejstrik trestu pravnickych osob");
 			Console.WriteLine("--------------------------------");
 
@@ -18,11 +23,11 @@ namespace RejstrikTrestuPravnickychOsob
 			}
 
 			var dataset = new Dataset(token);
-            if (args.Any(a=>a.ToLower()=="--created"))
+            if (args.Any(a=>a.ToLower()=="--create"))
                 dataset.Recreate().Wait();
 
             var handler = new Handler(dataset);
-			handler.Execute().Wait();
+			handler.Execute();
 		}
 
 		private static void Help()
