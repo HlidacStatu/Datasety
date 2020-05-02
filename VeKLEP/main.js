@@ -75,7 +75,7 @@ const extractDataFromFirstTab = async (page) => {
                     typ: $(this).find('td:eq(0)').text().trim(),
                     nazevPrilohy: $(this).find('td:eq(1)').text().trim(),
                     DocumentUrl: "https://apps.odok.cz" + $(this).find('td:eq(1) a').attr('href'),
-                    HsProcessType: "document",
+                    HsProcessType: "documentsave",
                     DocumentPlainText: null,
                     velikostPrilohy: $(this).find('td:eq(2)').text().trim(),
                     datumVlozeniPrilohy: window.apifyParseDate($(this).find('td:eq(3)').text().trim())
@@ -104,7 +104,7 @@ const extractDataFromSecondTab = async (page) => {
                     item.prilohy.push({
                         nazevPrilohy: $(this).text().trim(),
                         DocumentUrl: "https://apps.odok.cz" + $(this).attr('href'),
-                        HsProcessType: "document",
+                        HsProcessType: "documentsave",
                         DocumentPlainText: null
                     });
                 });
