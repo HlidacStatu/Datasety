@@ -10,7 +10,7 @@ namespace Jednani_vlady
     {
         public class dokument
         {
-            public string HsProcessType { get; } = "document";
+            public string HsProcessType { get; } = "documentsave";
             public string DocumentUrl { get; set; }
             public string DocumentPlainText { get; set; }
             public string jmeno { get; set; }
