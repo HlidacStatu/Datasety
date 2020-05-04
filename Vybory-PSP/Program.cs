@@ -36,25 +36,27 @@ namespace Vybory_PSP
                 true, true,
                 new string[,] { { "Datum jednání", "datum" }, { "Výboru", "vybor" } },
                 new Template() { Body= @"
+
 <!-- scriban {{ date.now }} --> 
 <table class='table table-hover'>
                         <thead>
                             <tr>
-<th style='min-width:120px'>Detail</th>
+<th style='min-width:120px'>Jednání</th>
+<th style='min-width:120px'>Výbor</th>
 <th style='min-width:120px'>Datum jednání</th>
-<th>Obsah bodu</th>
 </tr>
 </thead>
 <tbody>
 {{ for item in model.Result }}
 <tr>
-<td ><a href='{{ fn_DatasetItemUrl item.Id }}'>{{ item.bod }}</a></td>
+<td ><a href='{{ fn_DatasetItemUrl item.Id }}'>č. {{ item.cisloJednani }}</a></td>
+<td >{{ item.vybor }}</td>
 <td>{{ fn_FormatDate item.datum 'dd. MM. yyyy' }}</td>
-<td >{{ item.vec }}</td>
 </tr>
 {{ end }}
 
 </tbody></table>
+
 " },
                 new Template() { Body = @"
 {{this.item = model}}
@@ -128,8 +130,11 @@ namespace Vybory_PSP
 
             //download vybory
             Parse.InitVybory();
-            int idVyboru = 3500;
-            Parse.Vybor(dsc, idVyboru);
+            //int idVyboru = 500;
+            foreach (var idVyboru in Parse.Vybory.Keys)
+            {
+                Parse.Vybor(dsc, idVyboru);
+            }
         }
 
 

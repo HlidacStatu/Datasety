@@ -15,7 +15,6 @@ namespace Vybory_PSP
             public string DocumentPlainText { get; set; }
             public string jmeno { get; set; }
             public string popis { get; set; }
-
             public string typ { get; set; }
         }
         public class mp3

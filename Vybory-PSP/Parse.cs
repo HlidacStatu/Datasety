@@ -19,7 +19,7 @@ namespace Vybory_PSP
             public int cislo { get; set; }
         }
 
-        static Dictionary<int, string> vybory = new Dictionary<int, string>();
+        public static Dictionary<int, string> Vybory = new Dictionary<int, string>();
 
         public const string datasetname = "Vybory-PSP";
         public static bool parallel = true;
@@ -31,31 +31,49 @@ namespace Vybory_PSP
 
         public static void Vybor(DatasetConnector dsc, int vyborId)
         {
-            var vsechnausneseni = VsechnaUsneseniVyboru(vyborId);
+
+
+            List<_usneseni> vsechnausneseni = VsechnaUsneseniVyboru(vyborId);
 
             Console.WriteLine($"Vybor {vyborId}");
 
             int lastJednani = 0;
             var xp = GetPage(string.Format(_vyborHP, vyborId + 2));
-            var xrows = xp.GetNodes("//div[@id='main-content']//table//a[starts-with(@href,'hp.sqw?k=')]");
+            var xpozvanky = xp.GetNodes("//div[@id='main-content']//h2")[0].NextSibling.SelectNodes(".//tr//a");
             string jednaniUrlTemplate = "";
-            if (xrows != null && xrows.Count > 0)
+
+            bool komplexni = false;
+
+            if (xpozvanky != null && xpozvanky.Count > 0)
             {
-                var tmp = GetRegexGroupValue(xrows[0].GetAttributeValue("href", ""), @"&cu=(?<cislo>\d*)", "cislo");
-                int.TryParse(tmp, out lastJednani);
-                if (lastJednani > 0)
+                var link = xpozvanky[0].GetAttributeValue("href", "");
+                if (link.StartsWith("hp.sqw"))
                 {
-                    jednaniUrlTemplate = _vyborJednaniHProot + xrows[0].GetAttributeValue("href", "").Replace("&cu=" + lastJednani, "&cu={0}");
+                    komplexni = true;
+                    var tmp = GetRegexGroupValue(link, @"&cu=(?<cislo>\d*)", "cislo");
+                    int.TryParse(tmp, out lastJednani);
+                    if (lastJednani > 0)
+                    {
+                        jednaniUrlTemplate = _vyborJednaniHProot + link.Replace("&cu=" + lastJednani, "&cu={0}");
+                    }
+                }
+                else
+                {
+                    komplexni = false;
+                    var tmp = GetRegexGroupValue(System.Net.WebUtility.HtmlDecode(xpozvanky[0].InnerText), @"č\. \s* (?<cislo>\d*)","cislo");
+                    int.TryParse(tmp, out lastJednani);
+
                 }
             }
 
-            if (lastJednani > 0 && !string.IsNullOrEmpty(jednaniUrlTemplate))
+            if (komplexni && lastJednani > 0 && !string.IsNullOrEmpty(jednaniUrlTemplate))
             {
                 //parse HP jednani
                 for (int cisloJednani = lastJednani; cisloJednani > 0; cisloJednani--)
                 {
-                    var jednani = JednaniHP(vyborId, cisloJednani, string.Format(jednaniUrlTemplate, cisloJednani));
-
+                    var jednani = JednaniKomplexni(vyborId, cisloJednani, string.Format(jednaniUrlTemplate, cisloJednani));
+                    if (jednani == null)
+                        continue;
                     //add usneseni
                     var docFromUsneseni = vsechnausneseni
                         .Where(m => m.datum == jednani.datum)
@@ -70,21 +88,62 @@ namespace Vybory_PSP
                         jednani.dokumenty = jednani.dokumenty.Concat(docFromUsneseni).ToArray();
                     }
                     jednani.SetId();
+                    var id = dsc.AddItemToDataset(datasetname, jednani, DatasetConnector.AddItemMode.Rewrite).Result;
+                    Console.WriteLine($"Saved vybor {jednani.vybor} jednani {jednani.Id} id {id}");
                 }
             }
 
         }
 
-        private static jednani JednaniHP(int vyborId, int cisloJednani, string url)
+        private static jednani JednaniKomplexni(int vyborId, int cisloJednani, string url)
         {
             Console.WriteLine($"Vybor {vyborId} jednani {cisloJednani}");
 
             var xp = GetPage(url);
             jednani j = new jednani();
             j.cisloJednani = cisloJednani;
-            var sdatum = xp.GetNodeText("//div[@id='main-content']//h1");
-            j.datum = DateTime.ParseExact(sdatum, "(d. MMMM yyyy)", System.Globalization.CultureInfo.GetCultureInfo("cs-CZ"));
-            j.vybor = vybory[vyborId];
+
+            //simpledatum
+            string sdatum = "";
+            sdatum = GetRegexGroupValue( 
+                xp.GetNodeText("//div[@id='main-content']//h1")
+                , @"\(\s*  (?<datum>\d{1,2}\. \s \w{4,15} \s \d{4})  \s* \)"
+                , "datum");
+            if (string.IsNullOrEmpty(sdatum))
+            {
+                string regexKombiDatum = @"\(\s* 
+
+((?<den>\d{1,2})\. \s* ((?<mesic>\w{4,15})\s* a|a|až) )? 
+
+\s* \d{1,2}\. \s (?<mesic>\w{4,15}) \s (?<rok>\d{4})
+
+\s* \)";
+                //kombinovany datum
+                var sden = GetRegexGroupValue(
+                    xp.GetNodeText("//div[@id='main-content']//h1")
+                    , regexKombiDatum
+                    , "den");
+                var smesic = GetRegexGroupValue(
+                    xp.GetNodeText("//div[@id='main-content']//h1")
+                    , regexKombiDatum
+                    , "mesic");
+                var srok = GetRegexGroupValue(
+                    xp.GetNodeText("//div[@id='main-content']//h1")
+                    , regexKombiDatum
+                    , "rok");
+
+                sdatum = $"{sden}. {smesic} {srok}";
+            }
+
+            try
+            {
+                j.datum = DateTime.ParseExact(sdatum, "d. MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("cs-CZ"));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            j.vybor = Vybory[vyborId];
             j.vyborId = vyborId;
             j.vyborUrl = string.Format(_vyborHP, vyborId + 2);
 
@@ -211,9 +270,9 @@ namespace Vybory_PSP
         {
             var xp = GetPage(url);
             var title = xp.GetNodeText("//div[@id='main-content']//div[@class='page-title']");
-            var datum = GetRegexGroupValue(title, @"\((?<datum>.*) \)", "datum");
+            var datum = GetRegexGroupValue(title, @"\((?<datum>\d{1,2}(\.)? \s* \w{4,15}\s*\d{4}) (\w|\s|,)*  \)", "datum");
             if (!string.IsNullOrEmpty(datum))
-                j.datum = DateTime.ParseExact(datum, "d. MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("cs-CZ")); //19. února 2020
+                j.datum = DateTime.ParseExact(datum, new string[] {"d MMMM yyyy", "d. MMMM yyyy", "d. MMMMyyyy" }, System.Globalization.CultureInfo.GetCultureInfo("cs-CZ"), System.Globalization.DateTimeStyles.AssumeLocal); //19. února 2020
             j.cislo = int.Parse(GetRegexGroupValue(title, @"č\. \s* (?<cislo>\d*) \s", "cislo"));
 
             var files = xp.GetNodes("//div[@id='main-content']//div[@class='document-media-attachments-x']//ul//li");
@@ -241,7 +300,7 @@ namespace Vybory_PSP
             var xlinks = xp.GetNodes("//div[@id='main-content']//div[@class='section']//ul//li/a[starts-with(@href,'hp.sqw?k=')]");
             foreach (var xl in xlinks)
             {
-                vybory.Add(
+                Vybory.Add(
                     int.Parse(xl.GetAttributeValue("href", "").Replace("hp.sqw?k=", ""))
                     , xl.InnerText
                     );
@@ -308,7 +367,10 @@ namespace Vybory_PSP
             {
                 if (match.Success)
                 {
-                    return match.Groups[groupname].Value;
+                    if (match.Groups[groupname].Captures.Count > 1)
+                        return match.Groups[groupname].Captures[0].Value;
+                    else 
+                        return match.Groups[groupname].Value;
                 }
             }
             return string.Empty;
