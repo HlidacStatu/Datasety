@@ -17,7 +17,7 @@ namespace Vybory_PSP
             dsc = new HlidacStatu.Api.Dataset.Connector.DatasetConnector(
                 System.Configuration.ConfigurationManager.AppSettings["apikey"]
                 );
-
+            dsc.SetDeveleperUrl("http://local.hlidacstatu.cz/api/v1/");
             args = arguments
                 .Select(m => m.Split('='))
                 .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1]);
@@ -61,52 +61,46 @@ namespace Vybory_PSP
                 new Template() { Body = @"
 {{this.item = model}}
 
-<table class=""table table-hover""><tbody>
+<table class='table table-hover'><tbody>
 
-<tr><td>Datum jednání</td><td >{{ item.datum }}</td></tr>
-<tr><td>Bod jednání</td><td >{{ item.bod }}</a></td></tr>
+<tr><td>Datum jednání</td><td >{{ fn_FormatDate item.datum 'd. MMMM yyyy' }}</td></tr>
+<tr><td>Číslo jednání</td><td >{{ item.cisloJednani }}</a></td></tr>
 
-{{ if !(fn_IsNullOrEmpty item.cisloJednaci)  }}
-   <tr><td>Číslo jednací</td><td >{{ item.cisloJednaci }}</td></tr>
+{{ if !(fn_IsNullOrEmpty item.vec)  }}
+   <tr><td>Téma</td><td >{{ item.vec }}</td></tr>
 {{end }}
-
-<tr><td>Obsah projednáváného bodu</td><td >{{ item.vec }}</td></tr>
-
 
 {{ if item.dokumenty.size > 0  }}
 
-   <tr><td>Projednávané dokumenty</td><td >
+  {{ zapis = ''
+     for doc in item.dokumenty
+        if (string.contains doc.typ 'Zápis')
+           zapis = zapis + doc.DocumentPlainText
+        end  
+     end
+
+     if ( (fn_IsNullOrEmpty zapis) == false )
+     }}
+   <tr><td style='vertical-align:top;'>Zápis z jednání</td>
+   <td>
+      <div class='panel-body'>                                                                       
+      <pre style='font-size:90%;background:none;line-height:1.6em;'>
+        {{ fn_HighlightText highlightingData zapis 'dokumenty.DocumentPlainText' | string.replace '\n' '\n\n' }}                                                                                                                                                                                                                                                                  
+      </pre>
+      </div>
+   </td></tr>
+    {{
+     end 
+  }}
+
+
+   <tr><td>Projednávané dokumenty</td><td>
 <ul>
 {{ for doc in item.dokumenty }}
 
    <li> 
       {{ doc.jmeno }} - 
-      {{fn_LinkTextDocumentWithHighlighting doc ""Vybory-PSP"" item.Id ""Obsah dokumentu"" highlightingData }}
-   </li>
-
-{{ end }}
-</ul>
-<div class=""text-muted small"">Vláda uveřejňuje dokumenty obvykle ve dvou formátech (DOC a PDF). Pro úplnost zpracováváme obě verze souboru, i když jsou obvykle shodné</div>
-</td></tr>
-
-
-{{end }}
-
-{{ if item.souvisejici.size > 0  }}
-
-   <tr><td>Související usnesení a dokumenty</td><td >
-<ul>
-{{ for doc in item.souvisejici }}
-
-   <li> 
-
-      Toto usnesení {{ doc.zmena }} 
-      {{ if fn_IsNullOrEmpty doc.usneseniCislo }}
-           {{ doc.usneseni }}
-      {{ else }}
-          <a href=""https://www.hlidacstatu.cz/data/Hledat/Vybory-PSP?Q=cisloJednaci.keyword:{{ string.replace doc.usneseniCislo ""/20"" ""%2F"" }}"">
-          {{ doc.usneseni }}</a>
-      {{ end }}
+      {{fn_LinkTextDocumentWithHighlighting doc 'Vybory-PSP' item.Id 'Obsah dokumentu' highlightingData }}
    </li>
 
 {{ end }}
@@ -116,9 +110,26 @@ namespace Vybory_PSP
 
 {{end }}
 
+{{ if item.audio.size > 0  }}
+
+   <tr><td>Zvukové záznamy</td><td >
+    <ul>
+    {{ for doc in item.audio }}
+
+       <li> 
+
+      
+          <a href='{{ doc.DocumentUrl }}'>
+              {{ doc.jmeno }}</a>
+          {{ end }}
+       </li>
+
+    {{ end }}
+    </ul>
+    </td></tr>
+{{end }}
 
 </table>
-
 " }
                 );
 

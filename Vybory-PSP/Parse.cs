@@ -60,7 +60,7 @@ namespace Vybory_PSP
                 else
                 {
                     komplexni = false;
-                    var tmp = GetRegexGroupValue(System.Net.WebUtility.HtmlDecode(xpozvanky[0].InnerText), @"č\. \s* (?<cislo>\d*)","cislo");
+                    var tmp = GetRegexGroupValue(System.Net.WebUtility.HtmlDecode(xpozvanky[0].InnerText), @"č\. \s* (?<cislo>\d*)", "cislo");
                     int.TryParse(tmp, out lastJednani);
 
                 }
@@ -77,12 +77,13 @@ namespace Vybory_PSP
                     //add usneseni
                     var docFromUsneseni = vsechnausneseni
                         .Where(m => m.datum == jednani.datum)
-                        .Select(m => new jednani.dokument() {
-                                 typ="Usnesení",
-                                 DocumentUrl = m.fileUrl,
-                                 popis = m.popis,
-                                 jmeno = $"usneseni_{m.cislo}.docx"
-                            })                        ;
+                        .Select(m => new jednani.dokument()
+                        {
+                            typ = "Usnesení",
+                            DocumentUrl = m.fileUrl,
+                            popis = m.popis,
+                            jmeno = $"usneseni_{m.cislo}.docx"
+                        });
                     if (docFromUsneseni.Count() > 0)
                     {
                         jednani.dokumenty = jednani.dokumenty.Concat(docFromUsneseni).ToArray();
@@ -105,7 +106,7 @@ namespace Vybory_PSP
 
             //simpledatum
             string sdatum = "";
-            sdatum = GetRegexGroupValue( 
+            sdatum = GetRegexGroupValue(
                 xp.GetNodeText("//div[@id='main-content']//h1")
                 , @"\(\s*  (?<datum>\d{1,2}\. \s \w{4,15} \s \d{4})  \s* \)"
                 , "datum");
@@ -156,49 +157,52 @@ namespace Vybory_PSP
             {
                 var typDok = xtypes[ityp].InnerText;
                 var xrows = xtypes[ityp].NextSibling.SelectNodes(".//tr");
-                foreach (var xrow in xrows)
+                if (xrows != null)
                 {
-                    var rootUrl = "https://www.psp.cz/sqw/";
-                    var fUrlNode = XPath.Tools.GetNode(xrow, "td[1]/a");
-                    if (fUrlNode != null)
+                    foreach (var xrow in xrows)
                     {
-                        var fUrl = fUrlNode.GetAttributeValue("href", "");
-                        if (fUrl.StartsWith("text/text")) //link to another page
+                        var rootUrl = "https://www.psp.cz/sqw/";
+                        var fUrlNode = XPath.Tools.GetNode(xrow, "td[1]/a");
+                        if (fUrlNode != null)
                         {
-                            FilePage(rootUrl + fUrl, out string title, out string fileUrl, out string ext);
-                            if (!string.IsNullOrEmpty(fileUrl))
-                                docs.Add(new jednani.dokument()
-                                {
-                                    DocumentUrl = fileUrl,
-                                    jmeno = MakeValidFileName(title) + ext,
-                                    popis = title,
-                                    typ = typDok,
-                                });
-                        }
-                        else if (fUrl.StartsWith("text/orig"))
-                        {
-                            if (typDok.ToLower() == "mp3")
+                            var fUrl = fUrlNode.GetAttributeValue("href", "");
+                            if (fUrl.StartsWith("text/text")) //link to another page
                             {
-                                //direct link to file
-                                mp3s.Add(new jednani.mp3()
-                                {
-                                    DocumentUrl = rootUrl + fUrl,
-                                    jmeno = MakeValidFileName(fUrlNode.InnerText),
-                                });
+                                FilePage(rootUrl + fUrl, out string title, out string fileUrl, out string ext);
+                                if (!string.IsNullOrEmpty(fileUrl))
+                                    docs.Add(new jednani.dokument()
+                                    {
+                                        DocumentUrl = fileUrl,
+                                        jmeno = MakeValidFileName(title) + ext,
+                                        popis = title,
+                                        typ = typDok,
+                                    });
                             }
-                            else
+                            else if (fUrl.StartsWith("text/orig"))
                             {
-                                //direct link to file
-                                docs.Add(new jednani.dokument()
+                                if (typDok.ToLower() == "mp3")
                                 {
-                                    DocumentUrl = rootUrl + fUrl,
-                                    jmeno = MakeValidFileName(fUrlNode.InnerText),
-                                    popis = "",
-                                    typ = typDok,
-                                });
+                                    //direct link to file
+                                    mp3s.Add(new jednani.mp3()
+                                    {
+                                        DocumentUrl = rootUrl + fUrl,
+                                        jmeno = MakeValidFileName(fUrlNode.InnerText),
+                                    });
+                                }
+                                else
+                                {
+                                    //direct link to file
+                                    docs.Add(new jednani.dokument()
+                                    {
+                                        DocumentUrl = rootUrl + fUrl,
+                                        jmeno = MakeValidFileName(fUrlNode.InnerText),
+                                        popis = "",
+                                        typ = typDok,
+                                    });
+                                }
                             }
-                        }
-                    } //fUrlNode != null
+                        } //fUrlNode != null
+                    }
                 }
             }
 
@@ -207,7 +211,7 @@ namespace Vybory_PSP
 
             j.dokumenty = docs.Count == 0 ? null : docs.ToArray();
 
-            
+
             return j;
         }
 
@@ -272,7 +276,7 @@ namespace Vybory_PSP
             var title = xp.GetNodeText("//div[@id='main-content']//div[@class='page-title']");
             var datum = GetRegexGroupValue(title, @"\((?<datum>\d{1,2}(\.)? \s* \w{4,15}\s*\d{4}) (\w|\s|,)*  \)", "datum");
             if (!string.IsNullOrEmpty(datum))
-                j.datum = DateTime.ParseExact(datum, new string[] {"d MMMM yyyy", "d. MMMM yyyy", "d. MMMMyyyy" }, System.Globalization.CultureInfo.GetCultureInfo("cs-CZ"), System.Globalization.DateTimeStyles.AssumeLocal); //19. února 2020
+                j.datum = DateTime.ParseExact(datum, new string[] { "d MMMM yyyy", "d. MMMM yyyy", "d. MMMMyyyy" }, System.Globalization.CultureInfo.GetCultureInfo("cs-CZ"), System.Globalization.DateTimeStyles.AssumeLocal); //19. února 2020
             j.cislo = int.Parse(GetRegexGroupValue(title, @"č\. \s* (?<cislo>\d*) \s", "cislo"));
 
             var files = xp.GetNodes("//div[@id='main-content']//div[@class='document-media-attachments-x']//ul//li");
@@ -315,7 +319,7 @@ namespace Vybory_PSP
         /// </remarks>
         public static string MakeValidFileName(string filename)
         {
-            var invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars())+"()")+@"\s"; //pridano \s ()
+            var invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars()) + "=()") + @"\s"; //pridano \s ()
             var invalidReStr = string.Format(@"[{0}]+", invalidChars);
 
             var reservedWords = new[]
@@ -369,7 +373,7 @@ namespace Vybory_PSP
                 {
                     if (match.Groups[groupname].Captures.Count > 1)
                         return match.Groups[groupname].Captures[0].Value;
-                    else 
+                    else
                         return match.Groups[groupname].Value;
                 }
             }
