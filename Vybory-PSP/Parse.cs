@@ -29,7 +29,7 @@ namespace Vybory_PSP
         static string _vyborJednaniHProot = "https://www.psp.cz/sqw/"; //idVyboru +6, 
         static string _vyborUsneseni = "https://www.psp.cz/sqw/hp.sqw?k={0}&kk=5&td=1&n={1}"; //idVyboru+5 , page
 
-        public static void Vybor(DatasetConnector dsc, int vyborId)
+        public static void Vybor(DatasetConnector dsc, int vyborId, bool rewrite = false)
         {
 
 
@@ -89,7 +89,14 @@ namespace Vybory_PSP
                         jednani.dokumenty = jednani.dokumenty.Concat(docFromUsneseni).ToArray();
                     }
                     jednani.SetId();
-                    var id = dsc.AddItemToDataset(datasetname, jednani, DatasetConnector.AddItemMode.Rewrite).Result;
+                    string id = "";
+                    if (rewrite)
+                        id = dsc.AddItemToDataset(datasetname, jednani, DatasetConnector.AddItemMode.Rewrite).Result;
+                    else
+                    {
+                        //update
+                        id = dsc.AddItemToDataset(datasetname, jednani, DatasetConnector.AddItemMode.Skip).Result;
+                    }
                     Console.WriteLine($"Saved vybor {jednani.vybor} jednani {jednani.Id} id {id}");
                 }
             }

@@ -17,7 +17,7 @@ namespace Vybory_PSP
             dsc = new HlidacStatu.Api.Dataset.Connector.DatasetConnector(
                 System.Configuration.ConfigurationManager.AppSettings["apikey"]
                 );
-            dsc.SetDeveleperUrl("http://local.hlidacstatu.cz/api/v1/");
+            //dsc.SetDeveleperUrl("http://local.hlidacstatu.cz/api/v1/");
             args = arguments
                 .Select(m => m.Split('='))
                 .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1]);

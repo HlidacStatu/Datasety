@@ -65,6 +65,7 @@ namespace Podpora_COVID
             var ds = new HlidacStatu.Api.Dataset.Connector.DatasetConnector(
                                 System.Configuration.ConfigurationManager.AppSettings["apikey"]
                                 );
+            //ds.SetDeveleperUrl("http://local.hlidacstatu.cz/api/v1");
 
             //
             // Define request parameters.
