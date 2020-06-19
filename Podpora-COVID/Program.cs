@@ -37,6 +37,9 @@ namespace Podpora_COVID
         static string[] Scopes = { SheetsService.Scope.SpreadsheetsReadonly };
         static void Main(string[] args)
         {
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("cs-CZ"); ;
+            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("cs-CZ");
+
             UserCredential credential;
 
             //credentials.json created as described in https://developers.google.com/sheets/api/quickstart/dotnet?authuser=2
