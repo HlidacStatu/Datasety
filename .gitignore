@@ -341,3 +341,5 @@ Vybory-PSP/App.Debug.config
 Podpora-COVID/credentials.json
 Podpora-COVID/token.json/Google.Apis.Auth.OAuth2.Responses.TokenResponse-user
 Podpora-COVID/App.Release.config
+YoutubeToVyjadreniPolitiku/App.Debug.config
+YoutubeToVyjadreniPolitiku/App.Release.config
