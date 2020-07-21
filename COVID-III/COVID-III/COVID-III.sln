@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30128.74
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "COVID-III", "COVID-III.csproj", "{88095C2D-E258-4AA8-96DE-C7102F0A584B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HlidacStatu.Api.V2.Dataset", "..\..\..\API\v2\HlidacStatu.Api.V2.Dataset\HlidacStatu.Api.V2.Dataset.csproj", "{3179FA7F-5FCF-4654-AEE4-3AB4F8398FD9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{88095C2D-E258-4AA8-96DE-C7102F0A584B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88095C2D-E258-4AA8-96DE-C7102F0A584B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88095C2D-E258-4AA8-96DE-C7102F0A584B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88095C2D-E258-4AA8-96DE-C7102F0A584B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3179FA7F-5FCF-4654-AEE4-3AB4F8398FD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3179FA7F-5FCF-4654-AEE4-3AB4F8398FD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3179FA7F-5FCF-4654-AEE4-3AB4F8398FD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3179FA7F-5FCF-4654-AEE4-3AB4F8398FD9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {99BFA50A-7061-4901-8978-32AB45FD0F98}
+	EndGlobalSection
+EndGlobal
