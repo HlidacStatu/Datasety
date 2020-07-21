@@ -13,32 +13,42 @@ namespace YoutubeToVyjadreniPolitiku
 {
     class YT
     {
-
-        public static record process(string vid)
+        public static YoutubeExplode.Videos.Video GetVideoInfo(string vid)
         {
-
-
-
-            Console.WriteLine($"Starting with video {vid}");
+            var youtube = new YoutubeClient();
 
             //var vid = "YfvTjQ9MCwY";// "te-t5TDm2BE";
             var url = "https://www.youtube.com/watch?v=" + vid;
+            YoutubeExplode.Videos.Video videoInfo = youtube.Videos.GetAsync(vid).Result;
+
+            return videoInfo;
+        }
+
+        public static record process(YoutubeExplode.Videos.Video vi)
+        {
+            if (vi == null)
+                return null;
+
+            Console.WriteLine($"Starting with video {vi.Id}");
+
+
             var youtube = new YoutubeClient();
-            var videoInfo = youtube.Videos.GetAsync(vid).Result;
+
+            YoutubeExplode.Videos.Video videoInfo = GetVideoInfo(vi.Id);
 
             string recId = Devmasters.Core.CryptoLib.Hash.ComputeHashToHex(videoInfo.Url).ToLower();
 
 
             if (Program.api.ApiV2DatasetyDatasetItemExists(Program.DataSetId, recId))
                 return null;
-            
-            
-            var streamManifest = youtube.Videos.Streams.GetManifestAsync(vid).Result;
+
+
+            var streamManifest = youtube.Videos.Streams.GetManifestAsync(videoInfo.Id).Result;
             var streamInfo = streamManifest.GetAudioOnly()
                 .FirstOrDefault(m => m.Container.Name == "mp4" || m.Container.Name == "mp3")
                 ?? streamManifest.GetAudioOnly().WithHighestBitrate();
 
-            var trackManifest = youtube.Videos.ClosedCaptions.GetManifestAsync(vid).Result;
+            var trackManifest = youtube.Videos.ClosedCaptions.GetManifestAsync(videoInfo.Id).Result;
             var trackInfo = trackManifest.TryGetByLanguage("cs");
             if (trackInfo != null)
             {
@@ -49,7 +59,7 @@ namespace YoutubeToVyjadreniPolitiku
             if (streamInfo != null)
             {
 
-                Console.WriteLine($"Getting MP3 stream for {vid}");
+                Console.WriteLine($"Getting MP3 stream for {videoInfo.Id}");
 
                 // Get the actual stream
                 var stream = youtube.Videos.Streams.GetAsync(streamInfo).Result;
@@ -59,11 +69,11 @@ namespace YoutubeToVyjadreniPolitiku
                 {
                     var converter = new YoutubeConverter(youtube); // re-using the same client instance for efficiency, not required
                     tmpFile = System.IO.Path.GetTempFileName();
-                    var prg = new progress(vid);
+                    var prg = new progress(videoInfo.Id);
                     converter.DownloadAndProcessMediaStreamsAsync(new IStreamInfo[] { streamInfo },
-                        tmpFile, "mp3",prg).Wait();
+                        tmpFile, "mp3", prg).Wait();
 
-                    Console.WriteLine($"Getting text from MP3 stream for {vid}");
+                    Console.WriteLine($"Getting text from MP3 stream for {videoInfo.Id}");
 
                     var s2t_id = "ntx.v2t.engine.EngineService/cz/t-broadcast/v2t";
                     var s2t_label = "vad+v2t+ppc+pnc";
@@ -78,11 +88,14 @@ namespace YoutubeToVyjadreniPolitiku
                     ret.datum = videoInfo.UploadDate.DateTime;
                     ret.origid = videoInfo.Id.Value;
                     ret.server = "Youtube";
-                    ret.text = _txt;
+                    ret.text = videoInfo.Title + "\n\n" 
+                        + videoInfo.Description + "\n" 
+                        + "---------" + "\n"
+                        + _txt;
                     ret.url = videoInfo.Url;
                     ret.typserveru = "video";
 
-                    Console.WriteLine($"MP3 stream for {vid} DONE");
+                    Console.WriteLine($"MP3 stream for {videoInfo.Id} DONE");
                     return ret;
 
                 }
