@@ -119,7 +119,12 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                 pocetSchuzi = schuze.Value;
             }
 
+            List<int> schuzeToParse = new List<int>();
             for (int s = lastSchuzeInDb; s <= pocetSchuzi; s++)
+                schuzeToParse.Add(s);
+
+            Devmasters.Core.Batch.Manager.DoActionForAll<int>(schuzeToParse,
+                s =>
             {
                 foreach (var item in ParsePSPWeb.ParseSchuze(rok, s))
                 {
@@ -143,7 +148,7 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                     {
                         net.Method = Devmasters.Net.Web.MethodEnum.POST;
                         net.RequestParams.Form.Add("text", item.text);
-                        net.Timeout = 60*1000;
+                        net.Timeout = 60 * 1000;
                         var sosoby = net.GetContent().Text;
                         var osoby = Newtonsoft.Json.Linq.JArray.Parse(sosoby);
                         if (osoby != null && osoby.Count > 0)
@@ -166,7 +171,9 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                     else
                         SaveItem(dsDef, item, true);
                 }
-            }
+
+                return new Devmasters.Core.Batch.ActionOutputData();
+            }, true);
 
             if (apikey == "csv")
             {

@@ -168,6 +168,12 @@ namespace StenozaznamyPSP
                             funkce = mluvci.Substring(0, nalez + 3).Trim();
                             mluvci = mluvci.Substring(nalez + 3).Trim();
                         }
+                        nalez = mluvci.IndexOf(" CR"); //+ vsechny fce s CR v nazvu (typicky ministri)
+                        if (nalez > 0)
+                        {
+                            funkce = mluvci.Substring(0, nalez + 3).Trim();
+                            mluvci = mluvci.Substring(nalez + 3).Trim();
+                        }
                     }
                     newProslov = !string.IsNullOrEmpty(mluvci);
 

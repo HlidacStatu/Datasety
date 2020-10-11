@@ -49,7 +49,7 @@ namespace MostyRSD
 
 
             //download, parse and save data into dataset
-            // DownloadData(dsDef, "stav-mostu");
+            DownloadData(dsDef, "stav-mostu");
             GenerateAllKML();
         }
 

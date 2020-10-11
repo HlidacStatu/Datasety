@@ -83,7 +83,7 @@ namespace YoutubeToVyjadreniPolitiku
             }
             foreach (var v in videosL.OrderByDescending(m => m.UploadDate.DateTime))
             {
-
+                Console.WriteLine("analyzing " + v.Title);
                 if (!string.IsNullOrEmpty(filter))
                 {
                     if (!Devmasters.Core.TextUtil.RemoveDiacritics(v.Title.ToLower()).Contains(filter))
