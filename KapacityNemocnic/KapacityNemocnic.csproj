@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{FBA295CE-BD32-4F69-BC35-0E915B4137D8}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>DIP_stat</RootNamespace>
-    <AssemblyName>DIP_stat</AssemblyName>
+    <RootNamespace>KapacityNemocnic</RootNamespace>
+    <AssemblyName>KapacityNemocnic</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

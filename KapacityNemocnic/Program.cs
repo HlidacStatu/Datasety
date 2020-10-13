@@ -40,6 +40,9 @@ namespace DIP_stat
             {
                 DateTime dt = DateTime.Now.Date.AddDays(-1 * i);
                 string zipUrl = $"https://share.uzis.cz/s/qMpdA9W6yJqX6t3/download?path=%2F&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";
+             
+                Devmasters.Logging.Logger.Root.Info($"Getting ZIP url {zipUrl}");
+
                 using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(zipUrl))
                 {
                     try
@@ -53,6 +56,7 @@ namespace DIP_stat
                 }
             }
 
+            Devmasters.Logging.Logger.Root.Info("Getting Excel from ZIP");
             //get xlsx from ZIP
             using (ZipArchive archive = ZipFile.OpenRead(fnTemp))
             {
