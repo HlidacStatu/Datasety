@@ -29,7 +29,7 @@ namespace Jednani_vlady
         {
             var s = datum.ToString("yyyyMMdd") + "-";
             if (string.IsNullOrEmpty(usneseni))
-                s = s + Devmasters.Core.TextUtil.NormalizeToPureTextLower(bod).Replace(" ", "-");
+                s = s + Devmasters.TextUtil.NormalizeToPureTextLower(bod).Replace(" ", "-");
             else
                 s = s + $"usneseni-{usneseni.Replace("/", "-")}"; //Devmasters.Core.TextUtil.NormalizeToPureTextLower(bod).Replace(" ", "-");
 

@@ -15,7 +15,7 @@ using Newtonsoft.Json.Schema.Generation;
 
 using OfficeOpenXml;
 
-namespace DIP_stat
+namespace KapacityNemocnic
 {
     class Program
     {
@@ -26,11 +26,18 @@ namespace DIP_stat
         static void Main(string[] args)
         {
 
-
-            CreateDataset(args
+            var DArgs = args
                 .Select(m => m.Split('='))
-                .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1])
-                );
+                .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1]);
+
+            CreateDataset(DArgs);
+
+            if (DArgs.ContainsKey("/xls"))
+            {
+                Obsazenost.ProcessExcelObsazenost(DArgs["/xls"],ds);
+                return;
+            }
+
 
             string fn = $"dip-report-kraje-{DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
 
@@ -101,6 +108,8 @@ namespace DIP_stat
                 }
             }
 
+            //debug
+            //fn = @"c:\!!\ONLINE_DISPECINK_IP_dostupne_kapacity_20201014_05-50.xlsx";
 
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var p = new ExcelPackage(new System.IO.FileInfo(fn)))
@@ -116,23 +125,35 @@ namespace DIP_stat
                     var txt = ws.Cells[row, 1].GetValue<string>();
                     if (txt != null && txt.StartsWith("Analýza provedena z exportu"))
                     {
-                        NemocniceData nd = new NemocniceData();
-                        nd.lastUpdated = Devmasters.DT.Util.ToDate(txt.Replace("Analýza provedena z exportu ", "")).Value;
-                        nd.regions = new List<NemocniceData.Region>();
-                        nd.id = "id_" + nd.lastUpdated.ToString("yyyy-MM-dd");
+                        DateTime dt = Devmasters.DT.Util.ToDate(txt.Replace("Analýza provedena z exportu ", "")).Value;
+                        string id ="id_" + dt.ToString("yyyy-MM-dd");
+                        NemocniceData nd = ds.GetItem(id); // new NemocniceData();
+                        if (nd == null)
+                        {
+                            nd = new NemocniceData();
+                            nd.regions = new List<NemocniceData.Region>();
+                        }
+                        nd.lastUpdated = dt;
+                        
+                        nd.id = id;
 
                         Console.WriteLine(".");
                         Devmasters.Logging.Logger.Root.Info(nd.lastUpdated.ToString());
 
                         row = row + 4;
 
+                        List<NemocniceData.Region> finalRegs = new List<NemocniceData.Region>();
 
                         for (int regs = 0; regs < 14; regs++)
                         {
-                            NemocniceData.Region r = new NemocniceData.Region();
+                            string region = ws.Cells[row + regs, 1].GetValue<string>();
+                            NemocniceData.Region r = nd.regions.FirstOrDefault(m => m.region == region ); //new NemocniceData.Region();
+                            if (r == null)
+                            {
+                                r = new NemocniceData.Region();
+                            }
                             r.lastModified = nd.lastUpdated;
-
-                            r.region = ws.Cells[row + regs, 1].GetValue<string>();
+                            r.region = region;
 
                             r.UPV_celkem = ws.Cells[row + regs, 2].GetValue<int>();
                             r.UPV_volna = ws.Cells[row + regs, 3].GetValue<int>();
@@ -166,9 +187,9 @@ namespace DIP_stat
                             r.Standard_luzka_celkem = ws.Cells[row + regs, 30].GetValue<int>();
                             r.Standard_luzka_s_monitor_celkem = ws.Cells[row + regs, 31].GetValue<int>();
 
-
-                            nd.regions.Add(r);
+                            finalRegs.Add(r);
                         }
+                        nd.regions = finalRegs;
                         row = row + 16;
 
                         Devmasters.Logging.Logger.Root.Info("Saving");
@@ -181,7 +202,6 @@ namespace DIP_stat
 
             }
         }
-
 
 
         static void CreateDataset(Dictionary<string, string> args)

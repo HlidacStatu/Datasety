@@ -9,7 +9,7 @@ using Nest;
 
 using Newtonsoft.Json.Linq;
 
-namespace DIP_stat
+namespace KapacityNemocnic
 {
     public class NemocniceData
     {
@@ -75,6 +75,14 @@ namespace DIP_stat
             public int Standard_luzka_celkem { get; set; }
             public int Standard_luzka_s_monitor_celkem { get; set; }
 
+
+            public int Pacienti_bezpriznaku { get; set; } = 0;
+            public int Pacienti_lehky { get; set; } = 0;
+            public int Pacienti_stredni { get; set; } = 0;
+            public int Pacienti_tezky { get; set; } = 0;
+            public int Pacienti_zemreli { get; set; } = 0;
+
+
             public string regionFull()
             {
                 switch (this.region)
@@ -100,6 +108,31 @@ namespace DIP_stat
                 }
             }
         }
+
+        public static string ExcelWorkBookToRegion(string wsName)
+        {
+            if (wsName.Contains("Hradec")) return "HKK";
+            if (wsName.Contains("JHC")) return "JHC";
+            if (wsName.Contains("JMK")) return "JHM";
+            if (wsName.Contains("KVK")) return "KVK";
+            if (wsName.Contains("LBK")) return "LBK";
+            if (wsName.Contains("MSK")) return "MSK";
+            if (wsName.Contains("Olomouc")) return "OLK";
+            if (wsName.Contains("Pardubicky")) return "PAK";
+            if (wsName.Contains("PHA")) return "PHA";
+            if (wsName.Contains("Plzensky")) return "PLK";
+            if (wsName.Contains("STC")) return "STC";
+            if (wsName.Contains("Ustecky")) return "ULK";
+            if (wsName.Contains("Vysocina")) return "VYS";
+            if (wsName.Contains("ZLK")) return "ZLK";
+            if (wsName.Contains("")) return "CR";
+
+            return "";
+
+        }
+
+
+
 
         public static NemocniceData Diff(NemocniceData f, NemocniceData l)
         {
@@ -138,11 +171,11 @@ namespace DIP_stat
             h.IHD_celkem = lh.IHD_celkem - fh.IHD_celkem;
             h.IHD_volna = lh.IHD_volna - fh.IHD_volna;
             h.Lekari_AROJIP_celkem = lh.Lekari_AROJIP_celkem - fh.Lekari_AROJIP_celkem;
-            h.Lekari_AROJIP_dostupni= lh.Lekari_AROJIP_dostupni- fh.Lekari_AROJIP_dostupni;
+            h.Lekari_AROJIP_dostupni = lh.Lekari_AROJIP_dostupni - fh.Lekari_AROJIP_dostupni;
             h.name = lh.name;
             //h.regionId = lh.regionId;
             h.region = lh.region;
-            h.Sestry_AROJIP_dostupni= lh.Sestry_AROJIP_dostupni- fh.Sestry_AROJIP_dostupni;
+            h.Sestry_AROJIP_dostupni = lh.Sestry_AROJIP_dostupni - fh.Sestry_AROJIP_dostupni;
             h.Sestry_AROJIP_celkem = lh.Sestry_AROJIP_celkem - fh.Sestry_AROJIP_celkem;
             h.Standard_luzka_celkem = lh.Standard_luzka_celkem - fh.Standard_luzka_celkem;
             h.Standard_luzka_s_kyslikem_celkem = lh.Standard_luzka_s_kyslikem_celkem - fh.Standard_luzka_s_kyslikem_celkem;
@@ -153,6 +186,13 @@ namespace DIP_stat
             h.UPV_volna = lh.UPV_volna - fh.UPV_volna;
             h.Ventilatory_operacnisal_celkem = lh.Ventilatory_operacnisal_celkem - fh.Ventilatory_operacnisal_celkem;
             h.Ventilatory_prenosne_celkem = lh.Ventilatory_prenosne_celkem - fh.Ventilatory_prenosne_celkem;
+
+            h.Pacienti_bezpriznaku = lh.Pacienti_bezpriznaku - fh.Pacienti_bezpriznaku;
+            h.Pacienti_lehky = lh.Pacienti_lehky - fh.Pacienti_lehky;
+            h.Pacienti_stredni = lh.Pacienti_stredni - fh.Pacienti_stredni;
+            h.Pacienti_tezky = lh.Pacienti_tezky - fh.Pacienti_tezky;
+            h.Pacienti_zemreli = lh.Pacienti_zemreli - fh.Pacienti_zemreli;
+
             return h;
         }
 
@@ -178,7 +218,7 @@ namespace DIP_stat
             //h.regionId = 0;
             h.region = hospitals.First().region;
             h.Sestry_AROJIP_celkem = hospitals.Sum(m => m.Sestry_AROJIP_celkem);
-            h.Sestry_AROJIP_dostupni= hospitals.Sum(m => m.Sestry_AROJIP_dostupni);
+            h.Sestry_AROJIP_dostupni = hospitals.Sum(m => m.Sestry_AROJIP_dostupni);
             h.Standard_luzka_celkem = hospitals.Sum(m => m.Standard_luzka_celkem);
             h.Standard_luzka_s_kyslikem_celkem = hospitals.Sum(m => m.Standard_luzka_s_kyslikem_celkem);
             h.Standard_luzka_s_kyslikem_covid = hospitals.Sum(m => m.Standard_luzka_s_kyslikem_covid);
@@ -188,6 +228,12 @@ namespace DIP_stat
             h.UPV_volna = hospitals.Sum(m => m.UPV_volna);
             h.Ventilatory_operacnisal_celkem = hospitals.Sum(m => m.Ventilatory_operacnisal_celkem);
             h.Ventilatory_prenosne_celkem = hospitals.Sum(m => m.Ventilatory_prenosne_celkem);
+
+            h.Pacienti_bezpriznaku = hospitals.Sum(m => m.Pacienti_bezpriznaku);
+            h.Pacienti_lehky = hospitals.Sum(m => m.Pacienti_lehky);
+            h.Pacienti_stredni = hospitals.Sum(m => m.Pacienti_stredni);
+            h.Pacienti_tezky = hospitals.Sum(m => m.Pacienti_tezky);
+            h.Pacienti_zemreli = hospitals.Sum(m => m.Pacienti_zemreli);
 
             return h;
         }

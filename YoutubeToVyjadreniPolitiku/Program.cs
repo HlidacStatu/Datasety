@@ -18,8 +18,8 @@ namespace YoutubeToVyjadreniPolitiku
         //public static RESTCall api = new RESTCall(System.Configuration.ConfigurationManager.AppSettings["apikey"], 60*1000);
 
         public static HlidacStatu.Api.V2.CoreApi.DatasetyApi api = null;
-        static HlidacStatu.Api.V2.Dataset.Typed.Dataset<record> api2 =null;
-         static void Main(string[] arguments)
+        static HlidacStatu.Api.V2.Dataset.Typed.Dataset<record> api2 = null;
+        static void Main(string[] arguments)
         {
             var conf = new HlidacStatu.Api.V2.CoreApi.Client.Configuration();
             conf.AddDefaultHeader("Authorization", System.Configuration.ConfigurationManager.AppSettings["apikey"]);
@@ -27,7 +27,7 @@ namespace YoutubeToVyjadreniPolitiku
 
             api = new HlidacStatu.Api.V2.CoreApi.DatasetyApi(conf);
 
-            api2 = HlidacStatu.Api.V2.Dataset.Typed.Dataset<record>.OpenDataset(System.Configuration.ConfigurationManager.AppSettings["apikey"],DataSetId);
+            api2 = HlidacStatu.Api.V2.Dataset.Typed.Dataset<record>.OpenDataset(System.Configuration.ConfigurationManager.AppSettings["apikey"], DataSetId);
 
             args = arguments
                 .Select(m => m.Split('='))
@@ -47,17 +47,13 @@ namespace YoutubeToVyjadreniPolitiku
             string playlist = "";
             if (args.ContainsKey("/playlist"))
                 playlist = args["/playlist"];
-            else
-            {
-                Help(); return;
-            }
             int threads = 5;
             if (args.ContainsKey("/t"))
                 threads = int.Parse(args["/t"]);
 
             string filter = "";
             if (args.ContainsKey("/filter"))
-                filter = Devmasters.Core.TextUtil.RemoveDiacritics(args["/filter"]).ToLower();
+                filter = Devmasters.TextUtil.RemoveDiacritics(args["/filter"]).ToLower();
 
             DateTime? fromDate = null;
             if (args.ContainsKey("/fromdate"))
@@ -66,6 +62,16 @@ namespace YoutubeToVyjadreniPolitiku
             string[] vids = null;
             if (args.ContainsKey("/ids"))
                 vids = args["/ids"].Split(',');
+
+            string[] mp3 = null;
+            if (args.ContainsKey("/mp3"))
+                mp3 = args["/mp3"].Split(',');
+
+            if (string.IsNullOrEmpty(playlist) && vids==null  )
+            {
+                Help(); return;
+            }
+
 
             var yt = new YoutubeClient();
             List<YoutubeExplode.Videos.Video> videos = new List<YoutubeExplode.Videos.Video>();
@@ -86,7 +92,7 @@ namespace YoutubeToVyjadreniPolitiku
                 Console.WriteLine("analyzing " + v.Title);
                 if (!string.IsNullOrEmpty(filter))
                 {
-                    if (!Devmasters.Core.TextUtil.RemoveDiacritics(v.Title.ToLower()).Contains(filter))
+                    if (!Devmasters.TextUtil.RemoveDiacritics(v.Title.ToLower()).Contains(filter))
                         continue;
                 }
                 if (fromDate.HasValue)
@@ -95,7 +101,7 @@ namespace YoutubeToVyjadreniPolitiku
                         continue;
                 }
 
-                string recId = Devmasters.Core.CryptoLib.Hash.ComputeHashToHex(v.Url).ToLower();
+                string recId = Devmasters.Crypto.Hash.ComputeHashToHex(v.Url).ToLower();
 
                 if (Program.api.ApiV2DatasetyDatasetItemExists(Program.DataSetId, recId))
                 {
@@ -123,30 +129,39 @@ namespace YoutubeToVyjadreniPolitiku
 
 
             Console.WriteLine();
-            Console.WriteLine($"Processing {videos.Count} videos, total {videos.Sum(m=>m.Duration.TotalMinutes)} mins ");
+            Console.WriteLine($"Processing {videos.Count} videos, total {videos.Sum(m => m.Duration.TotalMinutes)} mins ");
 
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine();
-            Devmasters.Core.Batch.Manager.DoActionForAll(videos,
+            Devmasters.Batch.Manager.DoActionForAll(videos,
                 vid =>
                 {
 
                     //var rec = Newtonsoft.Json.JsonConvert.DeserializeObject<record>(System.IO.File.ReadAllText(@"c:\!\yt_2CAD2F3C20C701DC7354B6E50700EB41"));
-                    var rec = YT.process(vid);
-
+                    var idx = vids.ToList().IndexOf(vid.Id);
+                    record rec = null;
+                    string fnBak = $@"c:\!\yt_{Devmasters.Crypto.Hash.ComputeHashToHex(vid.Url).ToLower()}";
+                    if (System.IO.File.Exists(fnBak))
+                    {
+                        rec = Newtonsoft.Json.JsonConvert.DeserializeObject<record>(System.IO.File.ReadAllText(fnBak));
+                    }
+                    else
+                    {
+                        rec = YT.process(vid, mp3==null ? null : mp3[idx]);
+                    }
                     if (rec != null)
                     {
                         rec.osobaid = osobaId;
-                        System.IO.File.WriteAllText($@"c:\!\yt_{rec.id}", Newtonsoft.Json.JsonConvert.SerializeObject(rec));
+                        System.IO.File.WriteAllText(fnBak, Newtonsoft.Json.JsonConvert.SerializeObject(rec));
                         string data = Newtonsoft.Json.JsonConvert.SerializeObject(rec);
                         var ret = api.ApiV2DatasetyDatasetItemUpdate(DataSetId, rec.id, rec, "skip");
                     }
 
-                    return new Devmasters.Core.Batch.ActionOutputData();
-                }, Devmasters.Core.Batch.Manager.DefaultOutputWriter, Devmasters.Core.Batch.Manager.DefaultProgressWriter,
-                true, maxDegreeOfParallelism: threads
+                    return new Devmasters.Batch.ActionOutputData();
+                }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
+                !System.Diagnostics.Debugger.IsAttached, maxDegreeOfParallelism: threads
                 );
 
 
@@ -157,7 +172,7 @@ namespace YoutubeToVyjadreniPolitiku
 
         static void Help()
         {
-            Console.WriteLine("YoutubeToVyjadreniPolitiku /osobaid= /playlist= /filter= /ids= /fromDate=yyyy-MM-dd /t=");
+            Console.WriteLine("YoutubeToVyjadreniPolitiku /osobaid= /playlist= /filter= /ids= /fromDate=yyyy-MM-dd /t= /mp3=");
             Console.WriteLine();
 
         }

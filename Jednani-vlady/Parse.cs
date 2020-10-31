@@ -24,19 +24,19 @@ namespace Jednani_vlady
             int totalSave = 0;
 
             List<string> agendy = new List<string>();
-            Devmasters.Core.Batch.Manager.DoActionForAll(years.Reverse(),
+            Devmasters.Batch.Manager.DoActionForAll(years.Reverse(),
                 (y) =>
                 {
                     agendy.AddRange(AgendaList(y).OrderBy(o=>o));
-                    return new Devmasters.Core.Batch.ActionOutputData();
+                    return new Devmasters.Batch.ActionOutputData();
                 }
-                , Devmasters.Core.Batch.Manager.DefaultOutputWriter
-                , new Devmasters.Core.Batch.ActionProgressWriter(0.1f).Write
+                , Devmasters.Batch.Manager.DefaultOutputWriter
+                , new Devmasters.Batch.ActionProgressWriter(0.1f).Write
                 , false
                 , maxDegreeOfParallelism: 5
             );
 
-            Devmasters.Core.Batch.Manager.DoActionForAll(agendy,
+            Devmasters.Batch.Manager.DoActionForAll(agendy,
                 (ag) =>
                 {
                     Console.WriteLine("Getting " + ag + " ");
@@ -92,7 +92,7 @@ namespace Jednani_vlady
                         Console.WriteLine(".");
 
                     }
-                    return new Devmasters.Core.Batch.ActionOutputData();
+                    return new Devmasters.Batch.ActionOutputData();
                 }
                 , null //Devmasters.Core.Batch.Manager.DefaultOutputWriter
                 , null //new Devmasters.Core.Batch.ActionProgressWriter(0.1f).Write
@@ -119,7 +119,7 @@ namespace Jednani_vlady
         {
             int rok = den.Year;
             string html = "";
-            using (var net = new Devmasters.Net.Web.URLContent(string.Format(usneseniUrl, rok, cislo)))
+            using (var net = new Devmasters.Net.HttpClient.URLContent(string.Format(usneseniUrl, rok, cislo)))
             {
                 html = net.GetContent().Text;
             }
@@ -230,7 +230,7 @@ namespace Jednani_vlady
         public static IEnumerable<jednani> ParseAgenda(string sdatum)
         {
             string html = "";
-            using (var net = new Devmasters.Net.Web.URLContent(string.Format(agendaUrl, sdatum)))
+            using (var net = new Devmasters.Net.HttpClient.URLContent(string.Format(agendaUrl, sdatum)))
             {
                 html = net.GetContent().Text;
             }
@@ -304,7 +304,7 @@ namespace Jednani_vlady
 
             //parse usneseni
 
-            Devmasters.Core.Batch.Manager.DoActionForAll(usneseni,
+            Devmasters.Batch.Manager.DoActionForAll(usneseni,
                 (u) =>
                 {
                     lock (lockObj)
@@ -312,7 +312,7 @@ namespace Jednani_vlady
                         js.Add(ParseUsneseni(datum, System.Text.RegularExpressions.Regex.Replace(u, "\\D", "")));
                     }
 
-                    return new Devmasters.Core.Batch.ActionOutputData();
+                    return new Devmasters.Batch.ActionOutputData();
                 }
                 , null
                 , null //new Devmasters.Core.Batch.ActionProgressWriter(0.1f).Write
@@ -339,8 +339,10 @@ namespace Jednani_vlady
 
         public static string[] AgendaList(int year)
         {
-            using (var net = new Devmasters.Net.Web.URLContent(string.Format(listUrl, year)))
+            using (var net = new Devmasters.Net.HttpClient.URLContent(string.Format(listUrl, year)))
             {
+                net.UserAgent = Devmasters.Net.HttpClient.BrowserUserAgent.IE11;
+                //net.RequestParams.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
                 var html = net.GetContent().Text;
                 var xp = new XPath(html);
                 return xp.GetNodes("//div[@class='content-main']//a[starts-with(@href,'/djv-agenda')]")
