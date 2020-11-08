@@ -77,11 +77,13 @@ namespace YoutubeToVyjadreniPolitiku
                     var prg = new progress(videoInfo.Id);
 
                     // Get the actual stream
-                    var stream = youtube.Videos.DownloadAsync(new IStreamInfo[] { streamInfo },
+                    //var stream = 
+                        
+                    youtube.Videos.DownloadAsync(new IStreamInfo[] { streamInfo },
                         new ConversionRequestBuilder(tmpFile)
                             .SetFormat("mp3")
                             .Build()
-                        );
+                        ).Wait();
 
                     //converter.DownloadAndProcessMediaStreamsAsync(new IStreamInfo[] { streamInfo },
                     //    tmpFile, "mp3", prg).Wait();
@@ -100,7 +102,13 @@ namespace YoutubeToVyjadreniPolitiku
                 }
                 finally
                 {
+                    try
+                    {
                     System.IO.File.Delete(tmpFile);
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
 
             }

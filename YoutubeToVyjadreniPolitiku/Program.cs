@@ -140,7 +140,9 @@ namespace YoutubeToVyjadreniPolitiku
                 {
 
                     //var rec = Newtonsoft.Json.JsonConvert.DeserializeObject<record>(System.IO.File.ReadAllText(@"c:\!\yt_2CAD2F3C20C701DC7354B6E50700EB41"));
-                    var idx = vids.ToList().IndexOf(vid.Id);
+                    var idx = 0;
+                    if (mp3!=null)
+                        idx = mp3.ToList().IndexOf(vid.Id);
                     record rec = null;
                     string fnBak = $@"c:\!\yt_{Devmasters.Crypto.Hash.ComputeHashToHex(vid.Url).ToLower()}";
                     if (System.IO.File.Exists(fnBak))
