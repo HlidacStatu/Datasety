@@ -36,8 +36,14 @@ namespace KapacityNemocnic
                         {
                             string id = "id_" + dt.Value.ToString("yyyy-MM-dd");
                             Console.Write(dt.Value.ToString("yyyy-MM-dd "));
-
-                            var data = ds.GetItem(id);
+                            NemocniceData data = null;
+                            try
+                            {
+                                data =  ds.GetItem(id);
+                            }
+                            catch (Exception)
+                            {
+                            }
                             if (data == null)
                                 continue;
 

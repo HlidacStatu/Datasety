@@ -34,7 +34,7 @@ namespace KapacityNemocnic
 
             if (DArgs.ContainsKey("/xls"))
             {
-                Obsazenost.ProcessExcelObsazenost(DArgs["/xls"],ds);
+                Obsazenost.ProcessExcelObsazenost(DArgs["/xls"], ds);
                 return;
             }
 
@@ -47,7 +47,7 @@ namespace KapacityNemocnic
             {
                 DateTime dt = DateTime.Now.Date.AddDays(-1 * i);
                 string zipUrl = $"https://share.uzis.cz/s/qMpdA9W6yJqX6t3/download?path=%2F&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";
-             
+
                 Devmasters.Logging.Logger.Root.Info($"Getting ZIP url {zipUrl}");
 
                 using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(zipUrl))
@@ -126,15 +126,22 @@ namespace KapacityNemocnic
                     if (txt != null && txt.StartsWith("Analýza provedena z exportu"))
                     {
                         DateTime dt = Devmasters.DT.Util.ToDate(txt.Replace("Analýza provedena z exportu ", "")).Value;
-                        string id ="id_" + dt.ToString("yyyy-MM-dd");
-                        NemocniceData nd = ds.GetItem(id); // new NemocniceData();
+                        string id = "id_" + dt.ToString("yyyy-MM-dd");
+                        NemocniceData nd = null;
+                        try
+                        {
+                            nd = ds.GetItem(id); // new NemocniceData();
+                        }
+                        catch (Exception)
+                        {
+                        }
                         if (nd == null)
                         {
                             nd = new NemocniceData();
                             nd.regions = new List<NemocniceData.Region>();
                         }
                         nd.lastUpdated = dt;
-                        
+
                         nd.id = id;
 
                         Console.WriteLine(".");
@@ -147,7 +154,7 @@ namespace KapacityNemocnic
                         for (int regs = 0; regs < 14; regs++)
                         {
                             string region = ws.Cells[row + regs, 1].GetValue<string>();
-                            NemocniceData.Region r = nd.regions.FirstOrDefault(m => m.region == region ); //new NemocniceData.Region();
+                            NemocniceData.Region r = nd.regions.FirstOrDefault(m => m.region == region); //new NemocniceData.Region();
                             if (r == null)
                             {
                                 r = new NemocniceData.Region();
