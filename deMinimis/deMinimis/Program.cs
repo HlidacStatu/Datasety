@@ -36,19 +36,35 @@ namespace deMinimis
             var genJsonSchema = jsonGen.Generate(typeof(JednoduchaPodpora)).ToString();
 
             HlidacStatu.Api.V2.CoreApi.Model.Registration reg = new HlidacStatu.Api.V2.CoreApi.Model.Registration(
-                "Příjemci podpor z registru de minimis", "de-minimis", "", "", "",
+                "Příjemci podpor z registru de minimis", "de-minimis",
+                "http://eagri.cz/public/web/mze/dotace/verejna-podpora-a-de-minimis/registr-de-minimis/",
+                "https://github.com/HlidacStatu/Datasety/tree/master/deMinimis/deMinimis",
+                "Centrální registr podpor malého rozsahu (Registr de minimis) slouží od pro evidenci podpor de minimis poskytovaných na základě přímo použitelných předpisů EU. Data Ministerstva zemědělství, dostupná pouze přes komplikované API, poskytujeme v jednoduché formě po jednotlivých podporách.",
                 genJsonSchema, betaversion: true, allowWriteAccess: false,
+                orderList: new string[,] { 
+                    { "Podle datumu poskytnutí podpory", "PodporaDatum" }, 
+                    { "Podle výše podpory v CZK", "PodporaCzk" }, 
+                    { "Podle výše podpory v EUR", "PodporaEur" }, 
+                },
                 searchResultTemplate: new ClassicTemplate.ClassicSearchResultTemplate()
-                    .AddColumn("Podpora", @"<a href=""@(fn_DatasetItemUrl(item.Id))"">@item.Podporaid</a>")
-                    .AddColumn("Subjekt", "@item.Ico")
-                    .AddColumn("Podpora", "@item.PodporaUcel")
+                    .AddColumn("Podpora", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{item.Id}}</a>")
+                    .AddColumn("Subjekt", "{{fn_RenderCompanyWithLink item.Ico}}")
+                    .AddColumn("Podpora", "{{item.PodporaUcel}}")
+                    .AddColumn("Výše", "{{fn_FormatPrice item.PodporaCzk }} / {{fn_FormatPrice item.PodporaEur \"EUR\" }}")
                     .AddColumn("Poskytnuta", "@fn_FormatDate(item.PodporaDatum,\"dd.MM.yyyy\")")
                 ,
                 detailTemplate: new ClassicTemplate.ClassicDetailTemplate()
-                    .AddColumn("Podpora", @"<a href=""@(fn_DatasetItemUrl(item.Id))"">@item.Podporaid</a>")
-                    .AddColumn("Subjekt", "@item.Ico")
-                    .AddColumn("Podpora", "@item.PodporaUcel")
-                    .AddColumn("Poskytnuta", "@fn_FormatDate(item.PodporaDatum,\"dd.MM.yyyy\")")
+                    .AddColumn("Podpora", @"{{item.Id}}")
+                    .AddColumn("Subjekt", "{{fn_RenderCompanyWithLink item.Ico}} {{ fn_RenderCompanyStatistic item.Ico }}")
+                    .AddColumn("ID subjektu v registru", "{{item.Subjektid }}")
+                    .AddColumn("Podpora", "{{item.PodporaUcel}}")
+                    .AddColumn("Forma podpory", "{{ item.PodporaFormaText }} ({{item.PodporaFormaKod}})")
+                    .AddColumn("Účel podpory", "{{ item.PodporaUcel }}")
+                    .AddColumn("ID projektu", "{{ item.ProjektId }}")
+                    .AddColumn("Podporu poskytl", "{{ item.PoskytovatelOjm }}")
+                    .AddColumn("Právní aktu", "{{ item.PravniAktPoskytnutiText  }} ({{item.PravniAktPoskytnutiId}})")
+                    .AddColumn("Výše podpory", "{{fn_FormatPrice item.PodporaCzk }} / {{fn_FormatPrice item.PodporaEur \"EUR\" }}")
+                    .AddColumn("Poskytnuta", "{{fn_FormatDate item.PodporaDatum \"dd.MM.yyyy\" }}")
                 );
 
 
@@ -67,10 +83,22 @@ namespace deMinimis
                 throw;
             }
 
-            var changes = DeMinimisCalls.GetChanges(DateTime.Now.Date.AddDays(-1 * days));
-            if (changes != null && changes.pocet > 0)
+            if (args.ContainsKey("/missing"))
             {
-                Devmasters.Batch.Manager.DoActionForAll<int>(changes.seznam_subjektid,
+                AddMissingFromJsonDump();return;
+            }
+
+
+            int[] changes = null;
+            if (args.ContainsKey("/fn"))
+                changes = System.IO.File.ReadAllLines(args["/fn"]).Select(m => Convert.ToInt32(m)).ToArray();
+            else
+                changes = DeMinimisCalls.GetChanges(DateTime.Now.Date.AddDays(-1 * days))?.seznam_subjektid;
+
+
+            if (changes != null && changes.Length > 0)
+            {
+                Devmasters.Batch.Manager.DoActionForAll<int>(changes,
                 szrId =>
                 {
                     var podporyApi = DeMinimisCalls.GetSubjPerSubjectId(szrId.ToString());
@@ -96,8 +124,8 @@ namespace deMinimis
                     }
 
                     return new Devmasters.Batch.ActionOutputData();
-                }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter, 
-                !System.Diagnostics.Debugger.IsAttached, maxDegreeOfParallelism: 3);
+                }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
+                !System.Diagnostics.Debugger.IsAttached, maxDegreeOfParallelism: 6);
 
                 //AddMissingFromJsonDump();
 
