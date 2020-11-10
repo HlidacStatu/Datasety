@@ -40,28 +40,29 @@ namespace deMinimis
                 "http://eagri.cz/public/web/mze/dotace/verejna-podpora-a-de-minimis/registr-de-minimis/",
                 "https://github.com/HlidacStatu/Datasety/tree/master/deMinimis/deMinimis",
                 "Centrální registr podpor malého rozsahu (Registr de minimis) slouží od pro evidenci podpor de minimis poskytovaných na základě přímo použitelných předpisů EU. Data Ministerstva zemědělství, dostupná pouze přes komplikované API, poskytujeme v jednoduché formě po jednotlivých podporách.",
-                genJsonSchema, betaversion: true, allowWriteAccess: false,
+                genJsonSchema, betaversion: false, allowWriteAccess: false,
                 orderList: new string[,] { 
                     { "Podle datumu poskytnutí podpory", "PodporaDatum" }, 
                     { "Podle výše podpory v CZK", "PodporaCzk" }, 
                     { "Podle výše podpory v EUR", "PodporaEur" }, 
                 },
+                defaultOrderBy:"PodporaDatum desc",
                 searchResultTemplate: new ClassicTemplate.ClassicSearchResultTemplate()
                     .AddColumn("Podpora", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{item.Id}}</a>")
                     .AddColumn("Subjekt", "{{fn_RenderCompanyWithLink item.Ico}}")
                     .AddColumn("Podpora", "{{item.PodporaUcel}}")
                     .AddColumn("Výše", "{{fn_FormatPrice item.PodporaCzk }} / {{fn_FormatPrice item.PodporaEur \"EUR\" }}")
-                    .AddColumn("Poskytnuta", "@fn_FormatDate(item.PodporaDatum,\"dd.MM.yyyy\")")
+                    .AddColumn("Poskytnuta", "{{fn_FormatDate item.PodporaDatum \"dd.MM.yyyy\" }}")
                 ,
                 detailTemplate: new ClassicTemplate.ClassicDetailTemplate()
                     .AddColumn("Podpora", @"{{item.Id}}")
-                    .AddColumn("Subjekt", "{{fn_RenderCompanyWithLink item.Ico}} {{ fn_RenderCompanyStatistic item.Ico }}")
-                    .AddColumn("ID subjektu v registru", "{{item.Subjektid }}")
+                    .AddColumn("Subjekt", "{{fn_RenderCompanyWithLink item.Ico}} {{ fn_RenderCompanyStatistic item.PrijemceJmeno }}")
+                    .AddColumn("ID prijemce v registru", "{{item.Prijemce_SZRId }}")
                     .AddColumn("Podpora", "{{item.PodporaUcel}}")
                     .AddColumn("Forma podpory", "{{ item.PodporaFormaText }} ({{item.PodporaFormaKod}})")
                     .AddColumn("Účel podpory", "{{ item.PodporaUcel }}")
                     .AddColumn("ID projektu", "{{ item.ProjektId }}")
-                    .AddColumn("Podporu poskytl", "{{ item.PoskytovatelOjm }}")
+                    .AddColumn("Podporu poskytl", "{{ fn_RenderCompanyWithLink item.PoskytovatelIco item.PoskytovatelOjm }}")
                     .AddColumn("Právní aktu", "{{ item.PravniAktPoskytnutiText  }} ({{item.PravniAktPoskytnutiId}})")
                     .AddColumn("Výše podpory", "{{fn_FormatPrice item.PodporaCzk }} / {{fn_FormatPrice item.PodporaEur \"EUR\" }}")
                     .AddColumn("Poskytnuta", "{{fn_FormatDate item.PodporaDatum \"dd.MM.yyyy\" }}")
