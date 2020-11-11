@@ -125,7 +125,9 @@ namespace KapacityNemocnic
                     var txt = ws.Cells[row, 1].GetValue<string>();
                     if (txt != null && txt.StartsWith("Analýza provedena z exportu"))
                     {
-                        DateTime dt = Devmasters.DT.Util.ToDate(txt.Replace("Analýza provedena z exportu ", "")).Value;
+                        string head = txt.Replace("Analýza provedena z exportu ", "");
+                        string sdate = Devmasters.RegexUtil.GetRegexGroupValue(head, @" \s* (?<dt>\d{1,2}\s*\.\s*\d{1,2}\s*\.\s*\d{4} )", "dt");
+                        DateTime dt = Devmasters.DT.Util.ToDate(sdate).Value;
                         string id = "id_" + dt.ToString("yyyy-MM-dd");
                         NemocniceData nd = null;
                         try

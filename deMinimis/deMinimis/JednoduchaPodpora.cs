@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace deMinimis
@@ -27,7 +28,7 @@ namespace deMinimis
             JednoduchaPodpora p = new JednoduchaPodpora();
             //p.CjPrijemce = i.;
             p.Edidat = i.Edidat;
-            p.Ico =  i.Ico.ToString().PadLeft(8,'0');
+            p.Ico = i.Ico.ToString().PadLeft(8, '0');
             p.Id = i.Id;
             p.Insdat = i.Insdat;
             p.PodporaCzk = (decimal)i.PodporaCzk;
@@ -97,28 +98,51 @@ namespace deMinimis
 
         public JednoduchaPodpora() { }
 
+        [Description("ID podpory")]
         public int Id { get; set; }
+        [Description("Unikatni ID příjemce v systému SZR")]
         public int Prijemce_SZRId { get; set; }
+        [Description("IČO příjemce")]
         public string Ico { get; set; }
+        [Description("Obchodní jméno či jméno příjemce")]
         public string JmenoPrijemce { get; set; }
+        [Description("Kód oblasti v RDM")]
         public string RdmOblastKod { get; set; }
+        [Description("Výše podpory v českých korunách")]
         public decimal PodporaCzk { get; set; }
+        [Description("Výše podory v Eurech")]
         public decimal PodporaEur { get; set; }
+        [Description("Datum schválení podpory")]
         public DateTime PodporaDatum { get; set; }
+        [Description("Kód formy podpory")]
         public int PodporaForma_Kod { get; set; }
+        [Description("Textový popis formy podpory")]
         public string PodporaFormaText { get; set; }
+        [Description("Účel podpory")]
         public string PodporaUcel { get; set; }
+        [Description("ID projektu, pokud je uvedeno")]
         public string ProjektId { get; set; }
+        [Description("ID projektu u příjemce")]
         public string CjPrijemce { get; set; }
+        [Description("Stav podpory")]
         public int StavKod { get; set; }
+        [Description("Textový popis stavu podpory")]
         public string StavKodText { get; set; }
+        [Description("Datum vložení záznamu do registru de minimis")]
         public DateTime? Insdat { get; set; }
+        [Description("Datum poslední editace záznamu v registru de minimis")]
         public DateTime? Edidat { get; set; }
+        [Description("ID poskytovatele podpory v systému SZR")]
         public int Poskytovatel_SZRId { get; set; }
+        [Description("Jméno poskytovatele podpory")]
         public string PoskytovatelOjm { get; set; }
+        [Description("IČO poskytovatele podpory")]
         public string PoskytovatelIco { get; set; }
+        [Description("Kód právního aktu, na základě kterého došlo k poskytnutí podpory")]
         public int PravniAktPoskytnutiId { get; set; }
+        [Description("Právní akt, na základě kterého došlo k poskytnutí podpory")]
         public string PravniAktPoskytnutiText { get; set; }
+        [Description("Režim podpory")]
         public string RezimPodporyId { get; set; }
     }
 }
