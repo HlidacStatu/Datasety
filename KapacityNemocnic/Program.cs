@@ -46,8 +46,7 @@ namespace KapacityNemocnic
             for (int i = 0; i < 7; i++)
             {
                 DateTime dt = DateTime.Now.Date.AddDays(-1 * i);
-                string zipUrl = $"https://share.uzis.cz/s/qMpdA9W6yJqX6t3/download?path=%2F&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";
-
+                string zipUrl = $"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";
                 Devmasters.Logging.Logger.Root.Info($"Getting ZIP url {zipUrl}");
 
                 using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(zipUrl))
@@ -63,153 +62,164 @@ namespace KapacityNemocnic
                 }
             }
 
-            Devmasters.Logging.Logger.Root.Info("Getting Excel from ZIP");
-            //get xlsx from ZIP
-            using (ZipArchive archive = ZipFile.OpenRead(fnTemp))
+            try
             {
-                foreach (ZipArchiveEntry entry in archive.Entries)
-                {
-                    if (entry.FullName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
-                    {
-                        entry.ExtractToFile(fn);
-                    }
-                }
-            }
 
-            if (false) //download xls from web
-            {
-                //find xls url
-                string openDataPage = "https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19";
-                Uri xlsUrl = null;
-                Devmasters.Logging.Logger.Root.Info("Getting URL of XLS from " + openDataPage);
-                using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(openDataPage))
-                {
-                    Devmasters.Logging.Logger.Root.Info("Getting Excel URL");
-                    var html = net.GetContent().Text;
 
-                    Devmasters.XPath xp = new Devmasters.XPath(html);
-                    var node = xp.GetNode("//a[contains(@href,'dip-report-kraje.xlsx')]");
-                    if (node != null)
+                Devmasters.Logging.Logger.Root.Info("Getting Excel from ZIP");
+                //get xlsx from ZIP
+                using (ZipArchive archive = ZipFile.OpenRead(fnTemp))
+                {
+                    foreach (ZipArchiveEntry entry in archive.Entries)
                     {
-                        xlsUrl = new Uri("https://onemocneni-aktualne.mzcr.cz" + node.Attributes["href"].Value);
+                        if (entry.FullName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+                        {
+                            entry.ExtractToFile(fn);
+                        }
                     }
                 }
 
-                if (xlsUrl == null)
+                if (false) //download xls from web
                 {
-                    Devmasters.Logging.Logger.Root.Fatal("No URL to download");
-                    return;
-                }
-
-                using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(xlsUrl.AbsoluteUri))
-                {
-                    Devmasters.Logging.Logger.Root.Info("Getting Excel");
-                    System.IO.File.WriteAllBytes(fn, net.GetBinary().Binary);
-                }
-            }
-
-            //debug
-            //fn = @"c:\!!\ONLINE_DISPECINK_IP_dostupne_kapacity_20201014_05-50.xlsx";
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            using (var p = new ExcelPackage(new System.IO.FileInfo(fn)))
-            {
-                ExcelWorksheet ws = p.Workbook.Worksheets[1];
-
-                //find date
-                //Analýza provedena z exportu 01.10.2020
-
-                for (int row = 1; row < 100000; row++)
-                {
-                    Console.Write(".");
-                    var txt = ws.Cells[row, 1].GetValue<string>();
-                    if (txt != null && txt.StartsWith("Analýza provedena z exportu"))
+                    //find xls url
+                    string openDataPage = "https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19";
+                    Uri xlsUrl = null;
+                    Devmasters.Logging.Logger.Root.Info("Getting URL of XLS from " + openDataPage);
+                    using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(openDataPage))
                     {
-                        string head = txt.Replace("Analýza provedena z exportu ", "");
-                        string sdate = Devmasters.RegexUtil.GetRegexGroupValue(head, @" \s* (?<dt>\d{1,2}\s*\.\s*\d{1,2}\s*\.\s*\d{4} )", "dt");
-                        DateTime dt = Devmasters.DT.Util.ToDate(sdate).Value;
-                        string id = "id_" + dt.ToString("yyyy-MM-dd");
-                        NemocniceData nd = null;
-                        try
+                        Devmasters.Logging.Logger.Root.Info("Getting Excel URL");
+                        var html = net.GetContent().Text;
+
+                        Devmasters.XPath xp = new Devmasters.XPath(html);
+                        var node = xp.GetNode("//a[contains(@href,'dip-report-kraje.xlsx')]");
+                        if (node != null)
                         {
-                            nd = ds.GetItem(id); // new NemocniceData();
+                            xlsUrl = new Uri("https://onemocneni-aktualne.mzcr.cz" + node.Attributes["href"].Value);
                         }
-                        catch (Exception)
+                    }
+
+                    if (xlsUrl == null)
+                    {
+                        Devmasters.Logging.Logger.Root.Fatal("No URL to download");
+                        return;
+                    }
+
+                    using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(xlsUrl.AbsoluteUri))
+                    {
+                        Devmasters.Logging.Logger.Root.Info("Getting Excel");
+                        System.IO.File.WriteAllBytes(fn, net.GetBinary().Binary);
+                    }
+                }
+
+                //debug
+                //fn = @"c:\!!\ONLINE_DISPECINK_IP_dostupne_kapacity_20201014_05-50.xlsx";
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var p = new ExcelPackage(new System.IO.FileInfo(fn)))
+                {
+                    ExcelWorksheet ws = p.Workbook.Worksheets[1];
+
+                    //find date
+                    //Analýza provedena z exportu 01.10.2020
+
+                    for (int row = 1; row < 100000; row++)
+                    {
+                        Console.Write(".");
+                        var txt = ws.Cells[row, 1].GetValue<string>();
+                        if (txt != null && txt.StartsWith("Analýza provedena z exportu"))
                         {
-                        }
-                        if (nd == null)
-                        {
-                            nd = new NemocniceData();
-                            nd.regions = new List<NemocniceData.Region>();
-                        }
-                        nd.lastUpdated = dt;
-
-                        nd.id = id;
-
-                        Console.WriteLine(".");
-                        Devmasters.Logging.Logger.Root.Info(nd.lastUpdated.ToString());
-
-                        row = row + 4;
-
-                        List<NemocniceData.Region> finalRegs = new List<NemocniceData.Region>();
-
-                        for (int regs = 0; regs < 14; regs++)
-                        {
-                            string region = ws.Cells[row + regs, 1].GetValue<string>();
-                            NemocniceData.Region r = nd.regions.FirstOrDefault(m => m.region == region); //new NemocniceData.Region();
-                            if (r == null)
+                            string head = txt.Replace("Analýza provedena z exportu ", "");
+                            string sdate = Devmasters.RegexUtil.GetRegexGroupValue(head, @" \s* (?<dt>\d{1,2}\s*\.\s*\d{1,2}\s*\.\s*\d{4} )", "dt");
+                            DateTime dt = Devmasters.DT.Util.ToDate(sdate).Value;
+                            string id = "id_" + dt.ToString("yyyy-MM-dd");
+                            NemocniceData nd = null;
+                            try
                             {
-                                r = new NemocniceData.Region();
+                                nd = ds.GetItem(id); // new NemocniceData();
                             }
-                            r.lastModified = nd.lastUpdated;
-                            r.region = region;
+                            catch (Exception)
+                            {
+                            }
+                            if (nd == null)
+                            {
+                                nd = new NemocniceData();
+                                nd.regions = new List<NemocniceData.Region>();
+                            }
+                            nd.lastUpdated = dt;
 
-                            r.UPV_celkem = ws.Cells[row + regs, 2].GetValue<int>();
-                            r.UPV_volna = ws.Cells[row + regs, 3].GetValue<int>();
+                            nd.id = id;
 
-                            r.ECMO_celkem = ws.Cells[row + regs, 5].GetValue<int>();
-                            r.ECMO_volna = ws.Cells[row + regs, 6].GetValue<int>();
+                            Console.WriteLine(".");
+                            Devmasters.Logging.Logger.Root.Info(nd.lastUpdated.ToString());
 
-                            r.CRRT_celkem = ws.Cells[row + regs, 8].GetValue<int>();
-                            r.CRRT_volna = ws.Cells[row + regs, 9].GetValue<int>();
+                            row = row + 4;
 
-                            r.IHD_celkem = ws.Cells[row + regs, 11].GetValue<int>();
-                            r.IHD_volna = ws.Cells[row + regs, 12].GetValue<int>();
+                            List<NemocniceData.Region> finalRegs = new List<NemocniceData.Region>();
 
-                            r.AROJIP_luzka_celkem = ws.Cells[row + regs, 14].GetValue<int>();
-                            r.AROJIP_luzka_covid = ws.Cells[row + regs, 15].GetValue<int>();
-                            r.AROJIP_luzka_necovid = ws.Cells[row + regs, 16].GetValue<int>();
+                            for (int regs = 0; regs < 14; regs++)
+                            {
+                                string region = ws.Cells[row + regs, 1].GetValue<string>();
+                                NemocniceData.Region r = nd.regions.FirstOrDefault(m => m.region == region); //new NemocniceData.Region();
+                                if (r == null)
+                                {
+                                    r = new NemocniceData.Region();
+                                }
+                                r.lastModified = nd.lastUpdated;
+                                r.region = region;
 
-                            r.Standard_luzka_s_kyslikem_celkem = ws.Cells[row + regs, 18].GetValue<int>();
-                            r.Standard_luzka_s_kyslikem_covid = ws.Cells[row + regs, 19].GetValue<int>();
-                            r.Standard_luzka_s_kyslikem_necovid = ws.Cells[row + regs, 20].GetValue<int>();
+                                r.UPV_celkem = ws.Cells[row + regs, 2].GetValue<int>();
+                                r.UPV_volna = ws.Cells[row + regs, 3].GetValue<int>();
 
-                            r.Lekari_AROJIP_celkem = ws.Cells[row + regs, 22].GetValue<int>();
-                            r.Lekari_AROJIP_dostupni = ws.Cells[row + regs, 23].GetValue<int>();
+                                r.ECMO_celkem = ws.Cells[row + regs, 5].GetValue<int>();
+                                r.ECMO_volna = ws.Cells[row + regs, 6].GetValue<int>();
 
-                            r.Sestry_AROJIP_celkem = ws.Cells[row + regs, 25].GetValue<int>();
-                            r.Sestry_AROJIP_dostupni = ws.Cells[row + regs, 26].GetValue<int>();
+                                r.CRRT_celkem = ws.Cells[row + regs, 8].GetValue<int>();
+                                r.CRRT_volna = ws.Cells[row + regs, 9].GetValue<int>();
 
-                            r.Ventilatory_prenosne_celkem = ws.Cells[row + regs, 28].GetValue<int>();
-                            r.Ventilatory_operacnisal_celkem = ws.Cells[row + regs, 29].GetValue<int>();
+                                r.IHD_celkem = ws.Cells[row + regs, 11].GetValue<int>();
+                                r.IHD_volna = ws.Cells[row + regs, 12].GetValue<int>();
 
-                            r.Standard_luzka_celkem = ws.Cells[row + regs, 30].GetValue<int>();
-                            r.Standard_luzka_s_monitor_celkem = ws.Cells[row + regs, 31].GetValue<int>();
+                                r.AROJIP_luzka_celkem = ws.Cells[row + regs, 14].GetValue<int>();
+                                r.AROJIP_luzka_covid = ws.Cells[row + regs, 15].GetValue<int>();
+                                r.AROJIP_luzka_necovid = ws.Cells[row + regs, 16].GetValue<int>();
 
-                            finalRegs.Add(r);
+                                r.Standard_luzka_s_kyslikem_celkem = ws.Cells[row + regs, 18].GetValue<int>();
+                                r.Standard_luzka_s_kyslikem_covid = ws.Cells[row + regs, 19].GetValue<int>();
+                                r.Standard_luzka_s_kyslikem_necovid = ws.Cells[row + regs, 20].GetValue<int>();
+
+                                r.Lekari_AROJIP_celkem = ws.Cells[row + regs, 22].GetValue<int>();
+                                r.Lekari_AROJIP_dostupni = ws.Cells[row + regs, 23].GetValue<int>();
+                                
+                                r.Sestry_AROJIP_celkem = ws.Cells[row + regs, 25].GetValue<int>();
+                                r.Sestry_AROJIP_dostupni = ws.Cells[row + regs, 26].GetValue<int>();
+
+                                r.Ventilatory_prenosne_celkem = ws.Cells[row + regs, 28].GetValue<int>();
+                                r.Ventilatory_operacnisal_celkem = ws.Cells[row + regs, 29].GetValue<int>();
+
+                                r.Standard_luzka_celkem = ws.Cells[row + regs, 30].GetValue<int>();
+                                r.Standard_luzka_s_monitor_celkem = ws.Cells[row + regs, 31].GetValue<int>();
+
+                                finalRegs.Add(r);
+                            }
+                            nd.regions = finalRegs;
+                            row = row + 16;
+
+                            Devmasters.Logging.Logger.Root.Info("Saving");
+
+                            ds.AddOrUpdateItem(nd, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                         }
-                        nd.regions = finalRegs;
-                        row = row + 16;
 
-                        Devmasters.Logging.Logger.Root.Info("Saving");
-
-                        ds.AddOrUpdateItem(nd, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                     }
 
+
                 }
-
-
             }
+            catch (Exception e)
+            {
+
+                SendMail("michal@michalblaha.cz", "Selhalo zpracovani dat z UZIS", e.ToString(), "");
+            }
+
         }
 
 
@@ -288,6 +298,24 @@ Originální data v Excelu jsou ke stažení na <a href=""https://onemocneni-akt
 
         }
 
+        public static void SendMail(string to, string subject, string body, string replyTo)
+        {
+            string from = "kapacitanemocnic_app@hlidacstatu.cz";
+
+            using (var smtp = new System.Net.Mail.SmtpClient())
+            {
+                System.Net.Mail.MailMessage msg = new System.Net.Mail.MailMessage(from, to);
+                msg.Subject = subject;
+                if (!string.IsNullOrEmpty(replyTo) && Devmasters.TextUtil.IsValidEmail(replyTo))
+                    msg.ReplyToList.Add(new System.Net.Mail.MailAddress(replyTo));
+                msg.IsBodyHtml = false;
+                msg.BodyEncoding = System.Text.Encoding.UTF8;
+                msg.SubjectEncoding = System.Text.Encoding.UTF8;
+                msg.Body = body;
+
+                smtp.Send(msg);
+            }
+        }
         public static string GetRegexGroupValue(string txt, string regex, string groupname)
         {
             if (string.IsNullOrEmpty(txt))
