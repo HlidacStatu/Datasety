@@ -189,7 +189,7 @@ namespace KapacityNemocnic
 
                                 r.Lekari_AROJIP_celkem = ws.Cells[row + regs, 22].GetValue<int>();
                                 r.Lekari_AROJIP_dostupni = ws.Cells[row + regs, 23].GetValue<int>();
-                                
+
                                 r.Sestry_AROJIP_celkem = ws.Cells[row + regs, 25].GetValue<int>();
                                 r.Sestry_AROJIP_dostupni = ws.Cells[row + regs, 26].GetValue<int>();
 
@@ -216,7 +216,7 @@ namespace KapacityNemocnic
             }
             catch (Exception e)
             {
-
+                Devmasters.Logging.Logger.Root.Error("Processing ZIP XLS error", e);
                 SendMail("michal@michalblaha.cz", "Selhalo zpracovani dat z UZIS", e.ToString(), "");
             }
 
