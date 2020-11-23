@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoutubeToVyjadreniPolitiku"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HlidacStatu.Api.V2.Dataset", "..\..\API\v2\HlidacStatu.Api.V2.Dataset\HlidacStatu.Api.V2.Dataset.csproj", "{F4880564-9905-44CE-BF8C-CF0E141BFEA4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YoutubeExplode", "..\..\..\Forks\YoutubeExplode\YoutubeExplode\YoutubeExplode.csproj", "{AF2D239A-AA7F-4857-BB57-1A4161D21D94}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{F4880564-9905-44CE-BF8C-CF0E141BFEA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4880564-9905-44CE-BF8C-CF0E141BFEA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4880564-9905-44CE-BF8C-CF0E141BFEA4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AF2D239A-AA7F-4857-BB57-1A4161D21D94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AF2D239A-AA7F-4857-BB57-1A4161D21D94}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AF2D239A-AA7F-4857-BB57-1A4161D21D94}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AF2D239A-AA7F-4857-BB57-1A4161D21D94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

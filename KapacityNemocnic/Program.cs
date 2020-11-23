@@ -46,7 +46,7 @@ namespace KapacityNemocnic
             for (int i = 0; i < 7; i++)
             {
                 DateTime dt = DateTime.Now.Date.AddDays(-1 * i);
-                string zipUrl = $"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";
+                string zipUrl = $"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F{dt.Year}-{dt.Month}%20({dt.ToString("MMMM",System.Globalization.CultureInfo.GetCultureInfo("cs"))}%20{dt.Year})&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";     //$"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";
                 Devmasters.Logging.Logger.Root.Info($"Getting ZIP url {zipUrl}");
 
                 using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(zipUrl))
