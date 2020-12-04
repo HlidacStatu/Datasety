@@ -3,15 +3,19 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Devmasters.Args" Version="2.0.1" />
     <PackageReference Include="Devmasters.Batch" Version="2.1.1" />
-    <PackageReference Include="Devmasters.Core" Version="2.1.7" />
+    <PackageReference Include="Devmasters.Core" Version="2.1.8" />
     <PackageReference Include="Devmasters.Logging" Version="2.1.1" />
     <PackageReference Include="Devmasters.Net" Version="2.1.4" />
+    <PackageReference Include="Devmasters.SpeechToText" Version="2.2.1" />
     <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.1.2" />
-    <PackageReference Include="Newton.SpeechToText.Cloud" Version="2.1.1" />
+    <PackageReference Include="KaldiASR.SpeechToText" Version="2.2.1" />
+    <PackageReference Include="Newton.SpeechToText.Cloud" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
