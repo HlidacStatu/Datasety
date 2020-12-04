@@ -26,7 +26,7 @@ namespace StenozaznamyPSP
             Console.WriteLine(@"
 
 Zpracování steno záznamů:
-StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [/rewrite] 
+StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [/rewrite] /daysback=[3]
 
 ");
 
@@ -50,6 +50,9 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
             {
                 Help(); return;
             }
+            int daysBack = 3;
+            if (arguments.TryGetValue("/daysback", out argValue))
+                daysBack = Convert.ToInt32(argValue);
 
             int rok = 0;
             if (arguments.TryGetValue("/rok", out argValue))
@@ -93,37 +96,33 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
             HashSet<string> jmena2Check = new HashSet<string>();
 
 
-            var pocetSchuzi = ParsePSPWeb.PocetSchuzi(rok);
+            var vsechnSchuze = ParsePSPWeb.VsechnySchuze(rok);
 
             //find latest item already in DB
 
             var lastSchuzeInDb = 1;
 
-            if (rewrite == false)
-            {
-                try
-                {
-                    var last = dsc.SearchItemsInDataset<Steno>(dsDef.DatasetId, $"obdobi:{rok}", 1, "schuze", true)
-                        .Result.results.FirstOrDefault();
-                    lastSchuzeInDb = last?.schuze ?? 1;
-                }
-                catch (Exception e)
-                {
-                    //Console.WriteLine(e.ToString());
-                }
-            }
-
+            List<int> schuzeToParse = new List<int>();
             if (schuze.HasValue)
             {
-                lastSchuzeInDb = schuze.Value;
-                pocetSchuzi = schuze.Value;
+                schuzeToParse.Add(schuze.Value);
+            }
+            else if (rewrite)
+            {
+                schuzeToParse.AddRange(vsechnSchuze.Select(m => m.schuze));
+            }
+            else
+            {
+                //za posledni 3 dny
+                DateTime after = DateTime.Now.Date.AddDays(-1*daysBack);
+                schuzeToParse.AddRange(vsechnSchuze.Where(m=>m.last >= after).Select(m => m.schuze));
             }
 
-            List<int> schuzeToParse = new List<int>();
-            for (int s = lastSchuzeInDb; s <= pocetSchuzi; s++)
-                schuzeToParse.Add(s);
 
-            Devmasters.Core.Batch.Manager.DoActionForAll<int>(schuzeToParse,
+
+            Console.WriteLine("Zpracuji schuze " + string.Join(",", schuzeToParse));
+
+            Devmasters.Batch.Manager.DoActionForAll<int>(schuzeToParse,
                 s =>
             {
                 foreach (var item in ParsePSPWeb.ParseSchuze(rok, s))
@@ -144,9 +143,9 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                         if (!jmena2Check.Contains(item.celeJmeno))
                             jmena2Check.Add(item.celeJmeno);
 
-                    using (var net = new Devmasters.Net.Web.URLContent($"https://www.hlidacstatu.cz/api/v1/PoliticiFromText?Authorization={apikey}"))
+                    using (var net = new Devmasters.Net.HttpClient.URLContent($"https://www.hlidacstatu.cz/api/v1/PoliticiFromText?Authorization={apikey}"))
                     {
-                        net.Method = Devmasters.Net.Web.MethodEnum.POST;
+                        net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
                         net.RequestParams.Form.Add("text", item.text);
                         net.Timeout = 60 * 1000;
                         var sosoby = net.GetContent().Text;
@@ -172,7 +171,7 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                         SaveItem(dsDef, item, true);
                 }
 
-                return new Devmasters.Core.Batch.ActionOutputData();
+                return new Devmasters.Batch.ActionOutputData();
             }, true);
 
             if (apikey == "csv")
@@ -329,9 +328,9 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
             //    var json = net.DownloadString(url);
             //    return Newtonsoft.Json.Linq.JObject.Parse(json).Value<string>("OsobaId");
             //}
-            using (var net = new Devmasters.Net.Web.URLContent($"https://www.hlidacstatu.cz/api/v1/PolitikFromText?Authorization={apikey}"))
+            using (var net = new Devmasters.Net.HttpClient.URLContent($"https://www.hlidacstatu.cz/api/v1/PolitikFromText?Authorization={apikey}"))
             {
-                net.Method = Devmasters.Net.Web.MethodEnum.POST;
+                net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
                 net.RequestParams.Form.Add("text", $"{fullname} {fce}");
                 net.Timeout = 60 * 1000;
                 var sosoba = net.GetContent().Text;

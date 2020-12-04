@@ -35,21 +35,32 @@ namespace StenozaznamyPSP
                                             .OrderByDescending(t => t.Length)
                                             .ToArray();
 
-        public static int PocetSchuzi(int rok)
+        public static List<(int schuze, DateTime last)> VsechnySchuze(int rok)
         {
             var url = $"http://www.psp.cz/eknih/{rok}ps/stenprot/index.htm";
 
             var html = GetHtml(url);
 
             var doc = new XPath(html);
+            List<(int schuze, DateTime last)> sch = new List<(int schuze, DateTime last)>();
 
-            var maxSchuze = doc.GetNodes("//a[contains(@href,'schuz/index')] | //a[contains(@href,'schuz/')]")
-                                .Select(d => d.InnerText)
-                                .Where(t => t?.Contains(". schůze") == true)
-                                .Select(t => System.Text.RegularExpressions.Regex.Replace(t, "\\D", ""))
-                                .Select(t => Convert.ToInt32(t))
-                                .Max();
-            return maxSchuze;
+            var schuze = doc.GetNodes("//a[contains(@href,'schuz/index')] | //a[contains(@href,'schuz/')]");
+
+            foreach (var s in schuze)
+            {
+                string t = System.Net.WebUtility.HtmlDecode(s.InnerText);
+                DateTime lastD;
+                if (DateTime.TryParseExact(t, "d. MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("cs-cz"), System.Globalization.DateTimeStyles.AllowWhiteSpaces, out lastD))
+                {
+                    var link = s.Attributes["href"].Value;
+                    var cislo = int.Parse(Devmasters.RegexUtil.GetRegexGroupValue(link, "(?<num>\\d{1,4})schuz/","num"));
+                    sch.Add((cislo, lastD));
+                }
+
+            }
+
+
+            return sch;
         }
 
 
@@ -186,7 +197,7 @@ namespace StenozaznamyPSP
                             if (!string.IsNullOrEmpty(tema))
                             {
                                 tema = tema.Replace("\n", " ");
-                                tema = Devmasters.Core.TextUtil.ReplaceDuplicates(tema, ' ').Trim();
+                                tema = Devmasters.TextUtil.ReplaceDuplicates(tema, ' ').Trim();
                                 item.tema = tema;
                             }
                         }
@@ -289,7 +300,7 @@ namespace StenozaznamyPSP
 
                 System.Threading.Thread.Sleep((int)(Program.rnd.NextDouble() * 100));
 
-                using (Devmasters.Net.Web.URLContent net = new Devmasters.Net.Web.URLContent(url))
+                using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(url))
                 {
                     net.Tries = 10;
                     net.TimeInMsBetweenTries = 2000 * 10; //10s
@@ -297,7 +308,7 @@ namespace StenozaznamyPSP
                 }
 
             }
-            catch (Devmasters.Net.Web.UrlContentException ex)
+            catch (Devmasters.Net.HttpClient.UrlContentException ex)
             {
                 var innerR = (ex.InnerException as System.Net.WebException)?.Response as System.Net.HttpWebResponse;
                 if (innerR?.StatusCode == System.Net.HttpStatusCode.NotFound)
