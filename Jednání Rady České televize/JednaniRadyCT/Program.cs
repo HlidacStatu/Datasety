@@ -1,6 +1,8 @@
 ﻿using HlidacStatu.Api.V2.CoreApi.Client;
 using HlidacStatu.Api.V2.Dataset;
 
+using Microsoft.Extensions.Configuration;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema.Generation;
 
@@ -13,6 +15,7 @@ namespace JednaniRadyCT
 {
     class Program
     {
+
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<Jednani> ds = null;
 
         public static Dictionary<string, string> args = new Dictionary<string, string>();
@@ -25,6 +28,7 @@ namespace JednaniRadyCT
         static string[] ids = null;
         static string startPath = "";
 
+        static string mp3path = null;
         static string s2t_username = "";
         static string s2t_password = "";
         static bool skips2t = false;
@@ -35,13 +39,12 @@ namespace JednaniRadyCT
             Devmasters.Logging.Logger.Root.Debug("Jednání Rady ČT starting with " + string.Join(',', arguments));
 
 
-            var args = new Devmasters.Args(arguments);
+            var args = new Devmasters.Args(arguments,new string[] {"/mp3path","/utdl","/apikey" });
 
+            if (args.MandatoryPresent() == false)
+                Help();
 
-            if (args.Count() < 3)
-            {
-                Help(); return;
-            }
+            mp3path = args.Get("/mp3path", null);
 
             s2t_username = args["/s2tu"];
             s2t_password = args["/s2tp"];
@@ -55,8 +58,8 @@ namespace JednaniRadyCT
 
             apiKey = args["/apikey"];
             rewrite = args.Exists("/rewrite");
-            afterDay = DateTime.Now.Date.AddDays(-1 * args.GetNumber("/daysback",10000).Value);
-                ids = args.GetArray("/ids");
+            afterDay = DateTime.Now.Date.AddDays(-1 * args.GetNumber("/daysback", 10000).Value);
+            ids = args.GetArray("/ids");
             skips2t = args.Exists("/skips2t");
 
             int threads = args.GetNumber("/t") ?? 5;
@@ -175,7 +178,7 @@ namespace JednaniRadyCT
             //youtube-dl.exe --extract-audio --audio-format mp3 --audio-quality 3 -o asdf.%(ext)s https://www.ceskatelevize.cz/ivysilani/10000000064-jednani-rady-ceske-televize/220251000560016
 
             //download video/audio
-            string fnFile = $"{startPath}\\wav\\{j.Id}";
+            string fnFile = $"{mp3path}\\{DataSetId}\\{j.Id}";
             var MP3Fn = $"{fnFile}.mp3";
             var newtonFn = $"{fnFile}.mp3.raw_s2t";
             var dockerFn = $"{fnFile}.ctm";
@@ -185,7 +188,9 @@ namespace JednaniRadyCT
 
             if (exists_mp3 == false && exists_S2T == false)
             {
-                System.Diagnostics.ProcessStartInfo pi = new System.Diagnostics.ProcessStartInfo(YTDL, $"--no-progress --extract-audio --audio-format mp3 --audio-quality 3 -o \"{fnFile}.%(ext)s\" " + j.Odkaz);
+                System.Diagnostics.ProcessStartInfo pi = new System.Diagnostics.ProcessStartInfo(YTDL,
+                    $"--no-progress --extract-audio --audio-format mp3 --postprocessor-args \" - ac 1 - ar 16000\" -o \"{fnFile}.%(ext)s\" " + j.Odkaz
+                    );
                 pi.WorkingDirectory = System.IO.Path.GetDirectoryName(YTDL);
                 Devmasters.ProcessExecutor pe = new Devmasters.ProcessExecutor(pi, 60 * 6 * 24);
                 pe.StandardOutputDataReceived += (o, e) => { Devmasters.Logging.Logger.Root.Debug(e.Data); };
@@ -204,7 +209,7 @@ namespace JednaniRadyCT
                 var s2t = new Newton.SpeechToText.Cloud.FileAPI.VoiceToTerms(MP3Fn, s2t_username, s2t_password, s2t_id, s2t_label);
                 Devmasters.Logging.Logger.Root.Info($"Starting SpeechToText for {j.Id} ");
                 s2t.Convert();
-                System.IO.File.WriteAllText(newtonFn, s2t.Raw);                
+                System.IO.File.WriteAllText(newtonFn, s2t.Raw);
             }
 
             Jednani.Blok[] res = null;
@@ -317,14 +322,17 @@ namespace JednaniRadyCT
         public static void Help()
         {
             Console.WriteLine("\n" +
+                "/mp3path=[pathToMp3]\n" +
                 "/utdl=[FullPathTo] - cesta k youtube-dl\n" +
                 "/token=[Hlidac API token]\n" +
-                "/s2tu - newtown api login\n" +
-                "/s2tp - newtown api password]\n" +
+                "/s2tu= - newtown api login\n" +
+                "/s2tp= - newtown api password]\n" +
                 "/rewrite \n" +
                 "/ids={id,id,id,...} - specific ids\n" +
                 "/skips2t - skip speech to text" +
                 "");
+            Environment.Exit(-1);
+
         }
 
         static HlidacStatu.Api.V2.CoreApi.Model.Registration Registration()
@@ -360,11 +368,14 @@ namespace JednaniRadyCT
 {{end}}
 
 ")
+                    .AddColumn("", @"{{if item.PrepisAudia && item.PrepisAudia.size > 0 }}
+  Přepis audiozáznamu dostupný
+{{end}}")
                 ,
                 detailTemplate: new ClassicTemplate.ClassicDetailTemplate()
                     .AddColumn("ID jednání", @"{{item.Id}}")
                     .AddColumn("Jednání", "{{item.Titulek }}")
-                    .AddColumn("Datum jednání", "{{item.DatumJednani}}")
+                    .AddColumn("Datum jednání", "{{ fn_FormatDate item.DatumJednani }}")
                     .AddColumn("Zápis", @"
 {{ if item.Zapisy && item.Zapisy.size > 0  }}
     <ul>
@@ -391,8 +402,44 @@ namespace JednaniRadyCT
     </ul>
 {{end}}
 ")
-                    .AddColumn("Odkaz na audio", "{{item.Odkaz }}")
+                    .AddColumn("Odkaz na audio", "<a target='_blank' href='{ { item.Odkaz } }'>{{item.Odkaz }}</a>")
                     .AddColumn("Délka audio záznamu", "{{ item.Delka }} min")
+                    .AddColumn(null, @"
+{{if item.PrepisAudia && item.PrepisAudia.size > 0 }}
+
+    <b style='font-size:140%;'>Přepis audio záznamu</b> <i class='text-muted'>(vznikl díky velké pomoci od <a href='https://twitter.com/OndrejKlejch'>Ondřeje Klejcha</a> z <a href='https://twitter.com/InfAtEd'>University of Edinburgh</a>.)</i><br/><br/>
+    {{if item.PrepisAudia && item.PrepisAudia.size > 0 }}
+       <audio style='width:99%' id='player' controls src='https://somedata.hlidacstatu.cz/mp3/rada-ceske-televize/{{item.Id}}.mp3' type='audio/mp3'>
+         Váš prohlížeč neumí přehrávat MP3 z prohlížeče.
+       </audio>
+       <b>Stačí kliknout na větu v textu a spustí se audiozáznam z daného místa</b>. <i>V Safari na OSX zlobí posun v souboru, doporučujeme Chrome</i>
+       <script>
+         var pl = document.querySelector('#player');
+         function skipTo(sec)
+         {
+           pl.pause();
+           pl.currentTime=0;
+           if (sec < 4) { sec = 0; } else { sec = sec-4;} 
+       
+           pl.currentTime=sec;
+           pl.play();
+         }
+         pl.currentTime= new URLSearchParams(window.location.search).get('t');
+         pl.pause();
+       </script>
+    {{end}}
+
+    </td></tr>
+    <tr><td colspan=2>
+    <pre class='formatted'>
+    {{ for bl in item.PrepisAudia -}}
+        <span title='Začíná v {{ timespan.from_seconds bl.SekundOdZacatku.Value | object.format 'c'}}' class='playme' onclick='javascript:skipTo({{bl.SekundOdZacatku.Value}});' >{{bl.Text}}</span>
+    {{- end}}
+    </pre>
+    </td></tr>
+
+{{end}}
+")
                 );
 
 
