@@ -9,6 +9,14 @@ namespace YoutubeToVyjadreniPolitiku
 
     public class record
     {
+        public class Blok
+        {
+            public long sekundOdZacatku { get; set; }
+            public string text { get; set; }
+        }
+
+        public static string UniqueID(string url) => Devmasters.Crypto.Hash.ComputeHashToHex(url).ToLower();
+
         public string server { get; set; }
         public string typserveru { get; set; }
         public string osobaid { get; set; }
@@ -18,6 +26,9 @@ namespace YoutubeToVyjadreniPolitiku
         public string url { get; set; }
         public string text { get; set; }
         public int pocetSlov { get; set; }
+        public string[] tags { get; set; }
+        public Blok[] prepisAudia { get; set; }
+
     }
 
     public class Youtube_dl_video

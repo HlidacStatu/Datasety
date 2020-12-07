@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoutubeToVyjadreniPolitiku", "YoutubeToVyjadreniPolitiku.csproj", "{0705C384-17C7-42F1-B050-88BF22E21784}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HlidacStatu.Api.V2.Dataset", "..\..\API\v2\HlidacStatu.Api.V2.Dataset\HlidacStatu.Api.V2.Dataset.csproj", "{F4880564-9905-44CE-BF8C-CF0E141BFEA4}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{0705C384-17C7-42F1-B050-88BF22E21784}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0705C384-17C7-42F1-B050-88BF22E21784}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0705C384-17C7-42F1-B050-88BF22E21784}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F4880564-9905-44CE-BF8C-CF0E141BFEA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F4880564-9905-44CE-BF8C-CF0E141BFEA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F4880564-9905-44CE-BF8C-CF0E141BFEA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F4880564-9905-44CE-BF8C-CF0E141BFEA4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
