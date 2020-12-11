@@ -139,8 +139,9 @@ namespace JednaniRadyCT
             Devmasters.Batch.Manager.DoActionForAll<string>(jednani.Select(m => m.Id).Reverse(),
                 id =>
                 {
+                    bool exists = ds.ItemExists(id);
                     if (!string.IsNullOrEmpty(id)
-                        && (ds.ItemExists(id) == false || rewrite)
+                        && (exists || rewrite)
                     )
                     {
 
@@ -149,6 +150,20 @@ namespace JednaniRadyCT
 
                         Devmasters.Logging.Logger.Root.Debug($"Saving {id} ");
                         ds.AddOrUpdateItem(fullJ, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                    }
+                    else if (exists)
+                    {
+                        //check voice2text
+                        var fullJ = ds.GetItemSafe(id);
+                        if (!(fullJ.PrepisAudia?.Count() > 0))
+                        {
+                            var aud =  Audio(fullJ);
+                            if (aud?.Count() > 0)
+                            {
+                                fullJ.PrepisAudia = aud;
+                                ds.AddOrUpdateItem(fullJ, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                            }
+                        }
                     }
                     return new Devmasters.Batch.ActionOutputData() { Log = id };
                 }, true, maxDegreeOfParallelism: threads);
@@ -201,15 +216,14 @@ namespace JednaniRadyCT
 
             if (exists_S2T == false)
             {
-                if (skips2t)
-                    return null;
-
-                var s2t_id = "ntx.v2t.engine.EngineService/cz/t-broadcast/v2t";
-                var s2t_label = "vad+v2t+ppc+pnc";
-                var s2t = new Newton.SpeechToText.Cloud.FileAPI.VoiceToTerms(MP3Fn, s2t_username, s2t_password, s2t_id, s2t_label);
-                Devmasters.Logging.Logger.Root.Info($"Starting SpeechToText for {j.Id} ");
-                s2t.Convert();
-                System.IO.File.WriteAllText(newtonFn, s2t.Raw);
+                using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
+                    $"https://www.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{j.Id}")
+                )
+                {
+                    net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
+                    net.RequestParams.Headers.Add("Authorization", Program.apiKey);
+                    net.GetContent();
+                }
             }
 
             Jednani.Blok[] res = null;

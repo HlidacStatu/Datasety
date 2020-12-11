@@ -47,20 +47,28 @@ namespace YoutubeToVyjadreniPolitiku
             string[] vids = args.GetArray("/ids");
 
             string mp3path = args["/mp3path"];
-            
 
-            System.Diagnostics.ProcessStartInfo pi = new System.Diagnostics.ProcessStartInfo("youtube-dl",
-                $"--flat-playlist --get-id --playlist-end {max} " + playlist
-                );
-            Devmasters.ProcessExecutor pe = new Devmasters.ProcessExecutor(pi, 60 * 6 * 24);
-            Devmasters.Logging.Logger.Root.Info($"Starting Youtube-dl playlist video list ");
-            pe.Start();
 
-            List<string> videos  = pe.StandardOutput
-                .Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(m => "https://www.youtube.com/watch?v=" + m)
-                .ToList();
+            List<string> videos =null;
+            if (vids?.Count() > 0)
+                videos = vids
+                    .Select(m => "https://www.youtube.com/watch?v=" + m)
+                    .ToList();
+            else
+            {
 
+                System.Diagnostics.ProcessStartInfo pi = new System.Diagnostics.ProcessStartInfo("youtube-dl",
+                    $"--flat-playlist --get-id --playlist-end {max} " + playlist
+                    );
+                Devmasters.ProcessExecutor pe = new Devmasters.ProcessExecutor(pi, 60 * 6 * 24);
+                Devmasters.Logging.Logger.Root.Info($"Starting Youtube-dl playlist video list ");
+                pe.Start();
+
+                videos = pe.StandardOutput
+                    .Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(m => "https://www.youtube.com/watch?v=" + m)
+                    .ToList();
+            }
             Console.WriteLine();
             Console.WriteLine($"Processing {videos.Count} videos");
 
@@ -110,7 +118,6 @@ namespace YoutubeToVyjadreniPolitiku
                     bool exists_S2T = System.IO.File.Exists(newtonFn) || System.IO.File.Exists(dockerFn);
                     if (exists_S2T == false && rec.prepisAudia == null)
                     {
-                        // TODO
                         using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
                             $"https://www.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{recId}")
                         )
@@ -118,9 +125,9 @@ namespace YoutubeToVyjadreniPolitiku
                             net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
                             net.RequestParams.Headers.Add("Authorization", System.Configuration.ConfigurationManager.AppSettings["apikey"]);
                             net.GetContent();
-;                        }
+                        }
                     }
-                    if (exists_S2T && rec.prepisAudia == null)
+                    if (exists_S2T && !(rec.prepisAudia?.Count()>0))
                     {
                         if (System.IO.File.Exists(dockerFn))
                         {

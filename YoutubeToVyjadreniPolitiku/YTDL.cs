@@ -14,9 +14,9 @@ namespace YoutubeToVyjadreniPolitiku
             public string uploader_url { get; set; }
             public string _filename { get; set; }
             public Thumbnail[] thumbnails { get; set; }
-            public int abr { get; set; }
+            public int? abr { get; set; }
             public Subtitles subtitles { get; set; }
-            public int width { get; set; }
+            public int? width { get; set; }
             public string[] tags { get; set; }
             public string channel_id { get; set; }
             public string vcodec { get; set; }
@@ -24,12 +24,12 @@ namespace YoutubeToVyjadreniPolitiku
             public string description { get; set; }
             public string uploader { get; set; }
             public object season_number { get; set; }
-            public int age_limit { get; set; }
+            public int? age_limit { get; set; }
             public string format { get; set; }
             public object end_time { get; set; }
             public object episode_number { get; set; }
             public object series { get; set; }
-            public float average_rating { get; set; }
+            public float? average_rating { get; set; }
             public object start_time { get; set; }
             public object artist { get; set; }
             public string id { get; set; }
@@ -41,7 +41,7 @@ namespace YoutubeToVyjadreniPolitiku
             public object album { get; set; }
             public object release_date { get; set; }
             public object alt_title { get; set; }
-            public int view_count { get; set; }
+            public int? view_count { get; set; }
             public string extractor_key { get; set; }
             public string channel_url { get; set; }
             public object vbr { get; set; }
@@ -57,14 +57,14 @@ namespace YoutubeToVyjadreniPolitiku
             public Requested_Formats[] requested_formats { get; set; }
             public string title { get; set; }
             public object playlist { get; set; }
-            public int duration { get; set; }
+            public int? duration { get; set; }
             public object like_count { get; set; }
-            public int fps { get; set; }
+            public int? fps { get; set; }
             public object requested_subtitles { get; set; }
             public string upload_date { get; set; }
             public object resolution { get; set; }
             public object dislike_count { get; set; }
-            public int height { get; set; }
+            public int? height { get; set; }
             public object release_year { get; set; }
             public string thumbnail { get; set; }
             public string display_id { get; set; }
@@ -86,9 +86,9 @@ namespace YoutubeToVyjadreniPolitiku
         {
             public string resolution { get; set; }
             public string id { get; set; }
-            public int height { get; set; }
+            public int? height { get; set; }
             public string url { get; set; }
-            public int width { get; set; }
+            public int? width { get; set; }
         }
 
         public class Requested_Formats
@@ -107,15 +107,15 @@ namespace YoutubeToVyjadreniPolitiku
             public string url { get; set; }
             public string format_id { get; set; }
             public Http_Headers http_headers { get; set; }
-            public float tbr { get; set; }
+            public float? tbr { get; set; }
             public object player_url { get; set; }
             public string format_note { get; set; }
-            public int abr { get; set; }
+            public int? abr { get; set; }
         }
 
         public class Downloader_Options
         {
-            public int http_chunk_size { get; set; }
+            public int? http_chunk_size { get; set; }
         }
 
         public class Http_Headers
@@ -135,8 +135,8 @@ namespace YoutubeToVyjadreniPolitiku
             public string format { get; set; }
             public int? width { get; set; }
             public int? fps { get; set; }
-            public float tbr { get; set; }
-            public int abr { get; set; }
+            public float? tbr { get; set; }
+            public int? abr { get; set; }
             public string acodec { get; set; }
             public string ext { get; set; }
             public int? asr { get; set; }
@@ -152,7 +152,7 @@ namespace YoutubeToVyjadreniPolitiku
 
         public class Downloader_Options1
         {
-            public int http_chunk_size { get; set; }
+            public int? http_chunk_size { get; set; }
         }
 
         public class Http_Headers1
