@@ -38,47 +38,47 @@
     <Reference Include="AngleSharp, Version=0.14.0.0, Culture=neutral, PublicKeyToken=e83494dcdc6d31ea, processorArchitecture=MSIL">
       <HintPath>packages\AngleSharp.0.14.0\lib\net472\AngleSharp.dll</HintPath>
     </Reference>
-    <Reference Include="CliWrap, Version=3.2.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\CliWrap.3.2.3\lib\net461\CliWrap.dll</HintPath>
+    <Reference Include="CliWrap, Version=3.2.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\CliWrap.3.2.4\lib\net461\CliWrap.dll</HintPath>
     </Reference>
-    <Reference Include="Devmasters.Args, Version=2.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Devmasters.Args.2.0.3\lib\net48\Devmasters.Args.dll</HintPath>
+    <Reference Include="Devmasters.Args, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Devmasters.Args.2.0.4\lib\net48\Devmasters.Args.dll</HintPath>
     </Reference>
-    <Reference Include="Devmasters.Batch, Version=2.1.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Devmasters.Batch.2.1.2\lib\net48\Devmasters.Batch.dll</HintPath>
+    <Reference Include="Devmasters.Batch, Version=2.1.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Devmasters.Batch.2.1.3\lib\net48\Devmasters.Batch.dll</HintPath>
     </Reference>
-    <Reference Include="Devmasters.Core, Version=2.1.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Devmasters.Core.2.1.8\lib\net48\Devmasters.Core.dll</HintPath>
+    <Reference Include="Devmasters.Core, Version=2.1.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Devmasters.Core.2.1.9\lib\net48\Devmasters.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Devmasters.Crypto, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Devmasters.Crypto.2.1.0\lib\net48\Devmasters.Crypto.dll</HintPath>
+    <Reference Include="Devmasters.Crypto, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Devmasters.Crypto.2.1.1\lib\net48\Devmasters.Crypto.dll</HintPath>
     </Reference>
-    <Reference Include="Devmasters.DT, Version=2.1.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Devmasters.DT.2.1.2\lib\net48\Devmasters.DT.dll</HintPath>
+    <Reference Include="Devmasters.DT, Version=2.1.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Devmasters.DT.2.1.3\lib\net48\Devmasters.DT.dll</HintPath>
     </Reference>
-    <Reference Include="Devmasters.Lang, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Devmasters.Lang.2.1.1\lib\net48\Devmasters.Lang.dll</HintPath>
+    <Reference Include="Devmasters.Lang, Version=2.1.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Devmasters.Lang.2.1.2\lib\net48\Devmasters.Lang.dll</HintPath>
     </Reference>
-    <Reference Include="Devmasters.Logging, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Devmasters.Logging.2.1.1\lib\net48\Devmasters.Logging.dll</HintPath>
+    <Reference Include="Devmasters.Logging, Version=2.1.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Devmasters.Logging.2.1.2\lib\net48\Devmasters.Logging.dll</HintPath>
     </Reference>
-    <Reference Include="Devmasters.Net, Version=2.1.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Devmasters.Net.2.1.4\lib\net48\Devmasters.Net.dll</HintPath>
+    <Reference Include="Devmasters.Net, Version=2.1.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Devmasters.Net.2.1.5\lib\net48\Devmasters.Net.dll</HintPath>
     </Reference>
-    <Reference Include="Devmasters.SpeechToText, Version=2.2.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Devmasters.SpeechToText.2.2.1\lib\net48\Devmasters.SpeechToText.dll</HintPath>
+    <Reference Include="Devmasters.SpeechToText, Version=2.2.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Devmasters.SpeechToText.2.2.4\lib\net48\Devmasters.SpeechToText.dll</HintPath>
     </Reference>
     <Reference Include="HlidacStatu.Api.V2.Dataset, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\HlidacStatu.Api.V2.Dataset.2.2.0\lib\net48\HlidacStatu.Api.V2.Dataset.dll</HintPath>
     </Reference>
-    <Reference Include="HtmlAgilityPack, Version=1.11.28.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
-      <HintPath>packages\HtmlAgilityPack.1.11.28\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    <Reference Include="HtmlAgilityPack, Version=1.11.29.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>packages\HtmlAgilityPack.1.11.29\lib\Net45\HtmlAgilityPack.dll</HintPath>
     </Reference>
     <Reference Include="JsonSubTypes, Version=1.8.0.0, Culture=neutral, PublicKeyToken=ee75fc290dbc1176, processorArchitecture=MSIL">
       <HintPath>packages\JsonSubTypes.1.8.0\lib\net47\JsonSubTypes.dll</HintPath>
     </Reference>
-    <Reference Include="KaldiASR.SpeechToText, Version=2.2.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\KaldiASR.SpeechToText.2.2.1\lib\net48\KaldiASR.SpeechToText.dll</HintPath>
+    <Reference Include="KaldiASR.SpeechToText, Version=2.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\KaldiASR.SpeechToText.2.2.2\lib\net48\KaldiASR.SpeechToText.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=2.0.12.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>packages\log4net.2.0.12\lib\net45\log4net.dll</HintPath>
@@ -89,8 +89,8 @@
     <Reference Include="Microsoft.AspNetCore.Http.Extensions, Version=2.2.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.AspNetCore.Http.Extensions.2.2.0\lib\netstandard2.0\Microsoft.AspNetCore.Http.Extensions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.AspNetCore.Http.Features, Version=5.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>packages\Microsoft.AspNetCore.Http.Features.5.0.0\lib\net461\Microsoft.AspNetCore.Http.Features.dll</HintPath>
+    <Reference Include="Microsoft.AspNetCore.Http.Features, Version=5.0.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.AspNetCore.Http.Features.5.0.1\lib\net461\Microsoft.AspNetCore.Http.Features.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=5.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Bcl.AsyncInterfaces.5.0.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -134,8 +134,8 @@
       <HintPath>packages\System.Data.SqlClient.4.8.2\lib\net461\System.Data.SqlClient.dll</HintPath>
     </Reference>
     <Reference Include="System.Drawing" />
-    <Reference Include="System.IO.Pipelines, Version=5.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>packages\System.IO.Pipelines.5.0.0\lib\net461\System.IO.Pipelines.dll</HintPath>
+    <Reference Include="System.IO.Pipelines, Version=5.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.IO.Pipelines.5.0.1\lib\net461\System.IO.Pipelines.dll</HintPath>
     </Reference>
     <Reference Include="System.Linq.Async, Version=5.0.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
       <HintPath>packages\System.Linq.Async.5.0.0\lib\net461\System.Linq.Async.dll</HintPath>
@@ -145,8 +145,8 @@
       <HintPath>packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
     </Reference>
     <Reference Include="System.Net" />
-    <Reference Include="System.Net.IPNetwork, Version=2.5.235.0, Culture=neutral, PublicKeyToken=717343cc2c25edcf, processorArchitecture=MSIL">
-      <HintPath>packages\IPNetwork2.2.5.235\lib\net47\System.Net.IPNetwork.dll</HintPath>
+    <Reference Include="System.Net.IPNetwork, Version=2.5.240.0, Culture=neutral, PublicKeyToken=717343cc2c25edcf, processorArchitecture=MSIL">
+      <HintPath>packages\IPNetwork2.2.5.240\lib\net47\System.Net.IPNetwork.dll</HintPath>
     </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -204,12 +204,6 @@
       <HintPath>packages\WeCantSpell.Hunspell.3.0.1\lib\net45\WeCantSpell.Hunspell.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
-    <Reference Include="YoutubeExplode, Version=5.1.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\YoutubeExplode.5.1.8\lib\net461\YoutubeExplode.dll</HintPath>
-    </Reference>
-    <Reference Include="YoutubeExplode.Converter, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\YoutubeExplode.Converter.2.0.0\lib\net461\YoutubeExplode.Converter.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />

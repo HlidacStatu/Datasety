@@ -27,10 +27,8 @@ namespace JednaniRadyCT
         static DateTime afterDay = DateTime.MinValue;
         static string[] ids = null;
         static string startPath = "";
-
         static string mp3path = null;
-        static string s2t_username = "";
-        static string s2t_password = "";
+
         static bool skips2t = false;
         static void Main(string[] arguments)
         {
@@ -39,15 +37,12 @@ namespace JednaniRadyCT
             Devmasters.Logging.Logger.Root.Debug("Jednání Rady ČT starting with " + string.Join(',', arguments));
 
 
-            var args = new Devmasters.Args(arguments,new string[] {"/mp3path","/utdl","/apikey" });
+            var args = new Devmasters.Args(arguments,new string[] {"/mp3path","/apikey" });
 
             if (args.MandatoryPresent() == false)
                 Help();
 
             mp3path = args.Get("/mp3path", null);
-
-            s2t_username = args["/s2tu"];
-            s2t_password = args["/s2tp"];
 
             if (args.Exists("/utdl"))
                 YTDL = args["/utdl"];
@@ -59,8 +54,11 @@ namespace JednaniRadyCT
             apiKey = args["/apikey"];
             rewrite = args.Exists("/rewrite");
             afterDay = DateTime.Now.Date.AddDays(-1 * args.GetNumber("/daysback", 10000).Value);
-            ids = args.GetArray("/ids");
+            if (args.Exists("/ids"))
+                ids = args.GetArray("/ids");
             skips2t = args.Exists("/skips2t");
+
+
 
             int threads = args.GetNumber("/t") ?? 5;
 
@@ -141,7 +139,7 @@ namespace JednaniRadyCT
                 {
                     bool exists = ds.ItemExists(id);
                     if (!string.IsNullOrEmpty(id)
-                        && (exists || rewrite)
+                        && (!exists || rewrite)
                     )
                     {
 
@@ -157,6 +155,7 @@ namespace JednaniRadyCT
                         var fullJ = ds.GetItemSafe(id);
                         if (!(fullJ.PrepisAudia?.Count() > 0))
                         {
+                            Devmasters.Logging.Logger.Root.Debug($"Checking AUDIO text {id} ");
                             var aud =  Audio(fullJ);
                             if (aud?.Count() > 0)
                             {
@@ -204,7 +203,7 @@ namespace JednaniRadyCT
             if (exists_mp3 == false && exists_S2T == false)
             {
                 System.Diagnostics.ProcessStartInfo pi = new System.Diagnostics.ProcessStartInfo(YTDL,
-                    $"--no-progress --extract-audio --audio-format mp3 --postprocessor-args \" - ac 1 - ar 16000\" -o \"{fnFile}.%(ext)s\" " + j.Odkaz
+                    $"--no-progress --extract-audio --audio-format mp3 --postprocessor-args \" -ac 1 -ar 16000\" -o \"{fnFile}.%(ext)s\" " + j.Odkaz
                     );
                 pi.WorkingDirectory = System.IO.Path.GetDirectoryName(YTDL);
                 Devmasters.ProcessExecutor pe = new Devmasters.ProcessExecutor(pi, 60 * 6 * 24);
@@ -220,6 +219,7 @@ namespace JednaniRadyCT
                     $"https://www.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{j.Id}")
                 )
                 {
+                    Devmasters.Logging.Logger.Root.Info($"add voice2text request to queue for {j.Id} ");
                     net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
                     net.RequestParams.Headers.Add("Authorization", Program.apiKey);
                     net.GetContent();
@@ -339,8 +339,7 @@ namespace JednaniRadyCT
                 "/mp3path=[pathToMp3]\n" +
                 "/utdl=[FullPathTo] - cesta k youtube-dl\n" +
                 "/token=[Hlidac API token]\n" +
-                "/s2tu= - newtown api login\n" +
-                "/s2tp= - newtown api password]\n" +
+                "/daysback=" +
                 "/rewrite \n" +
                 "/ids={id,id,id,...} - specific ids\n" +
                 "/skips2t - skip speech to text" +

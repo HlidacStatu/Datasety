@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using YoutubeExplode;
 
 namespace ZasedaniZastupitelstev
 {
@@ -18,6 +17,8 @@ namespace ZasedaniZastupitelstev
 
     class Program
     {
+
+        static string[] inName = { "zastupitelstv","jednani","zasedani" };
         public static Devmasters.Args args = null;
         public const string DataSetId = "zasedani-zastupitelstev";
 
@@ -118,6 +119,9 @@ namespace ZasedaniZastupitelstev
                     {
                         rec = YTDL.GetVideoInfo(vid);
                         if (rec == null)
+                            return new Devmasters.Batch.ActionOutputData();
+
+                        if (!inName.Any(n=>Devmasters.TextUtil.RemoveDiacritics( rec.nazev).ToLower().Contains(n)))
                             return new Devmasters.Batch.ActionOutputData();
 
                         rec.AudioUrl = "https://somedata.hlidacstatu.cz/mp3/" + DataSetId + $"/{rec.id}.mp3";
