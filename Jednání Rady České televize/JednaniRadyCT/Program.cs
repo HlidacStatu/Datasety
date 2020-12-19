@@ -37,7 +37,7 @@ namespace JednaniRadyCT
             Devmasters.Logging.Logger.Root.Debug("Jednání Rady ČT starting with " + string.Join(',', arguments));
 
 
-            var args = new Devmasters.Args(arguments,new string[] {"/mp3path","/apikey" });
+            var args = new Devmasters.Args(arguments, new string[] { "/mp3path", "/apikey" });
 
             if (args.MandatoryPresent() == false)
                 Help();
@@ -156,7 +156,7 @@ namespace JednaniRadyCT
                         if (!(fullJ.PrepisAudia?.Count() > 0))
                         {
                             Devmasters.Logging.Logger.Root.Debug($"Checking AUDIO text {id} ");
-                            var aud =  Audio(fullJ);
+                            var aud = Audio(fullJ);
                             if (aud?.Count() > 0)
                             {
                                 fullJ.PrepisAudia = aud;
@@ -189,60 +189,23 @@ namespace JednaniRadyCT
 
         private static Jednani.Blok[] Audio(Jednani j)
         {
-            //youtube-dl.exe --extract-audio --audio-format mp3 --audio-quality 3 -o asdf.%(ext)s https://www.ceskatelevize.cz/ivysilani/10000000064-jednani-rady-ceske-televize/220251000560016
-
-            //download video/audio
-            string fnFile = $"{mp3path}\\{DataSetId}\\{j.Id}";
-            var MP3Fn = $"{fnFile}.mp3";
-            var newtonFn = $"{fnFile}.mp3.raw_s2t";
-            var dockerFn = $"{fnFile}.ctm";
-
-            bool exists_mp3 = System.IO.File.Exists(MP3Fn);
-            bool exists_S2T = System.IO.File.Exists(newtonFn) || System.IO.File.Exists(dockerFn);
-
-            if (exists_mp3 == false && exists_S2T == false)
-            {
-                System.Diagnostics.ProcessStartInfo pi = new System.Diagnostics.ProcessStartInfo(YTDL,
-                    $"--no-progress --extract-audio --audio-format mp3 --postprocessor-args \" -ac 1 -ar 16000\" -o \"{fnFile}.%(ext)s\" " + j.Odkaz
-                    );
-                pi.WorkingDirectory = System.IO.Path.GetDirectoryName(YTDL);
-                Devmasters.ProcessExecutor pe = new Devmasters.ProcessExecutor(pi, 60 * 6 * 24);
-                pe.StandardOutputDataReceived += (o, e) => { Devmasters.Logging.Logger.Root.Debug(e.Data); };
-
-                Devmasters.Logging.Logger.Root.Info($"Starting Youtube-dl for {j.Id} ");
-                pe.Start();
-            }
-
-            if (exists_S2T == false)
-            {
-                using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
-                    $"https://www.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{j.Id}?priority=1")
-                )
-                {
-                    Devmasters.Logging.Logger.Root.Info($"add voice2text request to queue for {j.Id} ");
-                    net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
-                    net.RequestParams.Headers.Add("Authorization", Program.apiKey);
-                    net.GetContent();
-                }
-            }
-
             Jednani.Blok[] res = null;
-            if (System.IO.File.Exists(newtonFn))
+            var mp3 = new MP3(mp3path, apiKey);
+            var blocks = mp3.CheckDownloadAndStartV2TOrGet(DataSetId, j.Id, j.Odkaz);
+            if (blocks != null)
             {
-                var tt = new Newton.SpeechToText.Cloud.FileAPI.VoiceToTerms(System.IO.File.ReadAllText(newtonFn));
-                res = new Devmasters.SpeechToText.VoiceToTextFormatter(tt.Terms)
-                   .TextWithTimestamps(TimeSpan.FromSeconds(10), true)
+                var bs = blocks
                    .Select(t => new Jednani.Blok() { SekundOdZacatku = (long)t.Start.TotalSeconds, Text = t.Text })
                    .ToArray();
+
+
+                res = blocks
+                       .Select(t => new Jednani.Blok() { SekundOdZacatku = (long)t.Start.TotalSeconds, Text = t.Text })
+                       .ToArray();
+
             }
-            else if (System.IO.File.Exists(dockerFn))
-            {
-                var tt = new KaldiASR.SpeechToText.VoiceToTerms(System.IO.File.ReadAllText(dockerFn));
-                res = new Devmasters.SpeechToText.VoiceToTextFormatter(tt.Terms)
-                   .TextWithTimestamps(TimeSpan.FromSeconds(10), true)
-                   .Select(t => new Jednani.Blok() { SekundOdZacatku = (long)t.Start.TotalSeconds, Text = t.Text })
-                   .ToArray();
-            }
+
+
             return res;
         }
 

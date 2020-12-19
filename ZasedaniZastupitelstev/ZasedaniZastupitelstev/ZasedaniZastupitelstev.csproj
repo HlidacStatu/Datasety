@@ -28,6 +28,7 @@
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="5.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+	  <PackageReference Include="Newton.SpeechToText.Cloud" Version="2.2.1" />
   
   </ItemGroup>
 

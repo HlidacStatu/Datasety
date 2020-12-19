@@ -36,7 +36,7 @@ namespace ZasedaniZastupitelstev
             jsonconf = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetParent(AppContext.BaseDirectory).FullName)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.live.json", optional: true, reloadOnChange:true)
+                .AddJsonFile($"appsettings.live.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true, reloadOnChange: true)
                 .Build();
 
@@ -147,53 +147,19 @@ namespace ZasedaniZastupitelstev
                         return new Devmasters.Batch.ActionOutputData();
 
 
-                    string recId = rec.id;
-                    string fnFile = $"{mp3path}\\{DataSetId}\\{recId}";
-                    var MP3Fn = $"{fnFile}.mp3";
-                    var newtonFn = $"{fnFile}.mp3.raw_s2t";
-                    var dockerFn = $"{fnFile}.ctm";
-
-                    if (System.IO.File.Exists(MP3Fn) == false)
+                    var mp3 = new MP3(mp3path, apikey);
+                    var blocks = mp3.CheckDownloadAndStartV2TOrGet(DataSetId, rec.id, vid);
+                    if (blocks != null)
                     {
-                        System.Diagnostics.ProcessStartInfo piv =
-                        new System.Diagnostics.ProcessStartInfo("youtube-dl.exe",
-                            $"--no-progress --extract-audio --audio-format mp3 --postprocessor-args \" -ac 1 -ar 16000\" -o \"{fnFile}.%(ext)s\" " + vid
-                            );
-                        Devmasters.ProcessExecutor pev = new Devmasters.ProcessExecutor(piv, 60 * 6 * 24);
-                        pev.StandardOutputDataReceived += (o, e) => { Devmasters.Logging.Logger.Root.Debug(e.Data); };
+                        var bs = blocks
+                           .Select(t => new Record.Blok() { sekundOdZacatku = (long)t.Start.TotalSeconds, text = t.Text })
+                           .ToArray();
 
-                        Devmasters.Logging.Logger.Root.Info($"Starting Youtube-dl for {vid} ");
-                        pev.Start();
+                        rec.PrepisAudia = bs;
+                        changed = true;
 
                     }
-                    bool exists_S2T = System.IO.File.Exists(newtonFn) || System.IO.File.Exists(dockerFn);
-                    if (exists_S2T == false && rec.PrepisAudia == null)
-                    {
-                        using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
-                            $"https://www.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{recId}")
-                        )
-                        {
-                            net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
-                            net.RequestParams.Headers.Add("Authorization", apikey);
-                            net.GetContent();
-                        }
-                    }
-                    if (exists_S2T && !(rec.PrepisAudia?.Count() > 0))
-                    {
-                        if (System.IO.File.Exists(dockerFn))
-                        {
-                            var tt = new KaldiASR.SpeechToText.VoiceToTerms(System.IO.File.ReadAllText(dockerFn));
-                            var blocks = new Devmasters.SpeechToText.VoiceToTextFormatter(tt.Terms)
-                               .TextWithTimestamps(TimeSpan.FromSeconds(10), true)
-                               .Select(t => new Record.Blok() { sekundOdZacatku = (long)t.Start.TotalSeconds, text = t.Text })
-                               .ToArray();
 
-                            //TODO opravit casem
-                            rec.PrepisAudia = blocks;
-                            changed = true;
-
-                        }
-                    }
                     if (changed)
                         api.AddOrUpdateItem(rec, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
 
