@@ -348,3 +348,5 @@ COVID-III/COVID-III/App.Release.config
 Jednání Rady České televize/JednaniRadyCT/Properties/launchSettings.json
 ZasedaniZastupitelstev/App.Debug.config
 ZasedaniZastupitelstev/App.Release.config
+ZasedaniZastupitelstev/ZasedaniZastupitelstev/appsettings.live.json
+ZasedaniZastupitelstev/ZasedaniZastupitelstev/appsettings.debug.json

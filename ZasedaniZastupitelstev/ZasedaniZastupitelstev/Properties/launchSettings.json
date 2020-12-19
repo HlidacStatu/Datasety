@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ZasedaniZastupitelstev": {
+      "commandName": "Project",
+      "commandLineArgs": "/",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Debug"
+      }
+    }
+  }
+}

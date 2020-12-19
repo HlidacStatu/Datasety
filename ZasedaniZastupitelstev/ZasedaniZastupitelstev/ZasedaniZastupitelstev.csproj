@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.2.0" />
+	  <PackageReference Include="AngleSharp" Version="0.14.0" />
+	  <PackageReference Include="CliWrap" Version="3.2.4" />
+	  <PackageReference Include="Devmasters.Args" Version="2.0.5" />
+	  <PackageReference Include="Devmasters.Batch" Version="2.1.3" />
+	  <PackageReference Include="Devmasters.Core" Version="2.1.9" />
+	  <PackageReference Include="Devmasters.Crypto" Version="2.1.1" />
+	  <PackageReference Include="Devmasters.DT" Version="2.1.3" />
+	  <PackageReference Include="Devmasters.Lang" Version="2.1.2" />
+	  <PackageReference Include="Devmasters.Logging" Version="2.1.2" />
+	  <PackageReference Include="Devmasters.Net" Version="2.1.5" />
+	  <PackageReference Include="Devmasters.SpeechToText" Version="2.2.4" />
+	  <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.2.0" />
+	  <PackageReference Include="HtmlAgilityPack" Version="1.11.29" />
+	  <PackageReference Include="IPNetwork2" Version="2.5.240" />
+	  <PackageReference Include="JsonSubTypes" Version="1.8.0" />
+	  <PackageReference Include="KaldiASR.SpeechToText" Version="2.2.2" />
+	  <PackageReference Include="log4net" Version="2.0.12" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="5.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+  
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.debug.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.live.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ffmpeg.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="youtube-dl.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

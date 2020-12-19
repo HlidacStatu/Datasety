@@ -216,7 +216,7 @@ namespace JednaniRadyCT
             if (exists_S2T == false)
             {
                 using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
-                    $"https://www.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{j.Id}")
+                    $"https://www.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{j.Id}?priority=1")
                 )
                 {
                     Devmasters.Logging.Logger.Root.Info($"add voice2text request to queue for {j.Id} ");
