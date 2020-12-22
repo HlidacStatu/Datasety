@@ -119,7 +119,7 @@ namespace YoutubeToVyjadreniPolitiku
                     if (exists_S2T == false && rec.prepisAudia == null)
                     {
                         using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
-                            $"https://www.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{recId}")
+                            $"https://www.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{recId}?priority=2")
                         )
                         {
                             net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
