@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -22,7 +23,11 @@ namespace KapacityNemocnic
 
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<NemocniceData> ds = null;
         const int everyMins = 58;
-
+        public static string GetExecutingDirectoryName()
+        {
+            var location = new Uri(Assembly.GetEntryAssembly().GetName().CodeBase);
+            return new System.IO.FileInfo(location.AbsolutePath).Directory.FullName;
+        }
         static void Main(string[] args)
         {
 
@@ -34,7 +39,10 @@ namespace KapacityNemocnic
 
             if (DArgs.ContainsKey("/xls"))
             {
-                Obsazenost.ProcessExcelObsazenost(DArgs["/xls"], ds);
+                //Obsazenost.BackupImap();return;
+                var xlsName = Obsazenost.Imap(DArgs["/xls"]);
+                if (xlsName != null)
+                    Obsazenost.ProcessExcelObsazenost(xlsName, ds);
                 return;
             }
 
@@ -46,7 +54,7 @@ namespace KapacityNemocnic
             for (int i = 0; i < 7; i++)
             {
                 DateTime dt = DateTime.Now.Date.AddDays(-1 * i);
-                string zipUrl = $"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F{dt.Year}-{dt.Month}%20({dt.ToString("MMMM",System.Globalization.CultureInfo.GetCultureInfo("cs"))}%20{dt.Year})&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";     //$"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";
+                string zipUrl = $"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F{dt.Year}-{dt.ToString("MM")}%20({dt.ToString("MMMM",System.Globalization.CultureInfo.GetCultureInfo("cs"))}%20{dt.Year})&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";     //$"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";
                 Devmasters.Logging.Logger.Root.Info($"Getting ZIP url {zipUrl}");
 
                 using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(zipUrl))
