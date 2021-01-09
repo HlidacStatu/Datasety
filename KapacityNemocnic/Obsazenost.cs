@@ -22,9 +22,33 @@ namespace KapacityNemocnic
 {
     public class Obsazenost
     {
-        public static string Imap(string password)
+        static string uzisRoot = Program.GetExecutingDirectoryName() + "\\UZIS_Reports\\";
+
+        public static void LastObsazenost(HlidacStatu.Api.V2.Dataset.Typed.Dataset<NemocniceData> ds)
         {
-            string uzisRoot = Program.GetExecutingDirectoryName() + "\\UZIS_Reports\\";
+            for (int i = 0; i < 10; i++)
+            {
+                DateTime dt = DateTime.Now.Date.AddDays(-1 * i);
+                string reportDir = uzisRoot + dt.ToString("yyyy-MM-dd") + "\\";
+                if (System.IO.Directory.Exists(reportDir))
+                {
+                    foreach (var fn in System.IO.Directory.EnumerateFiles(reportDir, "*.xlsx"))
+                    {
+                        if (fn.Contains("hosp04_KRAJE"))
+                        {
+                            Devmasters.Logging.Logger.Root.Info($"Process lastObsazenost {fn}");
+                            Obsazenost.ProcessExcelObsazenost(fn, ds);
+                            return;
+                        }
+
+                    }
+
+                }
+            }
+        }
+
+        public static void Imap(string password, HlidacStatu.Api.V2.Dataset.Typed.Dataset<NemocniceData> ds)
+        {
 
             string obsazenostFile = null;
 
@@ -57,19 +81,21 @@ namespace KapacityNemocnic
                     {
                         if (att.ContentDisposition.Inline== false)
                         {
-                            if (att.Name.Contains("hosp04_KRAJE"))
-                                obsazenostFile = reportDir + att.Name;
                             using (var fs = System.IO.File.Create(reportDir+att.Name))
                             {
                                 att.ContentStream.Seek(0, System.IO.SeekOrigin.Begin);
                                 att.ContentStream.CopyTo(fs);
+                            }
+                            if (att.Name.Contains("hosp04_KRAJE"))
+                            {
+                                obsazenostFile = reportDir + att.Name;
+                                Obsazenost.ProcessExcelObsazenost(obsazenostFile, ds);
                             }
                         }
                     }
 
                 }
 
-                return obsazenostFile;
             }
 
         }
@@ -134,6 +160,8 @@ namespace KapacityNemocnic
         static DateTime startDt = DateTime.Now.Date.AddDays(-20); //new DateTime(2020,09,04);
         public static void ProcessExcelObsazenost(string fn, HlidacStatu.Api.V2.Dataset.Typed.Dataset<NemocniceData> ds)
         {
+            Devmasters.Logging.Logger.Root.Info($"ProcessExcelObsazenost {fn} ");
+
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var p = new ExcelPackage(new System.IO.FileInfo(fn)))
             {
@@ -168,7 +196,8 @@ namespace KapacityNemocnic
                                 data.regions[idx].Pacienti_stredni = ws.Cells[row, 9].GetValue<int>();
                                 data.regions[idx].Pacienti_tezky = ws.Cells[row, 10].GetValue<int>();
                                 data.regions[idx].Pacienti_zemreli = ws.Cells[row, 21].GetValue<int>() - ws.Cells[row - 1, 21].GetValue<int>();
-                                Console.Write(" " + region.region);
+
+                                Devmasters.Logging.Logger.Root.Info($"ProcessExcelObsazenost save {ws.Name} - {dt.Value.ToString("yyyy-MM-dd ")} - {region.region} ");
                                 ds.AddOrUpdateItem(data, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                             }
                             else

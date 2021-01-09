@@ -40,9 +40,8 @@ namespace KapacityNemocnic
             if (DArgs.ContainsKey("/xls"))
             {
                 //Obsazenost.BackupImap();return;
-                var xlsName = Obsazenost.Imap(DArgs["/xls"]);
-                if (xlsName != null)
-                    Obsazenost.ProcessExcelObsazenost(xlsName, ds);
+                Obsazenost.Imap(DArgs["/xls"], ds);
+                Obsazenost.LastObsazenost(ds);
                 return;
             }
 
