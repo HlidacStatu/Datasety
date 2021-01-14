@@ -95,7 +95,7 @@ namespace YoutubeToVyjadreniPolitiku
                         rec.osobaid = osobaId;
                         changed = true;
                     }
-
+                    return new Devmasters.Batch.ActionOutputData();
                     string recId = uniqId;
                     string fnFile = $"{mp3path}\\{DataSetId}\\{recId}";
                     var MP3Fn = $"{fnFile}.mp3";
