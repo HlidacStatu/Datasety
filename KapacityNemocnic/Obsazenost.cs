@@ -81,14 +81,15 @@ namespace KapacityNemocnic
                     {
                         if (att.ContentDisposition.Inline== false)
                         {
-                            using (var fs = System.IO.File.Create(reportDir+att.Name))
+                            var attfn = MakeValidFileName(att.Name);
+                            using (var fs = System.IO.File.Create(reportDir+attfn))
                             {
                                 att.ContentStream.Seek(0, System.IO.SeekOrigin.Begin);
                                 att.ContentStream.CopyTo(fs);
                             }
-                            if (att.Name.Contains("hosp04_KRAJE"))
+                            if (attfn.Contains("hosp04_KRAJE"))
                             {
-                                obsazenostFile = reportDir + att.Name;
+                                obsazenostFile = reportDir + attfn;
                                 Obsazenost.ProcessExcelObsazenost(obsazenostFile, ds);
                             }
                         }
