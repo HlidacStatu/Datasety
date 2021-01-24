@@ -92,10 +92,12 @@ namespace YoutubeToVyjadreniPolitiku
                     else
                     {
                         rec = YTDL.GetVideoInfo(vid);
+                        if (rec == null)
+                            return new Devmasters.Batch.ActionOutputData();
+
                         rec.osobaid = osobaId;
                         changed = true;
                     }
-                    return new Devmasters.Batch.ActionOutputData();
                     string recId = uniqId;
                     string fnFile = $"{mp3path}\\{DataSetId}\\{recId}";
                     var MP3Fn = $"{fnFile}.mp3";
@@ -139,7 +141,8 @@ namespace YoutubeToVyjadreniPolitiku
 
                             //TODO opravit casem
                             var tmpRec = YTDL.GetVideoInfo(vid);
-                            rec.text = tmpRec.text + "\n\n" + new Devmasters.SpeechToText.VoiceToTextFormatter(tt.Terms).Text(true);
+                            if (tmpRec != null)
+                                rec.text = tmpRec.text + "\n\n" + new Devmasters.SpeechToText.VoiceToTextFormatter(tt.Terms).Text(true);
                             rec.prepisAudia = blocks;
                             changed = true;
 

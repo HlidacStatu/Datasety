@@ -181,7 +181,8 @@ namespace YoutubeToVyjadreniPolitiku
             pev.Start();
 
             ytdlInfo info = Newtonsoft.Json.JsonConvert.DeserializeObject<ytdlInfo>(pev.StandardOutput);
-
+            if (info == null)
+                return null;
             record rec = new record();
             rec.datum = DateTime.ParseExact(info.upload_date, "yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeLocal);
             rec.id = record.UniqueID(youtubeUrl);
