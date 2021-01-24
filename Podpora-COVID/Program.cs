@@ -93,7 +93,7 @@ namespace Podpora_COVID
                         p.program = row[3].ToString();
                         p.odhadovana_celkova_vyse_v_mld_kc = decimal.Parse(row[4].ToString());
                         p.vyplacena = decimal.Parse(row[5].ToString());
-                        p.pocet_subjektu = int.Parse(row[6].ToString());
+                        p.pocet_subjektu = int.Parse(row[6].ToString().Replace(" ",""));
                         p.udaj_ke_dni = DateTime.ParseExact(row[7].ToString(), "d.M.yyyy", System.Globalization.CultureInfo.GetCultureInfo("cs-CZ"));
                         if (row.Count > 8)
                         {

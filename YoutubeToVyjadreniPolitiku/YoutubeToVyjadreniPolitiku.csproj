@@ -225,11 +225,13 @@
     <None Include="App.Release.config">
       <DependentUpon>App.config</DependentUpon>
     </None>
+    <None Include="babis.bat" />
     <None Include="CauLidi.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Logger.log4net" />
     <None Include="packages.config" />
+    <None Include="politik.bat" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="ffmpeg.exe">

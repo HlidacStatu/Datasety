@@ -14,7 +14,7 @@
   </appender>
 
   <appender name="RollingLogFileAppenderAll" type="log4net.Appender.RollingFileAppender">
-    <file value="c:\data\Logs\Covid_DIP\logfile.log" />
+    <file value="c:\data\Logs\KapacityNemocnic\logfile.log" />
     <appendToFile value="true" />
     <rollingStyle value="Date" />
     <StaticLogFileName value="true" />
