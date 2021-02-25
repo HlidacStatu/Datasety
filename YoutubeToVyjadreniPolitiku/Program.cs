@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,7 +28,7 @@ namespace YoutubeToVyjadreniPolitiku
 
             api2 = HlidacStatu.Api.V2.Dataset.Typed.Dataset<record>.OpenDataset(System.Configuration.ConfigurationManager.AppSettings["apikey"], DataSetId);
 
-            args = new Devmasters.Args(arguments, new string[] { "/mp3", "/osobaid" });
+            args = new Devmasters.Args(arguments, new string[] { "/mp3" });
 
 
             //create dataset
@@ -49,7 +50,50 @@ namespace YoutubeToVyjadreniPolitiku
             string mp3path = args["/mp3path"];
 
 
-            List<string> videos =null;
+            HttpClient httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Authorization", System.Configuration.ConfigurationManager.AppSettings["apikey"]);
+
+            var jsonResult = httpClient.GetStringAsync("https://www.hlidacstatu.cz/api/v2/osoby/social?typ=Youtube")
+                        .Result;
+            var osoby = Newtonsoft.Json.JsonConvert.DeserializeObject<osoba[]>(jsonResult);
+            foreach (var o in osoby)
+            {
+
+                foreach (var url in o.SocialniSite)
+                {
+                    if (string.IsNullOrEmpty(osobaId))
+                        Process(o, url.Url, threads, max, vids,mp3path);
+                    else if (o.NameId== osobaId)
+                        Process(o, url.Url, threads, max, vids, mp3path);
+                }
+            }
+
+        }
+
+
+        public class osoba
+        {
+            public string TitulPred { get; set; }
+            public string Jmeno { get; set; }
+            public string Prijmeni { get; set; }
+            public string NameId { get; set; }
+            public string Profile { get; set; }
+            public Socialnisite[] SocialniSite { get; set; }
+            public class Socialnisite
+            {
+                public string Type { get; set; }
+                public string Id { get; set; }
+                public string Url { get; set; }
+            }
+        }
+
+
+
+        public static void Process(osoba o, string playlist, int threads, int max, string[] vids, string mp3path)
+        {
+            Devmasters.Logging.Logger.Root.Info($"Starting {o.Jmeno} {o.Prijmeni} {o.NameId} for {playlist} ");
+
+            List<string> videos = null;
             if (vids?.Count() > 0)
                 videos = vids
                     .Select(m => "https://www.youtube.com/watch?v=" + m)
@@ -95,7 +139,7 @@ namespace YoutubeToVyjadreniPolitiku
                         if (rec == null)
                             return new Devmasters.Batch.ActionOutputData();
 
-                        rec.osobaid = osobaId;
+                        rec.osobaid = o.NameId;
                         changed = true;
                     }
                     string recId = uniqId;
@@ -111,7 +155,7 @@ namespace YoutubeToVyjadreniPolitiku
                             $"--no-progress --extract-audio --audio-format mp3 --postprocessor-args \" -ac 1 -ar 16000\" -o \"{fnFile}.%(ext)s\" " + vid
                             );
                         Devmasters.ProcessExecutor pev = new Devmasters.ProcessExecutor(piv, 60 * 6 * 24);
-                        pev.StandardOutputDataReceived += (o, e) => { Devmasters.Logging.Logger.Root.Debug(e.Data); };
+                        pev.StandardOutputDataReceived += (ox, e) => { Devmasters.Logging.Logger.Root.Debug(e.Data); };
 
                         Devmasters.Logging.Logger.Root.Info($"Starting Youtube-dl for {vid} ");
                         pev.Start();
@@ -129,7 +173,7 @@ namespace YoutubeToVyjadreniPolitiku
                             net.GetContent();
                         }
                     }
-                    if (exists_S2T && !(rec.prepisAudia?.Count()>0))
+                    if (exists_S2T && !(rec.prepisAudia?.Count() > 0))
                     {
                         if (System.IO.File.Exists(dockerFn))
                         {
