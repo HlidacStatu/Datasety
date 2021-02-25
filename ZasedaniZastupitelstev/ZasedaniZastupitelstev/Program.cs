@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -44,7 +45,7 @@ namespace ZasedaniZastupitelstev
             mp3path = jsonconf["mp3path"];
 
 
-            args = new Devmasters.Args(arguments, new string[] { "/ico", "/playlist" });
+            args = new Devmasters.Args(arguments);
 
 
             //create dataset
@@ -52,21 +53,62 @@ namespace ZasedaniZastupitelstev
             if (!args.MandatoryPresent())
             { Help(); return; }
 
-            string ico = args["/ico"];
-
-            string playlist = args["/playlist"];
+            string ico = args.Get("/ico");
 
             int threads = args.GetNumber("/t") ?? 5;
 
             int max = args.GetNumber("/max") ?? 300;
 
-            string filter = args.Get("/filter", null);
-
             string[] vids = args.GetArray("/ids");
+
+            string filter = args.Get("/filter", null);
 
 
             System.IO.Directory.CreateDirectory(mp3path + @"\" + DataSetId);
 
+
+            HttpClient httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Authorization", apikey);
+
+            var jsonResult = httpClient.GetStringAsync("https://www.hlidacstatu.cz/api/v2/firmy/social?typ=Zaznam_zastupitelstva")
+                        .Result;
+            var firmy = Newtonsoft.Json.JsonConvert.DeserializeObject<firma[]>(jsonResult);
+            foreach (var f in firmy)
+            {
+
+                foreach (var url in f.SocialniSite)
+                {
+                    if (string.IsNullOrEmpty(ico))
+                        ProcessIco(f, url.Url, threads, max, vids, filter);
+                    else if (f.Ico == ico)
+                        ProcessIco(f, url.Url, threads, max, vids, filter);
+                }
+            }
+
+        }
+
+        public class firma
+        {
+            public string Ico { get; set; }
+            public string Jmeno { get; set; }
+            public string Profile { get; set; }
+            public Socialnisite[] SocialniSite { get; set; } = new Socialnisite[] { };
+
+            public class Socialnisite
+            {
+                public string Type { get; set; }
+                public string Id { get; set; }
+                public string Url { get; set; }
+            }
+        }
+
+
+
+
+
+        public static void ProcessIco(firma f, string playlist, int threads, int max, string[] vids, string filter)
+        {
+            Devmasters.Logging.Logger.Root.Info($"Starting {f.Jmeno} {f.Ico} for {playlist} ");
 
             var apiConf = new HlidacStatu.Api.V2.CoreApi.Client.Configuration();
             apiConf.AddDefaultHeader("Authorization", apikey);
@@ -139,7 +181,7 @@ namespace ZasedaniZastupitelstev
                             return new Devmasters.Batch.ActionOutputData();
                         }
                         rec.AudioUrl = "https://somedata.hlidacstatu.cz/mp3/" + DataSetId + $"/{rec.id}.mp3";
-                        rec.ico = ico;
+                        rec.ico = f.Ico;
                         changed = true;
                     }
 
