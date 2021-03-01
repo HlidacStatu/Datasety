@@ -31,11 +31,16 @@ namespace KapacityNemocnic
         static void Main(string[] args)
         {
 
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("cs-CZ");
+            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("cs-CZ");
+
+
             var DArgs = args
                 .Select(m => m.Split('='))
                 .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1]);
 
             CreateDataset(DArgs);
+            Obsazenost.LastObsazenost(ds);
 
             if (DArgs.ContainsKey("/xls"))
             {

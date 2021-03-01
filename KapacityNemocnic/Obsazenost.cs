@@ -170,7 +170,7 @@ namespace KapacityNemocnic
                 {
                     //first date  2020-09-04
 
-                    for (int row = 9; row < 100000; row++)
+                    for (int row = 15; row < 100000; row++)
                     {
                         var dt = ws.Cells[row, 1].GetValue<DateTime?>();
                         if (dt.HasValue && dt.Value >= startDt)
