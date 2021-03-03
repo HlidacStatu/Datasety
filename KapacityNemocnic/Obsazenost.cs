@@ -158,7 +158,7 @@ namespace KapacityNemocnic
         }
 
 
-        static DateTime startDt = DateTime.Now.Date.AddDays(-20); //new DateTime(2020,09,04);
+        static DateTime startDt = DateTime.Now.Date.AddDays(-40); //new DateTime(2020,09,04);
         public static void ProcessExcelObsazenost(string fn, HlidacStatu.Api.V2.Dataset.Typed.Dataset<NemocniceData> ds)
         {
             Devmasters.Logging.Logger.Root.Info($"ProcessExcelObsazenost {fn} ");
@@ -170,7 +170,7 @@ namespace KapacityNemocnic
                 {
                     //first date  2020-09-04
 
-                    for (int row = 15; row < 100000; row++)
+                    for (int row = 11; row < 100000; row++)
                     {
                         var dt = ws.Cells[row, 1].GetValue<DateTime?>();
                         if (dt.HasValue && dt.Value >= startDt)
@@ -196,7 +196,7 @@ namespace KapacityNemocnic
                                 data.regions[idx].Pacienti_lehky = ws.Cells[row, 8].GetValue<int>();
                                 data.regions[idx].Pacienti_stredni = ws.Cells[row, 9].GetValue<int>();
                                 data.regions[idx].Pacienti_tezky = ws.Cells[row, 10].GetValue<int>();
-                                data.regions[idx].Pacienti_zemreli = ws.Cells[row, 21].GetValue<int>() - ws.Cells[row - 1, 21].GetValue<int>();
+                                data.regions[idx].Pacienti_zemreli = ws.Cells[row, 22].GetValue<int>() - ws.Cells[row - 1, 22].GetValue<int>();
 
                                 Devmasters.Logging.Logger.Root.Info($"ProcessExcelObsazenost save {ws.Name} - {dt.Value.ToString("yyyy-MM-dd ")} - {region.region} ");
                                 ds.AddOrUpdateItem(data, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
