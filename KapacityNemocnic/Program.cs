@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
@@ -7,6 +8,8 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
+using CsvHelper;
 
 using HlidacStatu.Api.V2.CoreApi.Client;
 using HlidacStatu.Api.V2.Dataset;
@@ -20,6 +23,23 @@ namespace KapacityNemocnic
 {
     class Program
     {
+        public static Dictionary<string, string> Kraje = new Dictionary<string, string>()
+        {
+            {"CZ010","PHA"},
+            {"CZ031","JHC"},
+            {"CZ064","JHM"},
+            {"CZ041","KVK"},
+            {"CZ063","VYS"},
+            {"CZ052","HKK"},
+            {"CZ051","LBK"},
+            {"CZ080","MSK"},
+            {"CZ071","OLK"},
+            {"CZ053","PAK"},
+            {"CZ032","PLK"},
+            {"CZ020","STC"},
+            {"CZ042","ULK"},
+            {"CZ072","ZLK"}
+        };
 
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<NemocniceData> ds = null;
         const int everyMins = 58;
@@ -40,25 +60,190 @@ namespace KapacityNemocnic
                 .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1]);
 
             CreateDataset(DArgs);
-            Obsazenost.LastObsazenost(ds);
+            //Obsazenost.LastObsazenost(ds);
 
-            if (DArgs.ContainsKey("/xls"))
+            //if (DArgs.ContainsKey("/xls"))
+            //{
+            //    //Obsazenost.BackupImap();return;
+            //    Obsazenost.Imap(DArgs["/xls"], ds);
+            //    Obsazenost.LastObsazenost(ds);
+            //    return;
+            //}
+
+            //ProcessPacienti();
+
+
+            OpenDataDIP();
+
+        }
+
+        private static void ProcessPacienti()
+        {
+            DateTime startDt = DateTime.Now.Date.AddDays(-30);
+            using (var reader = new StreamReader(new System.Net.Http.HttpClient().GetStreamAsync("https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/hospitalizace.csv").Result))
             {
-                //Obsazenost.BackupImap();return;
-                Obsazenost.Imap(DArgs["/xls"], ds);
-                Obsazenost.LastObsazenost(ds);
-                return;
+                using (var csv = new CsvReader(reader, new CsvHelper.Configuration.CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
+                {
+                    Delimiter = ",",
+                    IgnoreBlankLines = true,
+                    HasHeaderRecord = true,
+                    TrimOptions = CsvHelper.Configuration.TrimOptions.Trim
+                }))
+                {
+                    //csv.Context.RegisterClassMap<NemocniceMap>();
+                    //var records = csv.GetRecords<Nemocnice>().ToArray();
+                    csv.Read();
+                    csv.ReadHeader();
+                    while (csv.Read())
+                    {
+
+                        DateTime? dt = Devmasters.DT.Util.ParseDateTime(csv["datum"], null);
+
+                        if (dt.HasValue && dt.Value >= startDt)
+                        {
+                            string id = "id_" + dt.Value.ToString("yyyy-MM-dd");
+                            Console.Write(dt.Value.ToString("yyyy-MM-dd "));
+                            NemocniceData data = null;
+                            try
+                            {
+                                data = ds.GetItem(id);
+                            }
+                            catch (Exception)
+                            {
+                            }
+                            if (data == null)
+                                continue;
+
+                        }
+                    }
+                }
             }
 
 
-            string fn = $"dip-report-kraje-{DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
+        }
+
+        private static void OpenDataDIP()
+        {
+            //process https://dip.mzcr.cz/api/v1/kapacity-intenzivni-pece-vlna-2.csv
+
+            DateTime mindate = DateTime.Now.Date.AddDays(-120);
+
+            using (var net = new System.Net.Http.HttpClient().GetStreamAsync("https://dip.mzcr.cz/api/v1/kapacity-intenzivni-pece-vlna-2.csv"))
+            {
+                using (System.IO.StreamReader rr = new StreamReader(net.Result))
+                {
+                    var csv = new CsvHelper.CsvReader(rr, new CsvHelper.Configuration.CsvConfiguration(System.Globalization.CultureInfo.GetCultureInfo("cs")) { HasHeaderRecord = true, Delimiter = "," });
+                    csv.Read(); csv.ReadHeader();
+                    //csv.Read();//skip second line
+                    while (csv.Read())
+                    {
+                        DateTime? date = Devmasters.DT.Util.ParseDateTime(csv.GetField<string>("datum")?.Trim(), null);
+                        Console.WriteLine(date);
+                        if (date == null)
+                            continue;
+                        DateTime dt = date.Value;
+                        if (dt < mindate)
+                            continue;
+                        string id = "id_" + dt.ToString("yyyy-MM-dd");
+                        NemocniceData nd = null;
+                        try
+                        {
+                            nd = ds.GetItem(id); // new NemocniceData();
+                        }
+                        catch (Exception)
+                        {
+                        }
+                        if (nd == null)
+                        {
+                            nd = new NemocniceData();
+                            nd.regions = new List<NemocniceData.Region>();
+                        }
+                        nd.lastUpdated = dt;
+
+                        nd.id = id;
+
+                        Console.WriteLine(".");
+                        Devmasters.Logging.Logger.Root.Info(nd.lastUpdated.ToString());
+
+
+                        List<NemocniceData.Region> finalRegs = new List<NemocniceData.Region>();
+
+                        for (int regs = 0; regs < 14; regs++)
+                        {
+
+                            string kraj_nuts_kod = csv.GetField<string>("kraj_nuts_kod");
+                            string region = Kraje[kraj_nuts_kod];
+                            NemocniceData.Region r = nd.regions.FirstOrDefault(m => m.region == region); //new NemocniceData.Region();
+                            if (r == null)
+                            {
+                                r = new NemocniceData.Region();
+                            }
+                            r.lastModified = nd.lastUpdated;
+                            r.region = region;
+
+                            r.UPV_celkem = csv.GetField<int>("upv_kapacita_celkem");
+                            r.UPV_volna = csv.GetField<int>("upv_kapacita_volna");
+
+                            r.ECMO_celkem = csv.GetField<int>("ecmo_kapacita_celkem");
+                            r.ECMO_volna = csv.GetField<int>("ecmo_kapacita_volna");
+
+                            r.CRRT_celkem = csv.GetField<int>("crrt_kapacita_celkem");
+                            r.CRRT_volna = csv.GetField<int>("crrt_kapacita_volna");
+
+                            r.IHD_celkem = csv.GetField<int>("ihd_kapacita_celkem");
+                            r.IHD_volna = csv.GetField<int>("ihd_kapacita_volna");
+
+                            r.AROJIP_luzka_celkem = csv.GetField<int>("luzka_aro_jip_kapacita_celkem");
+                            r.AROJIP_luzka_covid = csv.GetField<int>("luzka_aro_jip_kapacita_volna_covid_pozitivni");
+                            r.AROJIP_luzka_necovid = csv.GetField<int>("luzka_aro_jip_kapacita_volna_covid_negativni");
+
+                            r.Standard_luzka_s_kyslikem_celkem = csv.GetField<int>("luzka_standard_kyslik_kapacita_celkem");
+                            r.Standard_luzka_s_kyslikem_covid = csv.GetField<int>("luzka_standard_kyslik_kapacita_volna_covid_pozitivni");
+                            r.Standard_luzka_s_kyslikem_necovid = csv.GetField<int>("luzka_standard_kyslik_kapacita_volna_covid_negativni");
+
+                            //r.Lekari_AROJIP_celkem = 0;
+                            //r.Lekari_AROJIP_dostupni = 0;
+
+                            //r.Sestry_AROJIP_celkem = 0;
+                            //r.Sestry_AROJIP_dostupni = 0;
+                            //r.Standard_luzka_celkem = 0;
+                            //r.Standard_luzka_s_monitor_celkem = 0;
+
+                            r.Ventilatory_prenosne_celkem = csv.GetField<int>("ventilatory_prenosne_kapacita_celkem");
+                            r.Ventilatory_operacnisal_celkem = csv.GetField<int>("ventilatory_operacni_sal_kapacita_celkem");
+
+
+                            finalRegs.Add(r);
+
+                            //read next line
+                            if (regs != 13)
+                                if (csv.Read() == false)
+                                    break;
+
+                        }
+                        nd.regions = finalRegs;
+
+                        Devmasters.Logging.Logger.Root.Info("Saving");
+
+                        ds.AddOrUpdateItem(nd, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                    }
+
+                }
+
+
+            }
+        }
+
+        private static void GetExcelFromUzisZIP_Old()
+        {
+            string fn = GetExecutingDirectoryName() + $"\\dip-report-kraje-{DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
 
             string fnTemp = System.IO.Path.GetTempFileName();
             //nejnovejsi ZIP
             for (int i = 0; i < 7; i++)
             {
                 DateTime dt = DateTime.Now.Date.AddDays(-1 * i);
-                string zipUrl = $"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F{dt.Year}-{dt.ToString("MM")}%20({dt.ToString("MMMM",System.Globalization.CultureInfo.GetCultureInfo("cs"))}%20{dt.Year})&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";     //$"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";
+                string zipUrl = $"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F{dt.Year}-{dt.ToString("MM")}%20({dt.ToString("MMMM", System.Globalization.CultureInfo.GetCultureInfo("cs"))}%20{dt.Year})&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";     //$"https://share.uzis.cz/s/fbCgFKagS6fCrzc/download?path=%2F&files={dt:yyyy-MM-dd}-dostupnost-kapacit.zip";
                 Devmasters.Logging.Logger.Root.Info($"Getting ZIP url {zipUrl}");
 
                 using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(zipUrl))
@@ -138,9 +323,9 @@ namespace KapacityNemocnic
                     {
                         Console.Write(".");
                         var txt = ws.Cells[row, 1].GetValue<string>();
-                        if (txt != null && txt.StartsWith("Analýza provedena z exportu"))
+                        if (txt != null && txt.StartsWith("Stav k datu:"))
                         {
-                            string head = txt.Replace("Analýza provedena z exportu ", "");
+                            string head = txt.Replace("Stav k datu: ", "");
                             string sdate = Devmasters.RegexUtil.GetRegexGroupValue(head, @" \s* (?<dt>\d{1,2}\s*\.\s*\d{1,2}\s*\.\s*\d{4} )", "dt");
                             DateTime dt = Devmasters.DT.Util.ToDate(sdate).Value;
                             string id = "id_" + dt.ToString("yyyy-MM-dd");
@@ -179,8 +364,8 @@ namespace KapacityNemocnic
                                 r.lastModified = nd.lastUpdated;
                                 r.region = region;
 
-                                r.UPV_celkem = ws.Cells[row + regs, 2].GetValue<int>();
-                                r.UPV_volna = ws.Cells[row + regs, 3].GetValue<int>();
+                                r.UPV_celkem = ws.Cells[row + regs, 4].GetValue<int>();
+                                r.UPV_volna = ws.Cells[row + regs, 5].GetValue<int>();
 
                                 r.ECMO_celkem = ws.Cells[row + regs, 5].GetValue<int>();
                                 r.ECMO_volna = ws.Cells[row + regs, 6].GetValue<int>();
@@ -231,9 +416,7 @@ namespace KapacityNemocnic
                 Devmasters.Logging.Logger.Root.Error("Processing ZIP XLS error", e);
                 SendMail("michal@michalblaha.cz", "Selhalo zpracovani dat z UZIS", e.ToString(), "");
             }
-
         }
-
 
         static void CreateDataset(Dictionary<string, string> args)
         {

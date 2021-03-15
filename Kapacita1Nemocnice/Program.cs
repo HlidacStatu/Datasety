@@ -44,6 +44,7 @@ namespace Kapacita1Nemocnice
             //find xls url
             string openDataPage = "https://dip.mzcr.cz/api/v1/kapacity-intenzivni-pece-zdravotnicke-zarizeni.csv";
             Uri xlsUrl = null;
+            DateTime fromD = DateTime.Now.Date.AddDays(-30);
             Devmasters.Logging.Logger.Root.Info("Getting URL of csv from " + openDataPage);
             using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(openDataPage))
             {
@@ -104,7 +105,8 @@ namespace Kapacita1Nemocnice
                                     datum = DateTime.ParseExact(csv.GetField<string>("datum"), "yyyy-MM-dd", System.Globalization.CultureInfo.CurrentCulture)
                                 };
                                 var iis = record.id;
-                                recs.Add(record);
+                                if (record.datum>fromD)
+                                    recs.Add(record);
                             }
                         }
                         //ds.AddOrRewriteItems(recs);

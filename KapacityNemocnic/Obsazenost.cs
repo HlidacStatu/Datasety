@@ -158,7 +158,7 @@ namespace KapacityNemocnic
         }
 
 
-        static DateTime startDt = DateTime.Now.Date.AddDays(-40); //new DateTime(2020,09,04);
+        static DateTime startDt = DateTime.Now.Date.AddDays(-10); //new DateTime(2020,09,04);
         public static void ProcessExcelObsazenost(string fn, HlidacStatu.Api.V2.Dataset.Typed.Dataset<NemocniceData> ds)
         {
             Devmasters.Logging.Logger.Root.Info($"ProcessExcelObsazenost {fn} ");
