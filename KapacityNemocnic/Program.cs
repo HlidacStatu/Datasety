@@ -124,11 +124,13 @@ namespace KapacityNemocnic
 
         private static void OpenDataDIP()
         {
+            List<NemocniceData.Region> raw = new List<NemocniceData.Region>();
+
             //process https://dip.mzcr.cz/api/v1/kapacity-intenzivni-pece-vlna-2.csv
 
             DateTime mindate = DateTime.Now.Date.AddDays(-120);
 
-            using (var net = new System.Net.Http.HttpClient().GetStreamAsync("https://dip.mzcr.cz/api/v1/kapacity-intenzivni-pece-vlna-2.csv"))
+            using (var net = new System.Net.Http.HttpClient().GetStreamAsync("https://dip.mzcr.cz/api/v1/kapacity-intenzivni-pece-zdravotnicke-zarizeni-04-2021.csv"))
             {
                 using (System.IO.StreamReader rr = new StreamReader(net.Result))
                 {
@@ -138,101 +140,98 @@ namespace KapacityNemocnic
                     while (csv.Read())
                     {
                         DateTime? date = Devmasters.DT.Util.ParseDateTime(csv.GetField<string>("datum")?.Trim(), null);
-                        Console.WriteLine(date);
                         if (date == null)
                             continue;
                         DateTime dt = date.Value;
                         if (dt < mindate)
                             continue;
-                        string id = "id_" + dt.ToString("yyyy-MM-dd");
-                        NemocniceData nd = null;
-                        try
-                        {
-                            nd = ds.GetItem(id); // new NemocniceData();
-                        }
-                        catch (Exception)
-                        {
-                        }
-                        if (nd == null)
-                        {
-                            nd = new NemocniceData();
-                            nd.regions = new List<NemocniceData.Region>();
-                        }
-                        nd.lastUpdated = dt;
-
-                        nd.id = id;
-
                         Console.WriteLine(".");
-                        Devmasters.Logging.Logger.Root.Info(nd.lastUpdated.ToString());
+
+                        string kraj_nuts_kod = csv.GetField<string>("kraj_nuts_kod");
+                        string region = Kraje[kraj_nuts_kod];
+                        var r = new NemocniceData.Region();
+                        r.lastModified = date.Value;
+                        r.region = region;
+                        r.name = csv.GetField<string>("zz_nazev");
+                        r.UPV_celkem = 0;
+                        r.UPV_volna = 0;
+
+                        r.ECMO_celkem = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("ecmo_kapacita_celkem"), 0).Value;
+                        r.ECMO_volna = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("ecmo_kapacita_volna"), 0).Value;
+
+                        r.CRRT_celkem = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("cvvhd_kapacita_celkem"), 0).Value;
+                        r.CRRT_volna = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("cvvhd_kapacita_volna"), 0).Value;
+
+                        r.IHD_celkem = 0;
+                        r.IHD_volna = 0;
+
+                        r.AROJIP_luzka_celkem = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("luzka_upv_niv_kapacita_celkem"), 0).Value;
+                        r.AROJIP_luzka_covid = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("luzka_upv_niv_kapacita_volna_covid_pozitivni"), 0).Value;
+                        r.AROJIP_luzka_necovid = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("luzka_upv_niv_kapacita_volna_covid_negativni"), 0).Value;
+
+                        r.Standard_luzka_s_kyslikem_celkem = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("luzka_standard_kyslik_kapacita_celkem"), 0).Value;
+                        r.Standard_luzka_s_kyslikem_covid = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("luzka_standard_kyslik_kapacita_volna_covid_pozitivni"), 0).Value;
+                        r.Standard_luzka_s_kyslikem_necovid = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("luzka_standard_kyslik_kapacita_volna_covid_negativni"), 0).Value;
+
+                        //r.Lekari_AROJIP_celkem = 0;
+                        //r.Lekari_AROJIP_dostupni = 0;
+
+                        //r.Sestry_AROJIP_celkem = 0;
+                        //r.Sestry_AROJIP_dostupni = 0;
+                        //r.Standard_luzka_celkem = 0;
+                        //r.Standard_luzka_s_monitor_celkem = 0;
+
+                        r.Ventilatory_prenosne_celkem = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("ventilatory_prenosne_kapacita_celkem"), 0).Value;
+                        r.Ventilatory_operacnisal_celkem = Devmasters.TextUtil.ConvertToInt(csv.GetField<string>("ventilatory_operacni_sal_kapacita_celkem"), 0).Value;
 
 
-                        List<NemocniceData.Region> finalRegs = new List<NemocniceData.Region>();
+                        raw.Add(r);
 
-                        for (int regs = 0; regs < 14; regs++)
-                        {
-
-                            string kraj_nuts_kod = csv.GetField<string>("kraj_nuts_kod");
-                            string region = Kraje[kraj_nuts_kod];
-                            NemocniceData.Region r = nd.regions.FirstOrDefault(m => m.region == region); //new NemocniceData.Region();
-                            if (r == null)
-                            {
-                                r = new NemocniceData.Region();
-                            }
-                            r.lastModified = nd.lastUpdated;
-                            r.region = region;
-
-                            r.UPV_celkem = csv.GetField<int>("upv_kapacita_celkem");
-                            r.UPV_volna = csv.GetField<int>("upv_kapacita_volna");
-
-                            r.ECMO_celkem = csv.GetField<int>("ecmo_kapacita_celkem");
-                            r.ECMO_volna = csv.GetField<int>("ecmo_kapacita_volna");
-
-                            r.CRRT_celkem = csv.GetField<int>("crrt_kapacita_celkem");
-                            r.CRRT_volna = csv.GetField<int>("crrt_kapacita_volna");
-
-                            r.IHD_celkem = csv.GetField<int>("ihd_kapacita_celkem");
-                            r.IHD_volna = csv.GetField<int>("ihd_kapacita_volna");
-
-                            r.AROJIP_luzka_celkem = csv.GetField<int>("luzka_aro_jip_kapacita_celkem");
-                            r.AROJIP_luzka_covid = csv.GetField<int>("luzka_aro_jip_kapacita_volna_covid_pozitivni");
-                            r.AROJIP_luzka_necovid = csv.GetField<int>("luzka_aro_jip_kapacita_volna_covid_negativni");
-
-                            r.Standard_luzka_s_kyslikem_celkem = csv.GetField<int>("luzka_standard_kyslik_kapacita_celkem");
-                            r.Standard_luzka_s_kyslikem_covid = csv.GetField<int>("luzka_standard_kyslik_kapacita_volna_covid_pozitivni");
-                            r.Standard_luzka_s_kyslikem_necovid = csv.GetField<int>("luzka_standard_kyslik_kapacita_volna_covid_negativni");
-
-                            //r.Lekari_AROJIP_celkem = 0;
-                            //r.Lekari_AROJIP_dostupni = 0;
-
-                            //r.Sestry_AROJIP_celkem = 0;
-                            //r.Sestry_AROJIP_dostupni = 0;
-                            //r.Standard_luzka_celkem = 0;
-                            //r.Standard_luzka_s_monitor_celkem = 0;
-
-                            r.Ventilatory_prenosne_celkem = csv.GetField<int>("ventilatory_prenosne_kapacita_celkem");
-                            r.Ventilatory_operacnisal_celkem = csv.GetField<int>("ventilatory_operacni_sal_kapacita_celkem");
-
-
-                            finalRegs.Add(r);
-
-                            //read next line
-                            if (regs != 13)
-                                if (csv.Read() == false)
-                                    break;
-
-                        }
-                        nd.regions = finalRegs;
-
-                        Devmasters.Logging.Logger.Root.Info("Saving");
-
-                        ds.AddOrUpdateItem(nd, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                     }
-
                 }
+            }
+            Devmasters.Logging.Logger.Root.Info("Saving");
+            var dates = raw.Select(m => m.lastModified).Distinct();
+            var kraje = raw.Select(m => m.region).Distinct();
+            foreach (var dt in dates.Where(m => m > mindate))
+            {
+                Console.WriteLine(dt);
+
+                NemocniceData nem = null; //new NemocniceData();
+                var id = "id_" + dt.ToString("yyyy-MM-dd");
+                List<NemocniceData.Region> nr = new List<NemocniceData.Region>();
+                foreach (var kr in kraje)
+                {
+                    var lines = raw.Where(m => m.lastModified == dt && m.region == kr).ToArray();
+                    var r = NemocniceData.Aggregate(lines);
+                    r.region = kr;
+                    nr.Add(r);
+                }
+
+                try
+                {
+                    nem = ds.GetItem(id); // new NemocniceData();
+                }
+                catch (Exception)
+                {
+                }
+                if (nem == null)
+                {
+                    nem = new NemocniceData();
+                }
+                nem.id = id;
+                nem.regions = nr;
+                nem.lastUpdated = dt;
+                ds.AddOrUpdateItem(nem, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
 
 
             }
+            //ds.AddOrUpdateItem(nd, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+
+
+
         }
+
 
         private static void GetExcelFromUzisZIP_Old()
         {
