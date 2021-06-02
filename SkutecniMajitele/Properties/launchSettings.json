@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SkutecniMajitele": {
+      "commandName": "Project",
+      "commandLineArgs": "/apikey=51b94da7b1b542ffa6355533855effff "
+    }
+  }
+}
