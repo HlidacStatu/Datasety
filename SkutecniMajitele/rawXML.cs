@@ -46,6 +46,10 @@ namespace SkutecniMajitele
         private string icoField;
 
         private System.DateTime zapisDatumField;
+        private System.DateTime vymazDatumField;
+
+        private bool vymazDatumFieldSpecified;
+
 
         private xmlSubjektUdaj[] udajeField;
 
@@ -88,6 +92,34 @@ namespace SkutecniMajitele
                 this.zapisDatumField = value;
             }
         }
+
+        [System.Xml.Serialization.XmlElementAttribute(DataType = "date")]
+        public System.DateTime vymazDatum
+        {
+            get
+            {
+                return this.vymazDatumField;
+            }
+            set
+            {
+                this.vymazDatumField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool vymazDatumSpecified
+        {
+            get
+            {
+                return this.vymazDatumFieldSpecified;
+            }
+            set
+            {
+                this.vymazDatumFieldSpecified = value;
+            }
+        }
+
 
         /// <remarks/>
         [System.Xml.Serialization.XmlArrayItemAttribute("Udaj", IsNullable = false)]
@@ -289,6 +321,7 @@ namespace SkutecniMajitele
     {
 
         private xmlSubjektUdajHodnotaUdajeVklad vkladField;
+        private string textField;
 
         private xmlSubjektUdajHodnotaUdajeSplaceni splaceniField;
 
@@ -306,6 +339,20 @@ namespace SkutecniMajitele
         }
 
         /// <remarks/>
+        public string text
+        {
+            get
+            {
+                return this.textField;
+            }
+            set
+            {
+                this.textField = value;
+            }
+        }
+
+        /// <remarks/>
+
         public xmlSubjektUdajHodnotaUdajeSplaceni splaceni
         {
             get
@@ -476,6 +523,7 @@ namespace SkutecniMajitele
 
         private xmlSubjektUdajUdajAdresa adresaField;
         private xmlSubjektUdajUdajBydliste bydlisteField;
+        //private xmlSubjektUdajUdajUdaj[] podudajeField;
 
         /// <remarks/>
         public string hlavicka
@@ -722,6 +770,21 @@ namespace SkutecniMajitele
             }
         }
 
+        ///// <remarks/>
+        //[System.Xml.Serialization.XmlArrayItemAttribute("Udaj", IsNullable = false)]
+        //public xmlSubjektUdajUdajUdaj[] podudaje
+        //{
+        //    get
+        //    {
+        //        return this.podudajeField;
+        //    }
+        //    set
+        //    {
+        //        this.podudajeField = value;
+        //    }
+        //}
+
+
         public xmlSubjektUdajUdajBydliste bydliste
         {
             get
@@ -736,7 +799,323 @@ namespace SkutecniMajitele
 
     }
     /// <remarks/>
-    
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahu
+    {
+
+        private xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezce retezceField;
+
+        /// <remarks/>
+        public xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezce retezce
+        {
+            get
+            {
+                return this.retezceField;
+            }
+            set
+            {
+                this.retezceField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezce
+    {
+
+        private xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmap linkedhashmapField;
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("linked-hash-map")]
+        public xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmap linkedhashmap
+        {
+            get
+            {
+                return this.linkedhashmapField;
+            }
+            set
+            {
+                this.linkedhashmapField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmap
+    {
+
+        private xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmap[] clankyField;
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlArrayItemAttribute("linked-hash-map", IsNullable = false)]
+        public xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmap[] clanky
+        {
+            get
+            {
+                return this.clankyField;
+            }
+            set
+            {
+                this.clankyField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmap
+    {
+
+        private string typClankuField;
+
+        private xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmapIdentifikace identifikaceField;
+
+        private xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmapVztahKPredchozimuClanku vztahKPredchozimuClankuField;
+
+        /// <remarks/>
+        public string typClanku
+        {
+            get
+            {
+                return this.typClankuField;
+            }
+            set
+            {
+                this.typClankuField = value;
+            }
+        }
+
+        /// <remarks/>
+        public xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmapIdentifikace identifikace
+        {
+            get
+            {
+                return this.identifikaceField;
+            }
+            set
+            {
+                this.identifikaceField = value;
+            }
+        }
+
+        /// <remarks/>
+        public xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmapVztahKPredchozimuClanku vztahKPredchozimuClanku
+        {
+            get
+            {
+                return this.vztahKPredchozimuClankuField;
+            }
+            set
+            {
+                this.vztahKPredchozimuClankuField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmapIdentifikace
+    {
+
+        private string nameField;
+
+        private string icoField;
+
+        /// <remarks/>
+        public string name
+        {
+            get
+            {
+                return this.nameField;
+            }
+            set
+            {
+                this.nameField = value;
+            }
+        }
+
+        /// <remarks/>
+        public string ico
+        {
+            get
+            {
+                return this.icoField;
+            }
+            set
+            {
+                this.icoField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmapVztahKPredchozimuClanku
+    {
+
+        private bool vlastniPodilNaProspechuField;
+
+        private xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmapVztahKPredchozimuClankuPodilNaProspechu podilNaProspechuField;
+
+        private bool jednaVeShodeField;
+
+        private object jednaVeShodeSOsobyField;
+
+        private bool jinyVztahField;
+
+        private bool vrcholoveVedeniField;
+
+        private bool vrcholoveVedeniFieldSpecified;
+
+        /// <remarks/>
+        public bool vlastniPodilNaProspechu
+        {
+            get
+            {
+                return this.vlastniPodilNaProspechuField;
+            }
+            set
+            {
+                this.vlastniPodilNaProspechuField = value;
+            }
+        }
+
+        /// <remarks/>
+        public xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmapVztahKPredchozimuClankuPodilNaProspechu podilNaProspechu
+        {
+            get
+            {
+                return this.podilNaProspechuField;
+            }
+            set
+            {
+                this.podilNaProspechuField = value;
+            }
+        }
+
+        /// <remarks/>
+        public bool jednaVeShode
+        {
+            get
+            {
+                return this.jednaVeShodeField;
+            }
+            set
+            {
+                this.jednaVeShodeField = value;
+            }
+        }
+
+        /// <remarks/>
+        public object jednaVeShodeSOsoby
+        {
+            get
+            {
+                return this.jednaVeShodeSOsobyField;
+            }
+            set
+            {
+                this.jednaVeShodeSOsobyField = value;
+            }
+        }
+
+        /// <remarks/>
+        public bool jinyVztah
+        {
+            get
+            {
+                return this.jinyVztahField;
+            }
+            set
+            {
+                this.jinyVztahField = value;
+            }
+        }
+
+        /// <remarks/>
+        public bool vrcholoveVedeni
+        {
+            get
+            {
+                return this.vrcholoveVedeniField;
+            }
+            set
+            {
+                this.vrcholoveVedeniField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool vrcholoveVedeniSpecified
+        {
+            get
+            {
+                return this.vrcholoveVedeniFieldSpecified;
+            }
+            set
+            {
+                this.vrcholoveVedeniFieldSpecified = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahuRetezceLinkedhashmapLinkedhashmapVztahKPredchozimuClankuPodilNaProspechu
+    {
+
+        private string typField;
+
+        private string textValueField;
+
+        /// <remarks/>
+        public string typ
+        {
+            get
+            {
+                return this.typField;
+            }
+            set
+            {
+                this.typField = value;
+            }
+        }
+
+        /// <remarks/>
+        public string textValue
+        {
+            get
+            {
+                return this.textValueField;
+            }
+            set
+            {
+                this.textValueField = value;
+            }
+        }
+    }
+
+
+
     /// <remarks/>
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
@@ -776,11 +1155,14 @@ namespace SkutecniMajitele
 
         private string tField;
 
+        private bool autoprupisField;
         private string postaveniField;
 
         private xmlSubjektUdajUdajHodnotaUdajePodilNaProspechu podilNaProspechuField;
 
         private object nahradniSMOsobyField;
+        
+        private xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahu strukturaVztahuField;
 
         private xmlSubjektUdajUdajHodnotaUdajePodilNaHlasovani podilNaHlasovaniField;
 
@@ -848,7 +1230,7 @@ namespace SkutecniMajitele
         private bool uverejneniField;
         private bool uverejneniFieldSpecified;
 
-        private string koncovyVlivTextField;
+        private string koncovyPrijemceTextField;
 
 
         /// <remarks/>
@@ -945,15 +1327,15 @@ namespace SkutecniMajitele
 
 
         /// <remarks/>
-        public string koncovyVlivText
+        public string koncovyPrijemceText
         {
             get
             {
-                return this.koncovyVlivTextField;
+                return this.koncovyPrijemceTextField;
             }
             set
             {
-                this.koncovyVlivTextField = value;
+                this.koncovyPrijemceTextField = value;
             }
         }
         /// <remarks/>
@@ -1156,6 +1538,19 @@ namespace SkutecniMajitele
         }
 
         /// <remarks/>
+        public bool autoprupis
+        {
+            get
+            {
+                return this.autoprupisField;
+            }
+            set
+            {
+                this.autoprupisField = value;
+            }
+        }
+
+        /// <remarks/>
         public string postaveni
         {
             get
@@ -1218,6 +1613,12 @@ namespace SkutecniMajitele
             {
                 this.jednaVeShodeSOsobyField = value;
             }
+        }
+
+        public xmlSubjektUdajUdajHodnotaUdajeStrukturaVztahu strukturaVztahu
+        {
+            get { return this.strukturaVztahuField; }
+            set { this.strukturaVztahuField = value; }
         }
 
         /// <remarks/>

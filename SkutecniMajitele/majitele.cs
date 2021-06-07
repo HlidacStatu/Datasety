@@ -42,8 +42,9 @@ namespace SkutecniMajitele
             if (sekce == null)
                 return null;
 
-            var _majitele = sekce
-                .podudaje.Where(m => m.udajTyp.kod == "PRIMY_SKUTECNY_MAJITEL" || m.udajTyp.kod == "SKUTECNY_MAJITEL")
+            majitel_base[] _majitele = null;
+            if (sekce.podudaje != null)
+                 _majitele = sekce.podudaje.Where(m => m?.udajTyp?.kod == "PRIMY_SKUTECNY_MAJITEL" || m?.udajTyp?.kod == "SKUTECNY_MAJITEL")
                     .Select(m => majitel_base.Get(m)).ToArray();
             if (_majitele?.Count() > 0)
             {
@@ -51,9 +52,9 @@ namespace SkutecniMajitele
                 return t;
 
             }
-            return null; 
+            return null;
         }
-        private majitele(){}
+        private majitele() { }
         public string id { get; set; }
         public string ico { get; set; }
         public string nazev_subjektu { get; set; }
@@ -61,7 +62,7 @@ namespace SkutecniMajitele
 
     }
 
-    public class majitel_base 
+    public class majitel_base
     {
         public static majitel_base Get(xmlSubjektUdajUdaj d)
         {
@@ -151,6 +152,22 @@ namespace SkutecniMajitele
             uverejneni = d.hodnotaUdaje.uverejneniSpecified ? d.hodnotaUdaje.uverejneni : null;
             smlouvaVliv = d.hodnotaUdaje.smlouvaVlivSpecified ? d.hodnotaUdaje.smlouvaVliv : null;
 
+            if (d.hodnotaUdaje?.strukturaVztahu?.retezce?.linkedhashmap?.clanky != null)
+            {
+                struktura_vztahu_k_majiteli = d.hodnotaUdaje.strukturaVztahu.retezce.linkedhashmap.clanky
+                    .Select(m => new struktura_vztahu_majitel()
+                    {
+                        typ = m.typClanku,
+                        id = m.identifikace?.ico,
+                        jmeno = m.identifikace?.name,
+                        jedna_ve_shode = m.vztahKPredchozimuClanku?.jednaVeShode ?? false,
+                        jedna_ve_shode_s_osoby = null, //TODO m.vztahKPredchozimuClanku?.jednaVeShodeSOsoby
+                        podil_na_prospechu_hodnota = m.vztahKPredchozimuClanku?.podilNaProspechu?.textValue,
+                        podil_na_prospechu_typ = m.vztahKPredchozimuClanku?.podilNaProspechu?.typ,
+                        vlastni_podil_na_prospechu = m.vztahKPredchozimuClanku?.vlastniPodilNaProspechu ?? false
+                    })
+                    .ToArray();
+            }
         }
 
         public DateTime datum_zapis { get; set; }
@@ -221,6 +238,20 @@ namespace SkutecniMajitele
         public bool? clenVolenehoOrganu { get; set; }
         public bool? jinaSkutecnostPrijemce { get; set; }
         public bool? smlouvaVliv { get; set; }
+
+        public struktura_vztahu_majitel[] struktura_vztahu_k_majiteli { get; set; }
+        public class struktura_vztahu_majitel
+        {
+            public string typ { get; set; }
+            public string jmeno { get; set; }
+            public string id { get; set; }
+            public bool vlastni_podil_na_prospechu { get; set; }
+            public string podil_na_prospechu_typ { get; set; }
+            public string podil_na_prospechu_hodnota { get; set; }
+            public bool jedna_ve_shode { get; set; }
+            public string jedna_ve_shode_s_osoby { get; set; }
+
+        }
     }
 
 

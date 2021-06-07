@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Generation;
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 
@@ -16,10 +17,13 @@ namespace SkutecniMajitele
         //static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitel_flat> ds_flat = null;
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele> ds = null;
         public static string apiKey = "";
+        public static bool force = false;
         static void Main(string[] parameters)
         {
             var args = new Devmasters.Args(parameters);
             apiKey = args["/apikey"];
+            force = args.Exists("/force");
+
             var jsonGen = new JSchemaGenerator
             {
                 DefaultRequired = Required.Default
@@ -80,61 +84,98 @@ namespace SkutecniMajitele
                 .ToArray()
                 .Select(m => m.Value<string>())
                 .Where(m => m.EndsWith($"-{DateTime.Now.Year}"))
+                //.Where(m => m == "as-full-praha-2021") //DEBUG
                 ;
 
-
-            foreach (var name in onlyCurrYears)
+            Devmasters.Batch.Manager.DoActionForAll<string>(onlyCurrYears,
+            name =>
             {
-                if (System.IO.File.Exists(name + ".xml"))
+                ProcessXML(args, name);
+
+                return new Devmasters.Batch.ActionOutputData();
+            }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
+            true,//!System.Diagnostics.Debugger.IsAttached, 
+            maxDegreeOfParallelism: 4, prefix: "Get XMLS ");
+        }
+
+        private static void ProcessXML(Devmasters.Args args, string name)
+        {
+            if (System.IO.File.Exists(name + ".xml"))
+            {
+                if (args.Exists("/uselocal"))
                 {
-                    if ((DateTime.Now - new System.IO.FileInfo(name + ".xml").CreationTime).TotalDays > 1)
-                    {
-                        Console.WriteLine($"Downloading new {name}");
-                        wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", name + ".xml");
-                    }
+                    //skip next, use local file
                 }
-                else
+                else if (force || (DateTime.Now - new System.IO.FileInfo(name + ".xml").LastWriteTime).TotalDays > 1)
                 {
-                    Console.WriteLine($"Downloading {name}");
-                    wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", name + ".xml");
+                    Console.WriteLine($"Downloading new {name}");
+                    DownloadFile(name);
                 }
+            }
+            else
+            {
+                Console.WriteLine($"Downloading {name}");
+                DownloadFile(name);
+            }
 
-                rawXML d = null;
+            if (!System.IO.File.Exists(name + ".xml"))
+                return;
 
-                Console.WriteLine($"Deserializing {name}");
-                using (var xmlReader = new System.IO.StreamReader(name + ".xml"))
-                {
-                    var serializer = new XmlSerializer(typeof(rawXML));
-                    d = (rawXML)serializer.Deserialize(xmlReader);
-                }
-                Console.WriteLine($"{d.Subjekt?.Count()} subjects");
+            rawXML d = null;
+
+            Console.WriteLine($"Deserializing {name}");
+            using (var xmlReader = new System.IO.StreamReader(name + ".xml"))
+            {
+                var serializer = new XmlSerializer(typeof(rawXML));
+                d = (rawXML)serializer.Deserialize(xmlReader);
+            }
+            Console.WriteLine($"{d.Subjekt?.Count()} subjects");
 
 
 
-                Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(d.Subjekt,
-                subj =>
+            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(d.Subjekt //.Where(m => m.ico == "25629352").ToArray()
+                , subj =>
                 {
                     var item = majitele.GetMajitele(subj);
-                    if (item != null && item?.skutecni_majitele?.Count()>0)
+                    if (item != null && item?.skutecni_majitele?.Count() > 0)
                     {
-                        if (!ds.ItemExists(item.ico))
+                        if (!ds.ItemExists(item.ico) || force)
                         {
                             ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                         }
                     }
-
                     return new Devmasters.Batch.ActionOutputData();
                 }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
-                true,//!System.Diagnostics.Debugger.IsAttached, 
-                maxDegreeOfParallelism: 6);
+            true,//!System.Diagnostics.Debugger.IsAttached, 
+            maxDegreeOfParallelism: 6, prefix: $"{name} ITEMS ");
 
 
 
 
-            }
 
         }
 
+        private static void DownloadFile(string name)
+        {
+            System.Net.WebClient wc = new System.Net.WebClient();
+            try
+            {
+                wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", name + ".xml");
 
+            }
+            catch (Exception e1)
+            {
+                try
+                {
+                    System.Threading.Thread.Sleep(2000);
+                    wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", name + ".xml");
+                }
+                catch (Exception e2)
+                {
+
+                    Console.WriteLine($"Cannot download https://dataor.justice.cz/api/file/{name}.xml   ex:" + e2.Message);
+                }
+            }
+        }
     }
 }
