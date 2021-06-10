@@ -41,15 +41,77 @@ namespace SkutecniMajitele
                     { "Podle IČ subjektu", "ico" },
     },
     defaultOrderBy: "datum_zapis desc",
-    searchResultTemplate: new ClassicTemplate.ClassicSearchResultTemplate()
-        .AddColumn("Detail", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{item.id}}</a>")
-        .AddColumn("Subjekt", "{{fn_RenderCompanyWithLink item.ico}}")
-        .AddColumn("Skutečný majitel", "{{item.osoba_jmeno}} {{item.osoba_prijmeni}}")
-    ,
-    detailTemplate: new ClassicTemplate.ClassicDetailTemplate()
-        .AddColumn("Detail", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{item.id}}</a>")
-        .AddColumn("Subjekt", "{{fn_RenderCompanyWithLink item.ico}}")
-        .AddColumn("Skutečný majitel", "{{item.osoba_jmeno}} {{item.osoba_prijmeni}}")
+    
+    searchResultTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template() {Body=@"
+<!-- scriban {{ date.now }} --> 
+<table class=""table table-hover"">
+                        <thead>
+                            <tr>
+<th>Detail</th>
+<th>Subjekt</th>
+<th>Skutečný majitel</th>
+</tr>
+                        </thead>
+                        <tbody>
+{{ for item in model.Result }}
+<tr>
+<td ><a href=""{{ fn_DatasetItemUrl item.id }}"">{{item.id}}</a></td>
+<td >{{fn_RenderCompanyWithLink item.ico}}</td>
+<td >
+{{ for sk in item.skutecni_majitele }}
+
+    {{ if !(fn_IsNullOrEmpty sk.osobaId) }}
+      {{fn_RenderPersonWithLink2 sk.osobaId}},
+    {{else }}
+      {{sk.osoba_jmeno}} {{sk.osoba_prijmeni}},
+
+    {{ end }}
+{{end }}
+</td>
+</tr>
+{{ end }}
+
+</tbody></table>
+" },
+    detailTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template() {Body= @"
+<!-- scriban {{ date.now }} --> 
+ {{this.item = model}}
+<table class=""table table-hover""><tbody>
+<tr><td>IČ</td><td ><a href=""{{ fn_DatasetItemUrl item.id }}"">{{item.id}}</a></td></tr>
+<tr><td>Subjekt</td><td >{{fn_RenderCompanyWithLink item.ico}}<br/>
+{{fn_RenderCompanyInformations item.ico 3}}</td></tr>
+<tr><td>Skutečný majitel</td><td >
+{{ for sk in item.skutecni_majitele }}
+    <dl>
+      <dt>
+    {{ if !(fn_IsNullOrEmpty sk.osobaId) }}
+      {{fn_RenderPersonWithLink2 sk.osobaId}}
+    {{else }}
+      {{sk.osoba_jmeno}} {{sk.osoba_prijmeni}}
+    {{end}}
+
+    ({{sk.udaj_typ_nazev}}) 
+      </dt>
+      <dd>
+      {{if !(fn_IsNullOrEmpty sk.podil_na_prospechu_hodnota) }}
+         Podíl na prospěchu ze společnosti: {{sk.podil_na_prospechu_hodnota}} 
+         {{if sk.podil_na_prospechu_typ==""PROCENTA""}}%{{else}}({{sk.podil_na_prospechu_typ}}){{end}}
+<br/>
+      {{end}}
+      {{if !(fn_IsNullOrEmpty sk.podil_na_hlasovani_hodnota) }}
+         Podíl na hlasovacích právech: {{sk.podil_na_hlasovani_hodnota}} 
+         {{if sk.podil_na_hlasovani_typ==""PROCENTA""}}%{{else}}({{sk.podil_na_hlasovani_typ}}){{end}}
+
+<br/>
+      {{end}}
+      </dd>
+    </dl>
+{{end }}
+</td></tr>
+</table>
+
+"} 
+
     );
 
 
