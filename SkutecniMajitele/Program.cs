@@ -14,6 +14,21 @@ namespace SkutecniMajitele
 {
     class Program
     {
+        static Devmasters.Logging.Logger logger = new Devmasters.Logging.Logger("SkutecniMajitele");
+
+        static Devmasters.Batch.MultiOutputWriter outputWriter =
+    new Devmasters.Batch.MultiOutputWriter(
+        Devmasters.Batch.Manager.DefaultOutputWriter,
+        new Devmasters.Batch.LoggerWriter(logger, Devmasters.Logging.PriorityLevel.Debug).OutputWriter
+    );
+
+        static Devmasters.Batch.MultiProgressWriter progressWriter =
+            new Devmasters.Batch.MultiProgressWriter(
+                new Devmasters.Batch.ActionProgressWriter(1.0f,Devmasters.Batch.Manager.DefaultProgressWriter).Write,
+                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Logging.PriorityLevel.Information).ProgressWriter).Write
+            );
+
+
         //static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitel_flat> ds_flat = null;
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele> ds = null;
         public static string apiKey = "";
@@ -21,6 +36,8 @@ namespace SkutecniMajitele
         static void Main(string[] parameters)
         {
             var args = new Devmasters.Args(parameters);
+            logger.Info($"Starting with args {string.Join(' ',parameters)}");
+
             apiKey = args["/apikey"];
             force = args.Exists("/force");
 
@@ -157,7 +174,7 @@ namespace SkutecniMajitele
                 return new Devmasters.Batch.ActionOutputData();
             }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
             !System.Diagnostics.Debugger.IsAttached, 
-            maxDegreeOfParallelism: 4, prefix: "Get XMLS ");
+            maxDegreeOfParallelism: 2, prefix: "Get XMLS ");
         }
 
         private static void ProcessXML(Devmasters.Args args, string name)
