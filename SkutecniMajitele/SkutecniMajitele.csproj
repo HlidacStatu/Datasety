@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="rawXML2.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Devmasters.Args" Version="2.2.5" />
     <PackageReference Include="Devmasters.Batch" Version="2.2.3" />
     <PackageReference Include="Devmasters.Crypto" Version="2.2.1" />

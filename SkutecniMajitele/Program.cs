@@ -41,8 +41,8 @@ namespace SkutecniMajitele
                     { "Podle IČ subjektu", "ico" },
     },
     defaultOrderBy: "datum_zapis desc",
-    
-    searchResultTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template() {Body=@"
+
+    searchResultTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template() { Body = @"
 <!-- scriban {{ date.now }} --> 
 <table class=""table table-hover"">
                         <thead>
@@ -73,7 +73,7 @@ namespace SkutecniMajitele
 
 </tbody></table>
 " },
-    detailTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template() {Body= @"
+    detailTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template() { Body = @"
 <!-- scriban {{ date.now }} --> 
  {{this.item = model}}
 <table class=""table table-hover""><tbody>
@@ -110,7 +110,7 @@ namespace SkutecniMajitele
 </td></tr>
 </table>
 
-"} 
+" }
 
     );
 
@@ -145,7 +145,7 @@ namespace SkutecniMajitele
             var onlyCurrYears = package_list["result"]
                 .ToArray()
                 .Select(m => m.Value<string>())
-                .Where(m => m.EndsWith($"-{DateTime.Now.Year}"))
+                .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"))
                 //.Where(m => m == "as-full-praha-2021") //DEBUG
                 ;
 
@@ -156,7 +156,7 @@ namespace SkutecniMajitele
 
                 return new Devmasters.Batch.ActionOutputData();
             }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
-            true,//!System.Diagnostics.Debugger.IsAttached, 
+            !System.Diagnostics.Debugger.IsAttached, 
             maxDegreeOfParallelism: 4, prefix: "Get XMLS ");
         }
 
@@ -168,7 +168,7 @@ namespace SkutecniMajitele
                 {
                     //skip next, use local file
                 }
-                else if (force || (DateTime.Now - new System.IO.FileInfo(name + ".xml").LastWriteTime).TotalDays > 1)
+                else if (force || (DateTime.Now - new System.IO.FileInfo(name + ".xml").LastWriteTime).TotalDays > 4)
                 {
                     Console.WriteLine($"Downloading new {name}");
                     DownloadFile(name);
@@ -195,7 +195,7 @@ namespace SkutecniMajitele
 
 
 
-            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(d.Subjekt //.Where(m => m.ico == "25629352").ToArray()
+            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(d.Subjekt
                 , subj =>
                 {
                     var item = majitele.GetMajitele(subj);
@@ -203,12 +203,53 @@ namespace SkutecniMajitele
                     {
                         if (!ds.ItemExists(item.ico) || force)
                         {
+                            item.UpdateOsobaId();
                             ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                        }
+                        else
+                        {
+                            //check change
+                            var old = ds.GetItem(item.ico);
+                            if (old != null)
+                            {
+                                var same = true;
+                                if (old.skutecni_majitele?.Count() != item.skutecni_majitele?.Count())
+                                    same = false;
+                                else if (item.skutecni_majitele?.Count() == old.skutecni_majitele?.Count() && item.skutecni_majitele?.Count()>0)
+                                {
+                                    foreach (var sm in item.skutecni_majitele)
+                                    {
+                                        same = same && old.skutecni_majitele.Any(m =>
+                                            m.osoba_jmeno == sm.osoba_jmeno
+                                            && m.osoba_prijmeni == sm.osoba_prijmeni
+                                            && m.osoba_datum_narozeni == sm.osoba_datum_narozeni
+                                            && m.osoba_titul_pred == sm.osoba_titul_pred
+                                            && m.osoba_titul_za == sm.osoba_titul_za
+                                            && m.adresa_cast_obce == sm.adresa_cast_obce
+                                            && m.adresa_cislo_ev == sm.adresa_cislo_ev
+                                            && m.adresa_cislo_or == sm.adresa_cislo_or
+                                            && m.adresa_cislo_po == sm.adresa_cislo_po
+                                            && m.adresa_obec == sm.adresa_obec
+                                            && m.adresa_okres == sm.adresa_okres
+                                            && m.adresa_psc == sm.adresa_psc
+                                            && m.adresa_stat_nazev == sm.adresa_stat_nazev
+                                            && m.adresa_text == sm.adresa_text
+                                            && m.adresa_ulice == sm.adresa_ulice
+                                            && !string.IsNullOrEmpty(m.osobaId)
+                                        );
+                                    }
+                                    if (same == false)
+                                    {
+                                        item.UpdateOsobaId();
+                                        ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                                    }
+                                }
+                            }
                         }
                     }
                     return new Devmasters.Batch.ActionOutputData();
                 }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
-            true,//!System.Diagnostics.Debugger.IsAttached, 
+            !System.Diagnostics.Debugger.IsAttached, 
             maxDegreeOfParallelism: 6, prefix: $"{name} ITEMS ");
 
 

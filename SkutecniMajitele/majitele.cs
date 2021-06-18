@@ -27,6 +27,67 @@ namespace SkutecniMajitele
 
     public class majitele
     {
+        public void UpdateOsobaId()
+        {
+            if (this.skutecni_majitele != null)
+            {
+                for (int i = 0; i < this.skutecni_majitele.Count(); i++)
+                {
+                    this.skutecni_majitele[i].osobaId = GetOsobaId(this.skutecni_majitele[i]);
+
+                }
+            }
+        }
+
+        static DateTime minDate = new DateTime(1900, 1, 1);
+        public static string GetOsobaId(majitel_base maj)
+        {
+            string osobaid = null;
+            if (string.IsNullOrEmpty(maj.osoba_jmeno) && string.IsNullOrEmpty(maj.osoba_prijmeni))
+                return null;
+            if (string.IsNullOrEmpty(maj.osoba_jmeno) && !string.IsNullOrEmpty(maj.osoba_prijmeni))
+            {
+                var parts = maj.osoba_prijmeni.Split(' ');
+                if (parts.Count() > 1)
+                {
+                    maj.osoba_jmeno = parts[0];
+                    maj.osoba_prijmeni = string.Join(' ', parts.Skip(1));
+                }
+            }
+            else
+            {
+                var parts = maj.osoba_jmeno.Split(' ');
+                if (parts.Count() > 1)
+                {
+                    maj.osoba_jmeno = parts[0];
+                    maj.osoba_prijmeni = string.Join(' ', parts.Skip(1));
+                }
+            }
+
+            if (maj.osoba_datum_narozeni < minDate)
+                return null;
+
+            try
+            {
+                maj.osobaId = findPerson.GetOsobaId(maj.osoba_jmeno, maj.osoba_prijmeni, maj.osoba_datum_narozeni);
+            }
+            catch (Exception)
+            {
+                System.Threading.Thread.Sleep(50);
+                try
+                {
+                    maj.osobaId = findPerson.GetOsobaId(maj.osoba_jmeno, maj.osoba_prijmeni, maj.osoba_datum_narozeni);
+
+                }
+                catch (Exception e)
+                {
+
+                    Console.WriteLine(e);
+                }
+            }
+            return osobaid;
+        }
+
         public static majitele GetMajitele(xmlSubjekt subj)
         {
             majitele t = new majitele();
@@ -44,8 +105,8 @@ namespace SkutecniMajitele
 
             majitel_base[] _majitele = null;
             if (sekce.podudaje != null)
-                 _majitele = sekce.podudaje.Where(m => m?.udajTyp?.kod == "PRIMY_SKUTECNY_MAJITEL" || m?.udajTyp?.kod == "SKUTECNY_MAJITEL")
-                    .Select(m => majitel_base.Get(m)).ToArray();
+                _majitele = sekce.podudaje.Where(m => m?.udajTyp?.kod == "PRIMY_SKUTECNY_MAJITEL" || m?.udajTyp?.kod == "SKUTECNY_MAJITEL")
+                   .Select(m => majitel_base.Get(m)).ToArray();
             if (_majitele?.Count() > 0)
             {
                 t.skutecni_majitele = _majitele;
@@ -67,27 +128,12 @@ namespace SkutecniMajitele
         public static majitel_base Get(xmlSubjektUdajUdaj d)
         {
             var majitel = new majitel_base(d);
-            try
-            {
-                majitel.osobaId = findPerson.GetOsobaId(majitel.osoba_jmeno, majitel.osoba_prijmeni, majitel.osoba_datum_narozeni);
-            }
-            catch (Exception)
-            {
-                System.Threading.Thread.Sleep(50);
-                try
-                {
-                    majitel.osobaId = findPerson.GetOsobaId(majitel.osoba_jmeno, majitel.osoba_prijmeni, majitel.osoba_datum_narozeni);
-
-                }
-                catch (Exception e)
-                {
-
-                    Console.WriteLine(e);
-                }
-            }
 
             return majitel;
         }
+
+
+
 
         protected majitel_base() { }
         protected majitel_base(xmlSubjektUdajUdaj d)
