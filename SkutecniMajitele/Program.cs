@@ -14,6 +14,7 @@ namespace SkutecniMajitele
 {
     class Program
     {
+        private const string DatasetNameId = "skutecni-majitele";
         static Devmasters.Logging.Logger logger = new Devmasters.Logging.Logger("SkutecniMajitele");
 
         static Devmasters.Batch.MultiOutputWriter outputWriter =
@@ -48,7 +49,7 @@ namespace SkutecniMajitele
             var genJsonSchema = jsonGen.Generate(typeof(majitele)).ToString();
 
             HlidacStatu.Api.V2.CoreApi.Model.Registration reg = new HlidacStatu.Api.V2.CoreApi.Model.Registration(
-    "Skuteční majitelé firem", "skutecni-majitele",
+    "Skuteční majitelé firem", DatasetNameId,
     "https://esm.justice.cz/",
     "https://github.com/HlidacStatu/Datasety/tree/master/SkutecniMajitele",
     "Evidence skutečných majitelů firem podle zákona č. 37/2021 Sb.",
@@ -141,7 +142,7 @@ namespace SkutecniMajitele
                     HlidacStatu.Api.V2.CoreApi.DatasetyApi datasetyApi = new HlidacStatu.Api.V2.CoreApi.DatasetyApi(configuration);
                     datasetyApi.ApiV2DatasetyDelete(reg.DatasetId);
                 }
-                ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele>.OpenDataset(apiKey, "skutecni-majitele");
+                ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele>.OpenDataset(apiKey, DatasetNameId);
 
             }
             catch (HlidacStatu.Api.V2.CoreApi.Client.ApiException e)
@@ -163,7 +164,7 @@ namespace SkutecniMajitele
                 .ToArray()
                 .Select(m => m.Value<string>())
                 .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"))
-                //.Where(m => m == "as-full-praha-2021") //DEBUG
+                .Where(m => m == "ks-full-plzen-2021") //DEBUG
                 ;
 
             Devmasters.Batch.Manager.DoActionForAll<string>(onlyCurrYears,
