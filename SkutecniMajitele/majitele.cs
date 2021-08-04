@@ -113,7 +113,7 @@ namespace SkutecniMajitele
                 for (int i = 0; i < _majitele.Count(); i++)
                 {
                     var maj = _majitele[i];
-                    if (maj.osoba_datum_narozeni.Year < 1900) //nedefinovano
+                    if (false && maj.osoba_datum_narozeni.Year < 1900) //nema datum tak ho dohledam v jinych castech, nyni vypnuto
                     {
                         //find osobu v celem zaznamu
                         foreach (var blok in subj.udaje)
