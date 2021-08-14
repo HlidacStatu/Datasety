@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MostyRSD
 {
-    public class Most : HlidacStatu.Api.Dataset.Connector.IDatasetItem
+    public class Most 
     {
         public string Id { get; set; }
         public string Jmeno { get; set; }
