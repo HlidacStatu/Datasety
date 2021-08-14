@@ -180,6 +180,7 @@ namespace SkutecniMajitele
 
         private static void ProcessXML(Devmasters.Args args, string name)
         {
+            logger.Debug($"Starting {name}.xml");
             if (System.IO.File.Exists(name + ".xml"))
             {
                 if (args.Exists("/uselocal"))
@@ -188,12 +189,14 @@ namespace SkutecniMajitele
                 }
                 else if (force || (DateTime.Now - new System.IO.FileInfo(name + ".xml").LastWriteTime).TotalDays > 4)
                 {
+                    logger.Debug($"downloading new {name}.xml");
                     Console.WriteLine($"Downloading new {name}");
                     DownloadFile(name);
                 }
             }
             else
             {
+                logger.Debug($"downloading new {name}.xml");
                 Console.WriteLine($"Downloading {name}");
                 DownloadFile(name);
             }
@@ -204,6 +207,7 @@ namespace SkutecniMajitele
             rawXML d = null;
 
             Console.WriteLine($"Deserializing {name}");
+            logger.Debug($"Deserializing {name}.xml");
             using (var xmlReader = new System.IO.StreamReader(name + ".xml"))
             {
                 var serializer = new XmlSerializer(typeof(rawXML));

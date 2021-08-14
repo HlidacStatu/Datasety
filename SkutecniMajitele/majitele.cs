@@ -9,6 +9,7 @@ namespace SkutecniMajitele
 
     public class majitel_flat : majitel_base
     {
+
         public majitel_flat(xmlSubjekt subj, xmlSubjektUdajUdaj d)
             : base(d)
         {

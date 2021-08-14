@@ -5,14 +5,14 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-using YoutubeExplode;
-
 namespace YoutubeToVyjadreniPolitiku
 {
 
 
     class Program
     {
+        public static Devmasters.Logging.Logger logger = new Devmasters.Logging.Logger("YoutubeToVyjadreniPolitiku");
+
         public static Devmasters.Args args = null;
         public const string DataSetId = "vyjadreni-politiku";
 
@@ -28,7 +28,8 @@ namespace YoutubeToVyjadreniPolitiku
 
             api2 = HlidacStatu.Api.V2.Dataset.Typed.Dataset<record>.OpenDataset(System.Configuration.ConfigurationManager.AppSettings["apikey"], DataSetId);
 
-            args = new Devmasters.Args(arguments, new string[] { "/mp3" });
+            args = new Devmasters.Args(arguments, new string[] { "/mp3path" });
+            logger.Info("Starting with params" + string.Join(" ", args.Arguments));
 
 
             //create dataset
@@ -91,7 +92,7 @@ namespace YoutubeToVyjadreniPolitiku
 
         public static void Process(osoba o, string playlist, int threads, int max, string[] vids, string mp3path)
         {
-            Devmasters.Logging.Logger.Root.Info($"Starting {o.Jmeno} {o.Prijmeni} {o.NameId} for {playlist} ");
+            logger.Info($"Starting {o.Jmeno} {o.Prijmeni} {o.NameId} for {playlist} ");
 
             List<string> videos = null;
             if (vids?.Count() > 0)
@@ -105,7 +106,7 @@ namespace YoutubeToVyjadreniPolitiku
                     $"--flat-playlist --get-id --playlist-end {max} " + playlist
                     );
                 Devmasters.ProcessExecutor pe = new Devmasters.ProcessExecutor(pi, 60 * 6 * 24);
-                Devmasters.Logging.Logger.Root.Info($"Starting Youtube-dl playlist video list ");
+                logger.Info($"Starting Youtube-dl playlist video list ");
                 pe.Start();
 
                 videos = pe.StandardOutput
@@ -155,9 +156,9 @@ namespace YoutubeToVyjadreniPolitiku
                             $"--no-progress --extract-audio --audio-format mp3 --postprocessor-args \" -ac 1 -ar 16000\" -o \"{fnFile}.%(ext)s\" " + vid
                             );
                         Devmasters.ProcessExecutor pev = new Devmasters.ProcessExecutor(piv, 60 * 6 * 24);
-                        pev.StandardOutputDataReceived += (ox, e) => { Devmasters.Logging.Logger.Root.Debug(e.Data); };
+                        pev.StandardOutputDataReceived += (ox, e) => { logger.Debug(e.Data); };
 
-                        Devmasters.Logging.Logger.Root.Info($"Starting Youtube-dl for {vid} ");
+                        logger.Info($"Starting Youtube-dl for {vid} ");
                         pev.Start();
 
                     }
