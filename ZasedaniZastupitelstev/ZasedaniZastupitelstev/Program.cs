@@ -23,7 +23,7 @@ namespace ZasedaniZastupitelstev
     {
         public static IConfigurationRoot jsonconf;
 
-        static string[] inName = { "zastupitelstv", "jednani", "zasedani" };
+        static string[] inName = { "zastupitelstv", "jednani", "zasedani","2018", "2019", "2020", "2021","2022","2023" };
         public static Devmasters.Args args = null;
         public const string DataSetId = "zasedani-zastupitelstev";
         static string apikey = "";
@@ -120,7 +120,7 @@ namespace ZasedaniZastupitelstev
             }
             catch (ApiException e)
             {
-                api = HlidacStatu.Api.V2.Dataset.Typed.Dataset<Record>.CreateDataset(apikey, Registration());
+                //api = HlidacStatu.Api.V2.Dataset.Typed.Dataset<Record>.CreateDataset(apikey, Registration());
 
             }
             catch (Exception e)
@@ -177,7 +177,7 @@ namespace ZasedaniZastupitelstev
 
                         if (!inName.Any(n => Devmasters.TextUtil.RemoveDiacritics(rec.nazev).ToLower().Contains(n)))
                         {
-                            Devmasters.Logging.Logger.Root.Info($"Skip {rec.url} ");
+                            Devmasters.Logging.Logger.Root.Info($"Name: {rec.nazev}\nSkip {rec.url} ");
                             return new Devmasters.Batch.ActionOutputData();
                         }
                         rec.AudioUrl = "https://somedata.hlidacstatu.cz/mp3/" + DataSetId + $"/{rec.id}.mp3";
