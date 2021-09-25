@@ -23,7 +23,7 @@ namespace ZasedaniZastupitelstev
     {
         public static IConfigurationRoot jsonconf;
 
-        static string[] inName = { "zastupitelstv", "jednani", "zasedani","2018", "2019", "2020", "2021","2022","2023" };
+        static string[] inName = { "zastupitelstv", "jednani", "zasedani" };
         public static Devmasters.Args args = null;
         public const string DataSetId = "zasedani-zastupitelstev";
         static string apikey = "";
