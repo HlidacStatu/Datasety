@@ -123,7 +123,8 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                         if (rewrite == false)
                         {
                             var exists = dsc.ItemExists(item.Id);
-                            continue; //exists, skip
+                            if (exists)
+                                continue; //exists, skip
                         }
                     }
                     catch (Exception) //doesnt exists
