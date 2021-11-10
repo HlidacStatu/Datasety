@@ -2,7 +2,7 @@
   "profiles": {
     "ZasedaniZastupitelstev": {
       "commandName": "Project",
-      "commandLineArgs": "/ico=00239402",
+      "commandLineArgs": "/ico=00258563",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "live"
       }
