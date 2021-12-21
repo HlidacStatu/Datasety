@@ -73,15 +73,21 @@ namespace ZasedaniZastupitelstev
             var jsonResult = httpClient.GetStringAsync("https://www.hlidacstatu.cz/api/v2/firmy/social?typ=Zaznam_zastupitelstva")
                         .Result;
             var firmy = Newtonsoft.Json.JsonConvert.DeserializeObject<firma[]>(jsonResult);
-            foreach (var f in firmy)
+            if (!string.IsNullOrEmpty(ico))
             {
+                ProcessIco(ico,"", threads, max, vids, filter);
 
-                foreach (var url in f.SocialniSite)
+            }
+            else
+            {
+                foreach (var f in firmy)
                 {
-                    if (string.IsNullOrEmpty(ico))
-                        ProcessIco(f, url.Url, threads, max, vids, filter);
-                    else if (f.Ico == ico)
-                        ProcessIco(f, url.Url, threads, max, vids, filter);
+
+                    foreach (var url in f.SocialniSite)
+                    {
+                        if (string.IsNullOrEmpty(ico))
+                            ProcessIco(f.Ico, url.Url, threads, max, vids, filter);
+                    }
                 }
             }
 
@@ -106,9 +112,9 @@ namespace ZasedaniZastupitelstev
 
 
 
-        public static void ProcessIco(firma f, string playlist, int threads, int max, string[] vids, string filter)
+        public static void ProcessIco(string fIco, string playlist, int threads, int max, string[] vids, string filter)
         {
-            Devmasters.Logging.Logger.Root.Info($"Starting {f.Jmeno} {f.Ico} for {playlist} ");
+            Devmasters.Logging.Logger.Root.Info($"Starting {fIco} for {playlist} ");
 
             var apiConf = new HlidacStatu.Api.V2.CoreApi.Client.Configuration();
             apiConf.AddDefaultHeader("Authorization", apikey);
@@ -174,14 +180,16 @@ namespace ZasedaniZastupitelstev
                         rec = YTDL.GetVideoInfo(vid);
                         if (rec == null)
                             return new Devmasters.Batch.ActionOutputData();
-
-                        if (!inName.Any(n => Devmasters.TextUtil.RemoveDiacritics(rec.nazev).ToLower().Contains(n)))
+                        if (vids == null || vids?.Count() == 0)
                         {
-                            Devmasters.Logging.Logger.Root.Info($"Name: {rec.nazev}\nSkip {rec.url} ");
-                            return new Devmasters.Batch.ActionOutputData();
+                            if (!inName.Any(n => Devmasters.TextUtil.RemoveDiacritics(rec.nazev).ToLower().Contains(n)))
+                            {
+                                Devmasters.Logging.Logger.Root.Info($"Name: {rec.nazev}\nSkip {rec.url} ");
+                                return new Devmasters.Batch.ActionOutputData();
+                            }
                         }
                         rec.AudioUrl = "https://somedata.hlidacstatu.cz/mp3/" + DataSetId + $"/{rec.id}.mp3";
-                        rec.ico = f.Ico;
+                        rec.ico = fIco;
                         changed = true;
                     }
 

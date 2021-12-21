@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Devmasters.Args" Version="2.4.0" />
     <PackageReference Include="Devmasters.Batch" Version="2.4.2.3" />
-    <PackageReference Include="Devmasters.Core" Version="2.4.3" />
+    <PackageReference Include="Devmasters.Core" Version="2.5.0" />
     <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.2.0" />
   </ItemGroup>
 
