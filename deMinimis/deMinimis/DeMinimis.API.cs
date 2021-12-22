@@ -212,6 +212,7 @@ Hodnoty:
             {
                 this.Timeout = timeout;
                 this.Encoding = System.Text.Encoding.UTF8;
+                //this.Proxy = new System.Net.WebProxy("127.0.0.1", 8888);
             }
 
             protected override WebRequest GetWebRequest(Uri address)
