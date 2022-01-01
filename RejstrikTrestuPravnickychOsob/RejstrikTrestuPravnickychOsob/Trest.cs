@@ -1,15 +1,14 @@
-﻿using HlidacStatu.Api.Dataset.Connector;
-using System;
+﻿using System;
 using System.Linq;
 
 namespace RejstrikTrestuPravnickychOsob
 {
-    public class Trest : IDatasetItem
+    public class Trest 
     {
         static System.Text.RegularExpressions.RegexOptions options = ((System.Text.RegularExpressions.RegexOptions.IgnorePatternWhitespace | System.Text.RegularExpressions.RegexOptions.Multiline)
             | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-        System.Text.RegularExpressions.Regex regZakon = new System.Text.RegularExpressions.Regex("(?<cislo>\\d*)/(?<rok>\\d*)", options);
+        System.Text.RegularExpressions.Regex regZakon = new System.Text.RegularExpressions.Regex("(?<cislo>\\d*([a-z]?))/(?<rok>\\d*)", options);
 
 
         public Trest() { }
@@ -58,7 +57,7 @@ namespace RejstrikTrestuPravnickychOsob
                 {
                     Zakon = new paragraf.zakon(){
                         Rok =Convert.ToInt32(regZakon.Match(m.paragrafCisel.zakon.zkratka).Groups["rok"]?.Value ),
-                        ZakonCislo = Convert.ToInt32(regZakon.Match(m.paragrafCisel.zakon.zkratka).Groups["cislo"].Value),
+                        ZakonCislo = regZakon.Match(m.paragrafCisel.zakon.zkratka).Groups["cislo"].Value,
                         OdstavecPismeno = m.paragrafCisel.odstavecPismeno,
                         ParagrafCislo = m.paragrafCisel.paragrafCislo
                         },
@@ -131,8 +130,8 @@ namespace RejstrikTrestuPravnickychOsob
             public class zakon
             {
                 public int Rok { get; set; }
-                public int ZakonCislo { get; set; }
-                public int ParagrafCislo { get; set; }
+                public string ZakonCislo { get; set; }
+                public string ParagrafCislo { get; set; }
                 public string OdstavecPismeno { get; set; }
             }
             public string ZakonPopis { get; set; }
