@@ -42,14 +42,25 @@ namespace RejstrikTrestuPravnickychOsob
 			List<Trest> tresty = new List<Trest>();
 			foreach (var item in data.vypis)
 			{
+				if (item.osobaPravnicka?.osobaPravnickaCeska?.ico == null)
+					continue;
+
 				var jd = new Trest(item);
 				tresty.Add(jd);
 			}
 			foreach (var item in tresty)
 			{
-				DatasetConnector.Add(item).Wait();
+                try
+                {
+					DatasetConnector.Add(item).Wait();
 
-				Console.WriteLine($" - {item.ICO};{item.NazevFirmy}");
+					Console.WriteLine($" - {item.ICO};{item.NazevFirmy}");
+
+				}
+				catch (Exception e)
+                {
+					Console.WriteLine($" - {item.ICO};{e.ToString()}");
+                }
 			}
 		}
 	}

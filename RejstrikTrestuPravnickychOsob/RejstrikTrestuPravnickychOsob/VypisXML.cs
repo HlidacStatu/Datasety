@@ -240,7 +240,7 @@
         public partial class paragrafParagrafCisel
         {
 
-            private ushort paragrafCisloField;
+            private string paragrafCisloField;
 
             private string odstavecPismenoField;
 
@@ -251,7 +251,7 @@
             private paragrafParagrafCiselZavineni zavineniField;
 
             /// <remarks/>
-            public ushort paragrafCislo
+            public string paragrafCislo
             {
                 get
                 {
