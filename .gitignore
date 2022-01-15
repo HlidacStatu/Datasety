@@ -352,3 +352,4 @@ ZasedaniZastupitelstev/App.Release.config
 ZasedaniZastupitelstev/ZasedaniZastupitelstev/appsettings.live.json
 ZasedaniZastupitelstev/ZasedaniZastupitelstev/appsettings.debug.json
 SkutecniMajitele/Properties/launchSettings.json
+ZasedaniZastupitelstev/ZasedaniZastupitelstev/Logger.serilog.json

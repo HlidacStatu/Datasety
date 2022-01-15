@@ -24,7 +24,7 @@
         "Name": "Logger",
         "Args": {
           "configureLogger": {
-            "WriteTo": [{"Name": "Console"}],
+            "WriteTo": [ { "Name": "Console" } ],
             "Filter": [
               {
                 "Name": "ByIncludingOnly",
