@@ -44,14 +44,16 @@ namespace ZasedaniZastupitelstev
                                 $"--no-progress --extract-audio --audio-format mp3 --postprocessor-args \" -ac 1 -ar 16000\" -o \"{fnFile}.%(ext)s\" " + videourl
                                 );
                 Devmasters.ProcessExecutor pev = new Devmasters.ProcessExecutor(piv, 60 * 6 * 24);
-                pev.StandardOutputDataReceived += (o, e) => { Devmasters.Logging.Logger.Root.Debug(e.Data); };
+                pev.StandardOutputDataReceived += (o, e) => { Program.logger.Debug($"Starting Youtube-dl for {videourl} :" + e.Data); };
 
-                Devmasters.Logging.Logger.Root.Info($"Starting Youtube-dl for {videourl} ");
+                Program.logger.Info("Starting Youtube-dl download for {videourl} into {filename}",videourl,fnFile);
                 pev.Start();
             }
             bool exists_S2T = System.IO.File.Exists(newtonFn) || System.IO.File.Exists(dockerFn);
             if (exists_S2T == false && startV2T)
             {
+                Program.logger.Info("Starting Voice2Text from {filename} and rec {recId}", fnFile, recId);
+
                 using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
                     $"https://www.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{datasetid}/{recId}")
                 )
@@ -64,14 +66,17 @@ namespace ZasedaniZastupitelstev
 
             if (exists_S2T)
             {
+
                 if (System.IO.File.Exists(newtonFn))
                 {
+                    Program.logger.Info("Processing Newton converted Text from {filename} and rec {recId}", newtonFn, recId);
                     var tt = new Newton.SpeechToText.Cloud.FileAPI.VoiceToTerms(System.IO.File.ReadAllText(newtonFn));
                     blocks = new Devmasters.SpeechToText.VoiceToTextFormatter(tt.Terms)
                        .TextWithTimestamps(TimeSpan.FromSeconds(10), true);
                 }
                 else if (System.IO.File.Exists(dockerFn))
                 {
+                    Program.logger.Info("Processing docker converted Text from {filename} and rec {recId}", dockerFn, recId);
                     var tt = new KaldiASR.SpeechToText.VoiceToTerms(System.IO.File.ReadAllText(dockerFn));
                     blocks = new Devmasters.SpeechToText.VoiceToTextFormatter(tt.Terms)
                        .TextWithTimestamps(TimeSpan.FromSeconds(10), true);

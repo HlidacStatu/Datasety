@@ -1,0 +1,45 @@
+{
+  "Serilog": {
+    "Using": [ "Serilog", "Serilog.Expressions", "Serilog.Sinks.Console", "Serilog.Sinks.File", "Serilog.Sinks.Http" ],
+    "MinimumLevel": {
+      "Default": "Debug",
+      "Override": {
+        "Microsoft": "Error",
+        "Microsoft.Extensions": "Information",
+        "System": "Error",
+        "Devmasters": "Information"
+      }
+    },
+    "WriteTo": [
+      {
+        "Name": "Http",
+        "Args": {
+          "requestUri": "http://10.10.150.203:5000",
+          "textFormatter": "Elastic.CommonSchema.Serilog.EcsTextFormatter, Elastic.CommonSchema.Serilog",
+          "batchFormatter": "Serilog.Sinks.Http.BatchFormatters.ArrayBatchFormatter, Serilog.Sinks.Http"
+        }
+
+      },
+      {
+        "Name": "Logger",
+        "Args": {
+          "configureLogger": {
+            "WriteTo": [{"Name": "Console"}],
+            "Filter": [
+              {
+                "Name": "ByIncludingOnly",
+                "Args": {
+                  "expression": "StartsWith(SourceContext, 'ZasedaniZastupitelstev')"
+                }
+              }
+            ]
+          }
+        }
+      }
+
+    ],
+    "Properties": {
+      "application_name": "ZasedaniZastupitelstev"
+    }
+  }
+}

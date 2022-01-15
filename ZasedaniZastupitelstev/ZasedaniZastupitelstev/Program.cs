@@ -1,4 +1,6 @@
-﻿using HlidacStatu.Api.V2.CoreApi.Client;
+﻿using Devmasters.Log;
+
+using HlidacStatu.Api.V2.CoreApi.Client;
 using HlidacStatu.Api.V2.Dataset;
 
 using Microsoft.Extensions.Configuration;
@@ -28,12 +30,28 @@ namespace ZasedaniZastupitelstev
         public const string DataSetId = "zasedani-zastupitelstev";
         static string apikey = "";
         static string mp3path = "";
+        public static Devmasters.Log.Logger logger = null;
         //public static RESTCall api = new RESTCall(apikey, 60*1000);
 
         //public static HlidacStatu.Api.V2.CoreApi.DatasetyApi api = null;
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<Record> api = null;
         static void Main(string[] arguments)
         {
+            logger = Devmasters.Log.Logger.CreateLogger("ZasedaniZastupitelstev",
+                Devmasters.Log.Logger.DefaultConfiguration()
+                    .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())
+                    .AddFileLoggerFilePerLevel("c:/Data/Logs/ZasedaniZastupitelstev/", "slog.txt",
+                                      outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {SourceContext} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
+                                      rollingInterval: Serilog.RollingInterval.Day,
+                                      fileSizeLimitBytes: null,
+                                      retainedFileCountLimit: 9,
+                                      shared: true
+                                      )
+
+                    );
+
+
+
             jsonconf = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetParent(AppContext.BaseDirectory).FullName)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -50,7 +68,7 @@ namespace ZasedaniZastupitelstev
 
             //create dataset
 
-            if (!args.MandatoryPresent())
+            if (!args.MandatoryPresent() || args.Exists("/?") || args.Exists("/h"))
             { Help(); return; }
 
             string ico = args.Get("/ico");
@@ -58,6 +76,7 @@ namespace ZasedaniZastupitelstev
             int threads = args.GetNumber("/t") ?? 5;
 
             int max = args.GetNumber("/max") ?? 300;
+            string playlist = args.Get("/playlist");
 
             string[] vids = args.GetArray("/ids");
 
@@ -73,20 +92,19 @@ namespace ZasedaniZastupitelstev
             var jsonResult = httpClient.GetStringAsync("https://www.hlidacstatu.cz/api/v2/firmy/social?typ=Zaznam_zastupitelstva")
                         .Result;
             var firmy = Newtonsoft.Json.JsonConvert.DeserializeObject<firma[]>(jsonResult);
-            if (!string.IsNullOrEmpty(ico))
+            if (!string.IsNullOrEmpty(ico) && !string.IsNullOrEmpty(playlist))
             {
-                ProcessIco(ico,"", threads, max, vids, filter);
+                ProcessIco(ico, playlist, threads, max, vids, filter);
 
             }
             else
             {
-                foreach (var f in firmy)
+                foreach (var f in firmy.Where(m => string.IsNullOrEmpty(ico) || m.Ico == ico))
                 {
 
                     foreach (var url in f.SocialniSite)
                     {
-                        if (string.IsNullOrEmpty(ico))
-                            ProcessIco(f.Ico, url.Url, threads, max, vids, filter);
+                        ProcessIco(f, url.Url, threads, max, vids, filter);
                     }
                 }
             }
@@ -111,10 +129,14 @@ namespace ZasedaniZastupitelstev
 
 
 
+        public static void ProcessIco(firma f, string playlist, int threads, int max, string[] vids, string filter)
+        {
+            logger.Info("Starting {Firma} ({Ico}) for {playlist} ", f.Ico, f.Jmeno, playlist, threads, max, vids, filter);
+        }
 
         public static void ProcessIco(string fIco, string playlist, int threads, int max, string[] vids, string filter)
         {
-            Devmasters.Logging.Logger.Root.Info($"Starting {fIco} for {playlist} ");
+            logger.Info("Starting {Ico} for {playlist} ", fIco, playlist);
 
             var apiConf = new HlidacStatu.Api.V2.CoreApi.Client.Configuration();
             apiConf.AddDefaultHeader("Authorization", apikey);
@@ -147,7 +169,7 @@ namespace ZasedaniZastupitelstev
                     $"--flat-playlist --get-id --playlist-end {max} " + playlist
                     );
                 Devmasters.ProcessExecutor pe = new Devmasters.ProcessExecutor(pi, 60 * 6 * 24);
-                Devmasters.Logging.Logger.Root.Info($"Starting Youtube-dl playlist video list ");
+                logger.Info("Starting Youtube-dl playlist video list with {param}", $"--flat-playlist --get-id --playlist-end {max} {playlist}");
                 pe.Start();
 
                 videos = pe.StandardOutput
@@ -184,7 +206,7 @@ namespace ZasedaniZastupitelstev
                         {
                             if (!inName.Any(n => Devmasters.TextUtil.RemoveDiacritics(rec.nazev).ToLower().Contains(n)))
                             {
-                                Devmasters.Logging.Logger.Root.Info($"Name: {rec.nazev}\nSkip {rec.url} ");
+                                logger.Info($"Name: {rec.nazev}\nSkip {rec.url} ");
                                 return new Devmasters.Batch.ActionOutputData();
                             }
                         }
@@ -205,14 +227,28 @@ namespace ZasedaniZastupitelstev
                            .Select(t => new Record.Blok() { sekundOdZacatku = (long)t.Start.TotalSeconds, text = t.Text })
                            .ToArray();
 
-                        rec.PrepisAudia = bs;
-                        changed = true;
-
+                        changed = false;
+                        if (bs.Length != rec.PrepisAudia?.Length)
+                            changed = true;
+                        else
+                        {
+                            for (int i = 0; i < rec.PrepisAudia.Length; i++)
+                            {
+                                changed = changed || (bs[i].text != rec.PrepisAudia[i].text || bs[i].sekundOdZacatku != rec.PrepisAudia[i].sekundOdZacatku);
+                            }
+                        }
+                        if (changed)
+                        {
+                            Program.logger.Debug("Converted Text from rec {recId} changed", rec.id);
+                            rec.PrepisAudia = bs;
+                        }
                     }
 
                     if (changed)
+                    {
+                        Program.logger.Info("Saving converted Text into rec {recId}", rec.id);
                         api.AddOrUpdateItem(rec, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
-
+                    }
                     return new Devmasters.Batch.ActionOutputData();
                 }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
                 !System.Diagnostics.Debugger.IsAttached, maxDegreeOfParallelism: threads
