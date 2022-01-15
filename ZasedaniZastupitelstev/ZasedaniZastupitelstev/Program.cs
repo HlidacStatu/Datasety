@@ -131,7 +131,8 @@ namespace ZasedaniZastupitelstev
 
         public static void ProcessIco(firma f, string playlist, int threads, int max, string[] vids, string filter)
         {
-            logger.Info("Starting {Firma} ({Ico}) for {playlist} ", f.Ico, f.Jmeno, playlist, threads, max, vids, filter);
+            logger.Info("Starting {Firma} ({Ico}) for {playlist} ", f.Ico, f.Jmeno);
+            ProcessIco(f.Ico, playlist, threads, max, vids, filter);
         }
 
         public static void ProcessIco(string fIco, string playlist, int threads, int max, string[] vids, string filter)
