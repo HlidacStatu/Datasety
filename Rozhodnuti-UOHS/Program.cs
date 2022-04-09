@@ -13,6 +13,8 @@ namespace Rozhodnuti_UOHS
 {
     class Program
     {
+        static bool debug = false;
+
         public static Devmasters.Logging.Logger logger = new Devmasters.Logging.Logger("Rozhodnuti-UOHS");
         static string datasetId = "rozhodnuti-uohs"; //zvol vlastni unikatni jmeno
         static Devmasters.Batch.MultiOutputWriter outputWriter =
@@ -37,8 +39,10 @@ new Devmasters.Batch.MultiOutputWriter(
             if (args.MandatoryPresent() == false)
             {
                 Console.WriteLine("/apikey=xxx   [/new] [/num=]");
-                return;
+                return;            
             }
+            debug = args.Exists("/debug");
+
             InitDS(args.Exists("/new"), args["/apiKey"]);
 
             httpClient = new HttpClient();
@@ -53,7 +57,7 @@ new Devmasters.Batch.MultiOutputWriter(
 
             int num = args.GetNumber("/num", 1500).Value;
             if (lastId == 0)
-                num = 50000;
+                num = 90000;
 
 
             ParsePages(datasetId, lastId, num); //stahnuti, parsovani dat z UOHS a vlozeni do Datasetu
@@ -177,7 +181,7 @@ new Devmasters.Batch.MultiOutputWriter(
 
                         //parsovani hotovo, jdu ulozit zaznam do Datasetu
                         logger.Debug($"adding item {item.Id} - {item.Url}");
-
+                        
                         ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                     }
                     catch (Exception e)
@@ -406,8 +410,15 @@ new Devmasters.Batch.MultiOutputWriter(
                     HlidacStatu.Api.V2.CoreApi.DatasetyApi datasetyApi = new HlidacStatu.Api.V2.CoreApi.DatasetyApi(configuration);
                     datasetyApi.ApiV2DatasetyDelete(reg.DatasetId);
                 }
-                ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<UOHSData>.OpenDataset(apiKey, datasetId);
 
+                if (debug)
+                {
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+
+                    ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<UOHSData>.OpenDataset(apiKey, datasetId, "https://local.hlidacstatu.cz");
+                }
+                else 
+                    ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<UOHSData>.OpenDataset(apiKey, datasetId);
             }
             catch (HlidacStatu.Api.V2.CoreApi.Client.ApiException e)
             {
