@@ -21,6 +21,7 @@ namespace Rozhodnuti_UOHS
         public string Id { get; set; }
         public string Url { get; set; }
         public string Cj { get; set; }
+        public string SpisovaZnacka { get; set; }
         public string Instance { get; set; }
         public Ucastnik[] Ucastnici { get; set; }
         public string Typ_spravniho_rizeni { get; set; }
@@ -31,5 +32,6 @@ namespace Rozhodnuti_UOHS
         public Dokument Rozhodnuti { get; set; }
         public DateTime? Uverejneno { get; set; }
         public string Vec { get; set; }
+        public string SoudniRozhodnuti { get; set; }
     }
 }

@@ -38,7 +38,7 @@ new Devmasters.Batch.MultiOutputWriter(
 
             if (args.MandatoryPresent() == false)
             {
-                Console.WriteLine("/apikey=xxx   [/new] [/num=]");
+                Console.WriteLine("/apikey=xxx [/start=]  [/new] [/num=]");
                 return;            
             }
             debug = args.Exists("/debug");
@@ -56,6 +56,10 @@ new Devmasters.Batch.MultiOutputWriter(
                 lastId = Convert.ToInt32(res.Results.First().Id);
 
             int num = args.GetNumber("/num", 1500).Value;
+            var start = args.GetNumber("/start", 1500);
+            if (start.HasValue)
+                lastId = start.Value;
+
             if (lastId == 0)
                 num = 90000;
 
@@ -107,7 +111,11 @@ new Devmasters.Batch.MultiOutputWriter(
                         var root = "//div[@id='content']";
 
                         //parsování pomocí XPath.
-                        item.Cj = "ÚOHS-" + page.GetNodeText(root + "//div/h1").Replace("Rozhodnutí: ", "");
+                        item.Cj = page.GetNodeText(root + "//div/h1/strong[1]")?.Replace("Rozhodnutí: ", "");
+                        item.SpisovaZnacka = page.GetNodeText(root + "//div/h1/strong[2]")?.Replace("Rozhodnutí: ", "");
+                        item.SoudniRozhodnuti = page.GetNodeText(root + "//div//h1/following-sibling::h2[1]");
+
+
                         item.Instance = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Instance')]/parent::tr/td");
 
                         item.Vec = page.GetNodeText(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Věc')]/parent::tr/td");
@@ -241,18 +249,20 @@ new Devmasters.Batch.MultiOutputWriter(
 
 
             HlidacStatu.Api.V2.CoreApi.Model.Registration reg = new HlidacStatu.Api.V2.CoreApi.Model.Registration(
-    "Skuteční majitelé firem", datasetId,
-    "https://esm.justice.cz/",
+    "Rozhodnutí UOHS", datasetId,
+    "http://www.uohs.cz/cs/verejne-zakazky/sbirky-rozhodnuti/",
     "https://github.com/HlidacStatu/Datasety/tree/master/Rozhodnuti-UOHS",
-    "Evidence skutečných majitelů firem podle zákona č. 37/2021 Sb.",
-    genJsonSchema, betaversion: true, allowWriteAccess: false,
+    "Sbírka rozhodnutí Úřadu pro ochranu hospodářské soutěže od roku 1999 v oblastech hospodářská soutěž, veřejné zakázky, veřejná podpora a významná tržní síla.",
+    genJsonSchema, betaversion: false, allowWriteAccess: false,
     orderList: new string[,] {
-                    { "Podle datumu zápisu", "datum_zapis" },
+                    { "Podle datumu právní moci", "PravniMoc" },
+                    { "Podle roku", "Rok" },
                     { "Podle IČ subjektu", "ico" },
     },
-    defaultOrderBy: "datum_zapis desc",
+    defaultOrderBy: "PravniMoc desc",
 
-    searchResultTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template() { Body = @"
+    searchResultTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template() {
+        Body = @"
 <!-- scriban {{ date.now }} -->
   <table class=""table table-hover"">        
     <thead>
@@ -304,8 +314,7 @@ new Devmasters.Batch.MultiOutputWriter(
         {{end }}
       </tbody>
     </table>
-
-" },
+            " },
     detailTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template() { Body = @"
 <!-- scriban {{ date.now }} -->
   {{this.item = model}}  
@@ -395,7 +404,6 @@ new Devmasters.Batch.MultiOutputWriter(
         </tbody>
       </table>
 
-
 " }
 
     );
@@ -407,14 +415,19 @@ new Devmasters.Batch.MultiOutputWriter(
                 {
                     Configuration configuration = new Configuration();
                     configuration.AddDefaultHeader("Authorization", apiKey);
+                    if (debug)
+                    {
+                        System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+                        configuration.BasePath = "https://local.hlidacstatu.cz";
+                    }
                     HlidacStatu.Api.V2.CoreApi.DatasetyApi datasetyApi = new HlidacStatu.Api.V2.CoreApi.DatasetyApi(configuration);
                     datasetyApi.ApiV2DatasetyDelete(reg.DatasetId);
                 }
 
                 if (debug)
                 {
-                    System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
 
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
                     ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<UOHSData>.OpenDataset(apiKey, datasetId, "https://local.hlidacstatu.cz");
                 }
                 else 
