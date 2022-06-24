@@ -84,6 +84,27 @@ namespace RejstrikTrestuPravnickychOsob
                                     DruhText = druh.Value,
                                 };
                             }
+                            var vymery = m.Items.FirstOrDefault(d => d.GetType() == typeof(RejstrikTrestuPravnickychOsob.VypisXML.vymery)) as RejstrikTrestuPravnickychOsob.VypisXML.vymery;
+                            if (vymery != null)
+                                t.vymery = vymery.vymera?.Select(m => new vymera()
+                                {
+                                    PolozkaText = m.polozka?.Value,
+                                    PolozkaZkratka = m.polozka?.zkratka,
+                                    SkupinaText = m.skupina?.Value,
+                                    SkupinaZkratka = m.skupina?.zkratka,
+                                    Hodnota = m.hodnota,
+                                }).ToArray();
+
+                            var prubehy = m.Items.FirstOrDefault(d => d.GetType() == typeof(RejstrikTrestuPravnickychOsob.VypisXML.prubehy)) as RejstrikTrestuPravnickychOsob.VypisXML.prubehy;
+                            if (prubehy != null)
+                                t.prubehy = prubehy.prubeh?.Select(m => new prubeh()
+                                {
+                                    PolozkaText = m.polozka?.Value,
+                                    PolozkaZkratka = m.polozka?.zkratka,
+                                    SkupinaText = m.skupina?.Value,
+                                    SkupinaZkratka = m.skupina?.zkratka,
+                                    Hodnota = m.hodnota,
+                                }).ToArray();
                             return t;
                         }
                     )
@@ -113,6 +134,37 @@ namespace RejstrikTrestuPravnickychOsob
         {
             public string Druh { get; set; }
             public string DruhText { get; set; }
+
+            public vymera[] vymery { get;set; }
+            public prubeh[] prubehy { get; set; }
+
+        }
+        public class vymera
+        {
+            public string SkupinaZkratka { get; set; }
+            public string SkupinaText { get; set; }
+
+            public string PolozkaZkratka { get; set; }
+            public string PolozkaText { get; set; }
+
+            public string Hodnota { get; set; }
+        }
+
+        public class prubeh
+        {
+            public string SkupinaZkratka { get; set; }
+            public string SkupinaText { get; set; }
+
+            public string PolozkaZkratka { get; set; }
+            public string PolozkaText { get; set; }
+
+            public string Hodnota { get; set; }
+        }
+
+        public class ZkratkaText
+        {
+            public string Zkratka { get; set; }
+            public string Text { get; set; }
 
         }
 

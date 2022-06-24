@@ -47,6 +47,7 @@ namespace RejstrikTrestuPravnickychOsob
 
 				var jd = new Trest(item);
 				tresty.Add(jd);
+
 			}
 			foreach (var item in tresty)
 			{

@@ -9,7 +9,7 @@ namespace RejstrikTrestuPravnickychOsob
 {
     class Dataset
     {
-        private readonly HlidacStatu.Api.V2.Dataset.Typed.Dataset<Trest> Connector;
+        public readonly HlidacStatu.Api.V2.Dataset.Typed.Dataset<Trest> Connector;
 
         public Dataset(string token)
         {
@@ -37,7 +37,7 @@ namespace RejstrikTrestuPravnickychOsob
 
         public async Task<string> Add(Trest item)
         {
-            return Connector.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.skip);
+            return Connector.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
         }
 
         //		private readonly HlidacStatu.Api.V2.CoreApi.Model.Registration Definition = new HlidacStatu.Api.V2.CoreApi.Model.Registration(

@@ -5,6 +5,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Xml.Serialization;
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Schema.Generation;
+
 namespace RejstrikTrestuPravnickychOsob
 {
 	class Program
@@ -22,11 +25,25 @@ namespace RejstrikTrestuPravnickychOsob
 				return;
 			}
 
+			if (System.Diagnostics.Debugger.IsAttached )
+				System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("127.0.0.1", 8888);
+
 			var dataset = new Dataset(token);
+
+			//if (System.Diagnostics.Debugger.IsAttached)
+			//	dataset.Connector.Api.Configuration.BasePath = "https://local.hlidacstatu.cz";
+
             if (args.Any(a=>a.ToLower()=="--create"))
                 dataset.Recreate().Wait();
 
-            var handler = new Handler(dataset);
+			var jsonGen = new JSchemaGenerator
+			{
+				DefaultRequired = Required.Default
+			};
+			var genJsonSchema = jsonGen.Generate(typeof(Trest)).ToString();
+
+
+			var handler = new Handler(dataset);
 			handler.Execute();
 		}
 
