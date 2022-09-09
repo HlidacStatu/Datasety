@@ -14,7 +14,7 @@
     <PackageReference Include="Devmasters.Batch" Version="2.3.2.3" />
     <PackageReference Include="Devmasters.Crypto" Version="2.3.0" />
     <PackageReference Include="Devmasters.Net" Version="2.3.0" />
-    <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.2.0" />
+    <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>

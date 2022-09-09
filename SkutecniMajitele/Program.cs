@@ -267,7 +267,7 @@ namespace SkutecniMajitele
                                 if (same == false)
                                 {
                                     item.UpdateOsobaId();
-                                    ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                                    ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.merge);
                                 }
                             }
                         }
