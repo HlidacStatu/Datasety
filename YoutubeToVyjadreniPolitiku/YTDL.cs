@@ -171,13 +171,13 @@ namespace YoutubeToVyjadreniPolitiku
             //var fn = System.IO.Path.GetTempFileName();
 
             System.Diagnostics.ProcessStartInfo piv =
-                new System.Diagnostics.ProcessStartInfo("youtube-dl.exe",
+                new System.Diagnostics.ProcessStartInfo("yt-dlp.exe",
                     $"-j {youtubeUrl}"
                     ) ;
             Devmasters.ProcessExecutor pev = new Devmasters.ProcessExecutor(piv, 60 * 6 * 24);
             //pev.StandardOutputDataReceived += (o, e) => { Devmasters.Logging.Logger.Root.Debug(e.Data); };
 
-            Devmasters.Logging.Logger.Root.Info($"Starting Youtube-dl info for {youtubeUrl} ");
+            Devmasters.Logging.Logger.Root.Info($"Starting yt-dlp info for {youtubeUrl} ");
             pev.Start();
 
             ytdlInfo info = Newtonsoft.Json.JsonConvert.DeserializeObject<ytdlInfo>(pev.StandardOutput);

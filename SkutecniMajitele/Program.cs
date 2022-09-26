@@ -1,32 +1,46 @@
 ﻿using HlidacStatu.Api.V2.CoreApi.Client;
 using HlidacStatu.Api.V2.Dataset;
+using Serilog;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Generation;
 
+using Serilog;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
+using Devmasters.Log;
 
 namespace SkutecniMajitele
 {
     class Program
     {
         private const string DatasetNameId = "skutecni-majitele";
-        public static Devmasters.Logging.Logger logger = new Devmasters.Logging.Logger("SkutecniMajitele");
+        public static Devmasters.Log.Logger logger = Devmasters.Log.Logger.CreateLogger("SkutecniMajitele",
+                    Devmasters.Log.Logger.DefaultConfiguration()
+                    .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())
+                    .AddFileLoggerFilePerLevel("c:/Data/Logs/SkutecniMajitele/", "slog.txt",
+                                      outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {SourceContext} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
+                                      rollingInterval: RollingInterval.Day,
+                                      fileSizeLimitBytes: null,
+                                      retainedFileCountLimit: 9,
+                                      shared: true
+                                      )
+                   );
 
         static Devmasters.Batch.MultiOutputWriter outputWriter =
     new Devmasters.Batch.MultiOutputWriter(
         Devmasters.Batch.Manager.DefaultOutputWriter,
-        new Devmasters.Batch.LoggerWriter(logger, Devmasters.Logging.PriorityLevel.Debug).OutputWriter
+        new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Debug).OutputWriter
     );
 
         static Devmasters.Batch.MultiProgressWriter progressWriter =
             new Devmasters.Batch.MultiProgressWriter(
                 new Devmasters.Batch.ActionProgressWriter(1.0f,Devmasters.Batch.Manager.DefaultProgressWriter).Write,
-                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Logging.PriorityLevel.Information).ProgressWriter).Write
+                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Write
             );
 
 
@@ -164,7 +178,7 @@ namespace SkutecniMajitele
                 .ToArray()
                 .Select(m => m.Value<string>())
                 .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"))
-                //.Where(m => m == "as-full-ostrava-2021") //DEBUG
+                //.Where(m => m == "as-full-plzen-2022") //DEBUG
                 ;
 
             Devmasters.Batch.Manager.DoActionForAll<string>(onlyCurrYears,
@@ -217,7 +231,7 @@ namespace SkutecniMajitele
 
 
 
-            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(d.Subjekt //.Where(m=>m.ico== "3493661")  //debug
+            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(d.Subjekt //.Where(m=>m.ico== "26361035")  //debug
                 , subj =>
                 {
                     majitele item = majitele.GetMajitele(subj);
@@ -260,7 +274,7 @@ namespace SkutecniMajitele
                                             && m.slovni_vyjadreni == sm.slovni_vyjadreni
                                             && m.podil == sm.podil
                                             && m.postaveni == sm.postaveni
-                                            && !string.IsNullOrEmpty(m.osobaId)
+                                            && (m.osobaId == sm.osobaId || m.osobaId != null)
                                         );
                                     }
                                 }

@@ -102,11 +102,11 @@ namespace YoutubeToVyjadreniPolitiku
             else
             {
 
-                System.Diagnostics.ProcessStartInfo pi = new System.Diagnostics.ProcessStartInfo("youtube-dl",
+                System.Diagnostics.ProcessStartInfo pi = new System.Diagnostics.ProcessStartInfo("yt-dlp",
                     $"--flat-playlist --get-id --playlist-end {max} " + playlist
                     );
                 Devmasters.ProcessExecutor pe = new Devmasters.ProcessExecutor(pi, 60 * 6 * 24);
-                logger.Info($"Starting Youtube-dl playlist video list ");
+                logger.Info($"Starting yt-dlp playlist video list ");
                 pe.Start();
 
                 videos = pe.StandardOutput
@@ -152,13 +152,13 @@ namespace YoutubeToVyjadreniPolitiku
                     if (System.IO.File.Exists(MP3Fn) == false)
                     {
                         System.Diagnostics.ProcessStartInfo piv =
-                        new System.Diagnostics.ProcessStartInfo("youtube-dl.exe",
+                        new System.Diagnostics.ProcessStartInfo("yt-dlp.exe",
                             $"--no-progress --extract-audio --audio-format mp3 --postprocessor-args \" -ac 1 -ar 16000\" -o \"{fnFile}.%(ext)s\" " + vid
                             );
                         Devmasters.ProcessExecutor pev = new Devmasters.ProcessExecutor(piv, 60 * 6 * 24);
                         pev.StandardOutputDataReceived += (ox, e) => { logger.Debug(e.Data); };
 
-                        logger.Info($"Starting Youtube-dl for {vid} ");
+                        logger.Info($"Starting yt-dlp for {vid} ");
                         pev.Start();
 
                     }
