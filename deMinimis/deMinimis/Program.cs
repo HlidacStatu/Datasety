@@ -21,13 +21,9 @@ namespace deMinimis
                 .Select(m => m.Split('='))
                 .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1]);
 
-            int skip = 0;
-            if (args.ContainsKey("/skip"))
-                skip = int.Parse(args["/skip"]);
-
             int days = 30;
             if (args.ContainsKey("/days"))
-                skip = int.Parse(args["/days"]);
+                days = int.Parse(args["/days"]);
 
             var jsonGen = new JSchemaGenerator
             {
@@ -89,6 +85,12 @@ namespace deMinimis
                 AddMissingFromJsonDump();return;
             }
 
+            if (args.ContainsKey("/subject"))
+            {
+                string subjectId = args["/subject"];
+                FixSubject(subjectId, true);
+                return;
+            }
 
             int[] changes = null;
             if (args.ContainsKey("/fn"))
@@ -102,27 +104,7 @@ namespace deMinimis
                 Devmasters.Batch.Manager.DoActionForAll<int>(changes,
                 szrId =>
                 {
-                    var podporyApi = DeMinimisCalls.GetSubjPerSubjectId(szrId.ToString());
-
-                    var podpory = JednoduchaPodpora.FromAPI(podporyApi);
-                    if (podpory != null)
-                    {
-                        foreach (var p in podpory)
-                        {
-                            try
-                            {
-                                if (!ds.ItemExists(p.Id.ToString()))
-                                {
-                                    ds.AddOrUpdateItem(p, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                ds.AddOrUpdateItem(p, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
-                            }
-
-                        }
-                    }
+                    FixSubject(szrId.ToString(), true); //pokud záznam existuje, bude přepsán (update)
 
                     return new Devmasters.Batch.ActionOutputData();
                 }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
@@ -130,6 +112,31 @@ namespace deMinimis
 
                 //AddMissingFromJsonDump();
 
+            }
+
+            static void FixSubject(string szrId, bool overwrite = false)
+            {
+                var podporyApi = DeMinimisCalls.GetSubjPerSubjectId(szrId);
+
+                var podpory = JednoduchaPodpora.FromAPI(podporyApi);
+                if (podpory != null)
+                {
+                    foreach (var p in podpory)
+                    {
+                        try
+                        {
+                            if (overwrite || !ds.ItemExists(p.Id.ToString()))
+                            {
+                                ds.AddOrUpdateItem(p, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            ds.AddOrUpdateItem(p, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                        }
+
+                    }
+                }
             }
 
             static void AddMissingFromJsonDump()
