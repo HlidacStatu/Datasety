@@ -178,7 +178,7 @@ namespace SkutecniMajitele
                 .ToArray()
                 .Select(m => m.Value<string>())
                 .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"))
-                //.Where(m => m == "as-full-plzen-2022") //DEBUG
+                //.Where(m => m.Contains("svj-full-ostrava-2022")) //DEBUG
                 ;
 
             Devmasters.Batch.Manager.DoActionForAll<string>(onlyCurrYears,
@@ -231,7 +231,7 @@ namespace SkutecniMajitele
 
 
 
-            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(d.Subjekt //.Where(m=>m.ico== "26361035")  //debug
+            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(d.Subjekt //.Where(m=>m.ico== "3070409")  //debug
                 , subj =>
                 {
                     majitele item = majitele.GetMajitele(subj);
@@ -281,7 +281,7 @@ namespace SkutecniMajitele
                                 if (same == false)
                                 {
                                     item.UpdateOsobaId();
-                                    ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.merge);
+                                    ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                                 }
                             }
                         }

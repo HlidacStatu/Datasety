@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="rawXML2.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="29.0.0" />
+    <PackageReference Include="Devmasters.Args" Version="4.1.1" />
+    <PackageReference Include="Devmasters.Batch" Version="4.0.1" />
+    <PackageReference Include="Devmasters.Core" Version="4.1.0" />
+    <PackageReference Include="Devmasters.Crypto" Version="4.0.0" />
+    <PackageReference Include="Devmasters.Net" Version="4.1.0" />
+    <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.3.0" />
+    <PackageReference Include="ObjectsComparer" Version="1.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="export.debug.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Logger.log4net">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
