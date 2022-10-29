@@ -177,8 +177,11 @@ namespace SkutecniMajitele
             var onlyCurrYears = package_list["result"]
                 .ToArray()
                 .Select(m => m.Value<string>())
-                .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"))
-                //.Where(m => m.Contains("svj-full-ostrava-2022")) //DEBUG
+                .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"));
+
+            if (System.Diagnostics.Debugger.IsAttached)// && false)
+                onlyCurrYears = onlyCurrYears
+                    .Where(m => m.Contains("sro-full-hradec_kralove-2022")) //DEBUG
                 ;
 
             Devmasters.Batch.Manager.DoActionForAll<string>(onlyCurrYears,
@@ -227,11 +230,18 @@ namespace SkutecniMajitele
                 var serializer = new XmlSerializer(typeof(rawXML));
                 d = (rawXML)serializer.Deserialize(xmlReader);
             }
+
+            var subjects = d.Subjekt;
+            if (System.Diagnostics.Debugger.IsAttached)// && false)
+                subjects = subjects
+                    .Where(m => m.ico == "7080506") //DEBUG
+                    .ToArray();
+
+
             Console.WriteLine($"{d.Subjekt?.Count()} subjects");
 
 
-
-            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(d.Subjekt //.Where(m=>m.ico== "3070409")  //debug
+            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(subjects //.Where(m=>m.ico== "3070409")  //debug
                 , subj =>
                 {
                     majitele item = majitele.GetMajitele(subj);
