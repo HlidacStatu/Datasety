@@ -1,8 +1,12 @@
-﻿using HlidacStatu.Api.V2.CoreApi.Client;
+﻿using Devmasters.Log;
+
+using HlidacStatu.Api.V2.CoreApi.Client;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Generation;
+
+using Serilog;
 
 using System;
 using System.Collections.Generic;
@@ -15,21 +19,36 @@ namespace Rozhodnuti_UOHS
     {
         static bool debug = false;
 
-        public static Devmasters.Logging.Logger logger = new Devmasters.Logging.Logger("Rozhodnuti-UOHS");
         static string datasetId = "rozhodnuti-uohs"; //zvol vlastni unikatni jmeno
-        static Devmasters.Batch.MultiOutputWriter outputWriter =
-new Devmasters.Batch.MultiOutputWriter(
-    Devmasters.Batch.Manager.DefaultOutputWriter,
-    new Devmasters.Batch.LoggerWriter(logger, Devmasters.Logging.PriorityLevel.Debug).OutputWriter
-);
+
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<UOHSData> ds = null;
         static HttpClient httpClient = null;
 
-        static Devmasters.Batch.MultiProgressWriter progressWriter =
+        public static Devmasters.Log.Logger logger = Devmasters.Log.Logger.CreateLogger("RozhodnutiUOHS",
+            Devmasters.Log.Logger.DefaultConfiguration()
+            .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())
+            .AddFileLoggerFilePerLevel("/Data/Logs/RozhodnutiUOHS/", "slog.txt",
+                              outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {SourceContext} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
+                              rollingInterval: RollingInterval.Day,
+                              fileSizeLimitBytes: null,
+                              retainedFileCountLimit: 9,
+                              shared: true
+                              )
+            .WriteTo.Console()
+           );
+
+        public static Devmasters.Batch.MultiOutputWriter outputWriter =
+             new Devmasters.Batch.MultiOutputWriter(
+                Devmasters.Batch.Manager.DefaultOutputWriter,
+                new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Debug).OutputWriter
+             );
+
+        public static Devmasters.Batch.MultiProgressWriter progressWriter =
             new Devmasters.Batch.MultiProgressWriter(
-                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Write,
-                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Logging.PriorityLevel.Information).ProgressWriter).Write
+                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Writer,
+                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Writer
             );
+
         static void Main(string[] _args)
         {
             Console.WriteLine("Rozhodnuti-UOHS \n");

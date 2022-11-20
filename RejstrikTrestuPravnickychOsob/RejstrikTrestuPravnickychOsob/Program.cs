@@ -5,14 +5,44 @@ using System.Linq;
 using System.Net.Http;
 using System.Xml.Serialization;
 
+using Devmasters.Log;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema.Generation;
+
+using Serilog;
 
 namespace RejstrikTrestuPravnickychOsob
 {
 	class Program
 	{
-		static void Main(string[] args)
+
+        public static Devmasters.Log.Logger logger = Devmasters.Log.Logger.CreateLogger("RejstriktrestuPravnickychOsob",
+            Devmasters.Log.Logger.DefaultConfiguration()
+            .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())
+            .AddFileLoggerFilePerLevel("/Data/Logs/rejstrikTrestuPravnickychOsob/", "slog.txt",
+                              outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {SourceContext} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
+                              rollingInterval: RollingInterval.Day,
+                              fileSizeLimitBytes: null,
+                              retainedFileCountLimit: 9,
+                              shared: true
+                              )
+            .WriteTo.Console()
+           );
+
+        public static Devmasters.Batch.MultiOutputWriter outputWriter =
+             new Devmasters.Batch.MultiOutputWriter(
+                Devmasters.Batch.Manager.DefaultOutputWriter,
+                new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Debug).OutputWriter
+             );
+
+        public static Devmasters.Batch.MultiProgressWriter progressWriter =
+            new Devmasters.Batch.MultiProgressWriter(
+                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Write,
+                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Write
+            );
+
+        static void Main(string[] args)
 		{
 
 			Console.WriteLine("Rejstrik trestu pravnickych osob");

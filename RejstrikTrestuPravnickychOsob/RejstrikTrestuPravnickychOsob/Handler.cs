@@ -28,6 +28,7 @@ namespace RejstrikTrestuPravnickychOsob
 
 		public void Execute()
 		{
+			Program.logger.Info("Loading data from url");
 			var client = new HttpClient();
 			var content = client.GetStringAsync("https://eservice-po.rejtr.justice.cz/public/odsouzeni_xml").Result;
 
@@ -49,6 +50,7 @@ namespace RejstrikTrestuPravnickychOsob
 				tresty.Add(jd);
 
 			}
+			Program.logger.Info("Adding {count} records", tresty.Count);
 			foreach (var item in tresty)
 			{
                 try

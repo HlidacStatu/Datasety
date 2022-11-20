@@ -22,7 +22,7 @@ namespace SkutecniMajitele
         public static Devmasters.Log.Logger logger = Devmasters.Log.Logger.CreateLogger("SkutecniMajitele",
                     Devmasters.Log.Logger.DefaultConfiguration()
                     .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())
-                    .AddFileLoggerFilePerLevel("c:/Data/Logs/SkutecniMajitele/", "slog.txt",
+                    .AddFileLoggerFilePerLevel("/Data/Logs/SkutecniMajitele/", "slog.txt",
                                       outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {SourceContext} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
                                       rollingInterval: RollingInterval.Day,
                                       fileSizeLimitBytes: null,

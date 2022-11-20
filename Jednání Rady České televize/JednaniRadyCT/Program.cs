@@ -1,10 +1,14 @@
-﻿using HlidacStatu.Api.V2.CoreApi.Client;
+﻿using Devmasters.Log;
+
+using HlidacStatu.Api.V2.CoreApi.Client;
 using HlidacStatu.Api.V2.Dataset;
 
 using Microsoft.Extensions.Configuration;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema.Generation;
+
+using Serilog;
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +19,7 @@ namespace JednaniRadyCT
 {
     class Program
     {
+
 
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<Jednani> ds = null;
 
@@ -30,11 +35,37 @@ namespace JednaniRadyCT
         static string mp3path = null;
 
         static bool skips2t = false;
+
+        public static Devmasters.Log.Logger logger = Devmasters.Log.Logger.CreateLogger("JednaniRadyCT",
+            Devmasters.Log.Logger.DefaultConfiguration()
+            .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())
+            .AddFileLoggerFilePerLevel("/Data/Logs/JednaniRadyCT/", "slog.txt",
+                              outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {SourceContext} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
+                              rollingInterval: RollingInterval.Day,
+                              fileSizeLimitBytes: null,
+                              retainedFileCountLimit: 9,
+                              shared: true
+                              )
+            .WriteTo.Console()
+           );
+
+        public static Devmasters.Batch.MultiOutputWriter outputWriter =
+             new Devmasters.Batch.MultiOutputWriter(
+                Devmasters.Batch.Manager.DefaultOutputWriter,
+                new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Debug).OutputWriter
+             );
+
+        public static Devmasters.Batch.MultiProgressWriter progressWriter =
+            new Devmasters.Batch.MultiProgressWriter(
+                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Writer,
+                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Writer
+            );
+
         static void Main(string[] arguments)
         {
             Console.WriteLine($"Jednání-Rady-ČT - {System.Reflection.Assembly.GetEntryAssembly().GetName().Version}");
-            Devmasters.Logging.Logger.Root.Info($"Jednání-Rady-ČT - {System.Reflection.Assembly.GetEntryAssembly().GetName().Version}");
-            Devmasters.Logging.Logger.Root.Debug("Jednání Rady ČT starting with " + string.Join(',', arguments));
+            logger.Info($"Jednání-Rady-ČT - {System.Reflection.Assembly.GetEntryAssembly().GetName().Version}");
+            logger.Debug("Jednání Rady ČT starting with " + string.Join(',', arguments));
 
 
             var args = new Devmasters.Args(arguments, new string[] { "/mp3path", "/apikey" });
@@ -47,7 +78,7 @@ namespace JednaniRadyCT
             if (args.Exists("/utdl"))
                 YTDL = args["/utdl"];
             else
-                YTDL = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\youtube-dl.exe";
+                YTDL = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\yt-dlp.exe";
 
             startPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
@@ -98,12 +129,12 @@ namespace JednaniRadyCT
                     string html = "";
                     try
                     {
-                        Devmasters.Logging.Logger.Root.Debug($"downloading {net.Url} ");
+                        logger.Debug($"downloading {net.Url} ");
                         html = net.GetContent().Text;
                     }
                     catch (Exception e)
                     {
-                        Devmasters.Logging.Logger.Root.Error($"{net.Url} failed", e);
+                        logger.Error($"{net.Url} failed", e);
                     }
 
                     Devmasters.XPath xp = new Devmasters.XPath(html);
@@ -132,7 +163,7 @@ namespace JednaniRadyCT
             } while (stop == false);
 
             //
-            Devmasters.Logging.Logger.Root.Debug($"Starting {jednani.Count} items ");
+            logger.Debug($"Starting {jednani.Count} items ");
 
             Devmasters.Batch.Manager.DoActionForAll<string>(jednani.Select(m => m.Id).Reverse(),
                 id =>
@@ -143,10 +174,10 @@ namespace JednaniRadyCT
                     )
                     {
 
-                        Devmasters.Logging.Logger.Root.Debug($"Start parsing {id} ");
+                        logger.Debug($"Start parsing {id} ");
                         var fullJ = ParseJednani(jednani.First(m => m.Id == id));
 
-                        Devmasters.Logging.Logger.Root.Debug($"Saving {id} ");
+                        logger.Debug($"Saving {id} ");
                         ds.AddOrUpdateItem(fullJ, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                     }
                     else if (exists)
@@ -155,7 +186,7 @@ namespace JednaniRadyCT
                         var fullJ = ds.GetItemSafe(id);
                         if (!(fullJ.PrepisAudia?.Count() > 0))
                         {
-                            Devmasters.Logging.Logger.Root.Debug($"Checking AUDIO text {id} ");
+                            logger.Debug($"Checking AUDIO text {id} ");
                             var aud = Audio(fullJ);
                             if (aud?.Count() > 0)
                             {

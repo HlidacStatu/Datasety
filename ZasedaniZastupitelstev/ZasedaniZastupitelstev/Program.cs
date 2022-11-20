@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema.Generation;
 
+using Serilog;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,26 +32,39 @@ namespace ZasedaniZastupitelstev
         public const string DataSetId = "zasedani-zastupitelstev";
         static string apikey = "";
         static string mp3path = "";
-        public static Devmasters.Log.Logger logger = null;
         //public static RESTCall api = new RESTCall(apikey, 60*1000);
 
         //public static HlidacStatu.Api.V2.CoreApi.DatasetyApi api = null;
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<Record> api = null;
+
+        public static Devmasters.Log.Logger logger = Devmasters.Log.Logger.CreateLogger("ZasedaniZastupitelstev",
+    Devmasters.Log.Logger.DefaultConfiguration()
+    .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())
+    .AddFileLoggerFilePerLevel("/Data/Logs/ZasedaniZastupitelstev/", "slog.txt",
+                      outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {SourceContext} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
+                      rollingInterval: RollingInterval.Day,
+                      fileSizeLimitBytes: null,
+                      retainedFileCountLimit: 9,
+                      shared: true
+                      )
+    .WriteTo.Console()
+   );
+
+        public static Devmasters.Batch.MultiOutputWriter outputWriter =
+             new Devmasters.Batch.MultiOutputWriter(
+                Devmasters.Batch.Manager.DefaultOutputWriter,
+                new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Debug).OutputWriter
+             );
+
+        public static Devmasters.Batch.MultiProgressWriter progressWriter =
+            new Devmasters.Batch.MultiProgressWriter(
+                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Writer,
+                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Writer
+            );
+
+
         static void Main(string[] arguments)
         {
-            logger = Devmasters.Log.Logger.CreateLogger("ZasedaniZastupitelstev",
-                Devmasters.Log.Logger.DefaultConfiguration()
-                    .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())
-                    .AddFileLoggerFilePerLevel("c:/Data/Logs/ZasedaniZastupitelstev/", "slog.txt",
-                                      outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {SourceContext} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
-                                      rollingInterval: Serilog.RollingInterval.Day,
-                                      fileSizeLimitBytes: null,
-                                      retainedFileCountLimit: 9,
-                                      shared: true
-                                      )
-
-                    );
-
 
 
             jsonconf = new ConfigurationBuilder()
@@ -179,7 +194,7 @@ namespace ZasedaniZastupitelstev
                     .ToList();
             }
             Console.WriteLine();
-            Console.WriteLine($"Processing {videos.Count} videos");
+            Program.logger.Info($"Processing {videos.Count} videos");
 
             Console.WriteLine();
             Console.WriteLine();
@@ -251,7 +266,9 @@ namespace ZasedaniZastupitelstev
                         api.AddOrUpdateItem(rec, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                     }
                     return new Devmasters.Batch.ActionOutputData();
-                }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
+                }, 
+                Program.outputWriter.OutputWriter, 
+                Program.progressWriter.ProgressWriter,
                 !System.Diagnostics.Debugger.IsAttached, maxDegreeOfParallelism: threads
                 );
 

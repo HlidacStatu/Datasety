@@ -48,6 +48,7 @@ namespace sbirkapp.gov.cz
                 }
                 catch (Exception e)
                 {
+                    Program.logger.Error("downloading url {url} error", e, url);
                     //sbirkapp.gov.cz.Program.logger.Error(url, e);
                 }
                 return null;

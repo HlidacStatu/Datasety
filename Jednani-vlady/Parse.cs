@@ -29,8 +29,8 @@ namespace Jednani_vlady
                     agendy.AddRange(AgendaList(y).OrderBy(o=>o));
                     return new Devmasters.Batch.ActionOutputData();
                 }
-                , Devmasters.Batch.Manager.DefaultOutputWriter
-                , new Devmasters.Batch.ActionProgressWriter(0.1f).Write
+                , Program.outputWriter.OutputWriter
+                , Program.progressWriter.ProgressWriter
                 , false
                 , maxDegreeOfParallelism: 5
             );
@@ -93,15 +93,15 @@ namespace Jednani_vlady
                     }
                     return new Devmasters.Batch.ActionOutputData();
                 }
-                , null //Devmasters.Core.Batch.Manager.DefaultOutputWriter
-                , null //new Devmasters.Core.Batch.ActionProgressWriter(0.1f).Write
+                , Program.outputWriter.OutputWriter
+                , Program.progressWriter.ProgressWriter
                 , false
                 , maxDegreeOfParallelism: 5, prefix:"AGENDY: "
             );
 
             Console.WriteLine();
             Console.WriteLine();
-            Console.WriteLine("TOtal saved: " + totalSave);
+            Program.logger.Info("TOtal saved {count}", totalSave);
 
         }
 
@@ -313,8 +313,8 @@ namespace Jednani_vlady
 
                     return new Devmasters.Batch.ActionOutputData();
                 }
-                , null
-                , null //new Devmasters.Core.Batch.ActionProgressWriter(0.1f).Write
+                , Program.outputWriter.OutputWriter
+                , Program.progressWriter.ProgressWriter
                 , true
                 , maxDegreeOfParallelism: 5, prefix:"DAT " + sdatum + ":"
             );
@@ -357,7 +357,7 @@ namespace Jednani_vlady
                 {
                     Console.WriteLine(e.Message);
                     Console.WriteLine();
-                    Console.WriteLine($"Downloaded HTML from {url}:");
+                    Program.logger.Error("Downloaded HTML from {url}\nHtml:{html}",e,url,html);
                     Console.WriteLine(html);
 
                     throw;

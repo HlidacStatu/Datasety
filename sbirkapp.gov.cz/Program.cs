@@ -25,7 +25,7 @@ namespace sbirkapp.gov.cz
         public static Devmasters.Log.Logger logger = Devmasters.Log.Logger.CreateLogger("sbirka-pravnich-predpisu",
                     Devmasters.Log.Logger.DefaultConfiguration()
                     .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())            
-                    .AddFileLoggerFilePerLevel("c:/Data/Logs/sbirka-pravnich-predpisu/", "slog.txt",
+                    .AddFileLoggerFilePerLevel("/Data/Logs/sbirka-pravnich-predpisu/", "slog.txt",
                                       outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {SourceContext} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
                                       rollingInterval: RollingInterval.Day,
                                       fileSizeLimitBytes: null,
@@ -333,7 +333,7 @@ Podle úřadu|Vydavatel.keyword
                  }
 
                  return new Devmasters.Batch.ActionOutputData();
-             }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
+             }, Program.outputWriter.OutputWriter, Program.progressWriter.ProgressWriter,
          true, //!System.Diagnostics.Debugger.IsAttached,
          maxDegreeOfParallelism: 4);
 
@@ -341,10 +341,11 @@ Podle úřadu|Vydavatel.keyword
 
         private static void DownloadFile(string name)
         {
+            string url = $"https://dataor.justice.cz/api/file/{name}.xml";
             System.Net.WebClient wc = new System.Net.WebClient();
             try
             {
-                wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", name + ".xml");
+                wc.DownloadFile(url, name + ".xml");
 
             }
             catch (Exception e1)
@@ -352,11 +353,11 @@ Podle úřadu|Vydavatel.keyword
                 try
                 {
                     System.Threading.Thread.Sleep(2000);
-                    wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", name + ".xml");
+                    wc.DownloadFile(url, name + ".xml");
                 }
                 catch (Exception e2)
                 {
-
+                    logger.Error("Dowload url {url} error", e2, url);
                     Console.WriteLine($"Cannot download https://dataor.justice.cz/api/file/{name}.xml   ex:" + e2.Message);
                 }
             }
