@@ -24,7 +24,7 @@ namespace sbirkapp.gov.cz
         private const string DatasetNameId = "sbirka-pravnich-predpisu";
         public static Devmasters.Log.Logger logger = Devmasters.Log.Logger.CreateLogger("sbirka-pravnich-predpisu",
                     Devmasters.Log.Logger.DefaultConfiguration()
-                    .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())
+                    .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())            
                     .AddFileLoggerFilePerLevel("c:/Data/Logs/sbirka-pravnich-predpisu/", "slog.txt",
                                       outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {SourceContext} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
                                       rollingInterval: RollingInterval.Day,
@@ -32,6 +32,7 @@ namespace sbirkapp.gov.cz
                                       retainedFileCountLimit: 9,
                                       shared: true
                                       )
+                    .WriteTo.Console()
                    );
 
         static Devmasters.Batch.MultiOutputWriter outputWriter =
@@ -247,9 +248,22 @@ Podle úřadu|Vydavatel.keyword
             }
             var wc = new System.Net.WebClient();
 
-            var csvData = System.Diagnostics.Debugger.IsAttached
-                ? System.IO.File.ReadAllText("export.debug.csv")
-                : wc.DownloadString(urlData);
+            var csvData = "";
+
+            logger.Info("Loading data from {url}",urlData);
+            using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(urlData))
+            {
+                net.Timeout = 180000;
+                net.Tries = 5;
+                net.TimeInMsBetweenTries = 5000;
+                if (System.Diagnostics.Debugger.IsAttached && System.IO.File.Exists("export.debug.csv"))
+                    System.IO.File.ReadAllText("export.debug.csv");
+                else
+                {
+                    csvData = net.GetContent(System.Text.Encoding.UTF8).Text;
+                    System.IO.File.WriteAllText("export.debug.csv", csvData);
+                }
+            }
 
 
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)

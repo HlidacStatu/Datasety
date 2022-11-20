@@ -1,5 +1,4 @@
-﻿using HlidacStatu.Api.Dataset.Connector;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -14,7 +13,7 @@ namespace Tiskove_konference_vlady_CR
         static System.Text.RegularExpressions.RegexOptions options = ((System.Text.RegularExpressions.RegexOptions.IgnorePatternWhitespace | System.Text.RegularExpressions.RegexOptions.Multiline)
                                 | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-        public static void DownloadAllData(DatasetConnector dsc, DateTime? from = null)
+        public static void DownloadAllData(HlidacStatu.Api.V2.Dataset.Typed.Dataset<zapis> dsc, DateTime? from = null)
         {
             from = from ?? new DateTime(2006, 1, 1);
 
@@ -29,7 +28,7 @@ namespace Tiskove_konference_vlady_CR
                 Console.WriteLine($"Page {page}");
 
                 string html = "";
-                using (var net = new Devmasters.Net.Web.URLContent(url))
+                using (var net = new Devmasters.Net.HttpClient.URLContent(url))
                 {
                     html = net.GetContent().Text;
                 }
@@ -70,8 +69,8 @@ namespace Tiskove_konference_vlady_CR
 
 
 
-        parse:
-            Devmasters.Core.Batch.Manager.DoActionForAll<zapis>(tiskovky,
+parse:
+            Devmasters.Batch.Manager.DoActionForAll<zapis>(tiskovky,
                 (zap) =>
                 {
                     try
@@ -83,20 +82,63 @@ namespace Tiskove_konference_vlady_CR
                     {
                         Console.WriteLine(e.ToString());
                     }
-                    return new Devmasters.Core.Batch.ActionOutputData();
+                    return new Devmasters.Batch.ActionOutputData();
                 }
-                , Devmasters.Core.Batch.Manager.DefaultOutputWriter
-                , new Devmasters.Core.Batch.ActionProgressWriter(0.1f).Write
+                , Devmasters.Batch.Manager.DefaultOutputWriter
+                , new Devmasters.Batch.ActionProgressWriter(0.1f).Write
                 , !System.Diagnostics.Debugger.IsAttached, 20
                 );
 
 
 
         }
-        static string ParseTiskovku(DatasetConnector dsc, zapis zap)
+        public static person GetOsobaId(string osoba)
+        {
+            string url = $"https://www.hlidacstatu.cz/api/v2/osoby/hledatftx?status=1&ftxDotaz={System.Net.WebUtility.UrlEncode(osoba)}";
+            try
+            {
+
+                using (System.Net.WebClient wc = new System.Net.WebClient())
+                {
+                    wc.Headers.Add("Authorization", Program.apiKey);
+                    var str = wc.DownloadString(url);
+                    var persons = Newtonsoft.Json.JsonConvert.DeserializeObject<person[]>(str);
+                    if (persons?.Count() > 0)
+                        return persons.First();
+                    else
+                        return null;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Threading.Thread.Sleep(200);
+                try
+                {
+                    using (var net = new Devmasters.Net.HttpClient.URLContent(url))
+                    {
+                        net.TimeInMsBetweenTries = 500;
+                        net.Tries = 5;
+                        net.RequestParams.Headers.Add("Authorization", Program.apiKey);
+                        var json = net.GetContent().Text;
+                        var persons = Newtonsoft.Json.JsonConvert.DeserializeObject<person[]>(json);
+                        if (persons?.Count() > 0)
+                            return persons.First();
+                        else
+                            return null;
+                    }
+                }
+                catch (Exception e)
+                {
+                    //sbirkapp.gov.cz.Program.logger.Error(url, e);
+                }
+                return null;
+            }
+        }
+        static string ParseTiskovku(HlidacStatu.Api.V2.Dataset.Typed.Dataset<zapis> dsc, zapis zap)
         {
             string html = "";
-            using (var net = new Devmasters.Net.Web.URLContent(zap.url))
+            using (var net = new Devmasters.Net.HttpClient.URLContent(zap.url))
             {
                 html = net.GetContent().Text;
             }
@@ -129,24 +171,21 @@ namespace Tiskove_konference_vlady_CR
                         vyj = new zapis.vstup();
                         vyj.poradi = poradi;
                     }
-                    using (var net = new Devmasters.Net.Web.URLContent($"https://www.hlidacstatu.cz/api/v1/PolitikFromText?text={System.Net.WebUtility.UrlEncode(mluvci)}&Authorization={System.Configuration.ConfigurationManager.AppSettings["apikey"]}"))
+
+                    var osoba = GetOsobaId(mluvci);
+                    if (osoba != null)
                     {
-                        net.Timeout = 60 * 1000;
-                        var osobahtml = net.GetContent().Text;
-                        var osoba = Newtonsoft.Json.Linq.JObject.Parse(osobahtml);
-                        if (!string.IsNullOrEmpty(osoba.Value<string>("jmeno")))
-                        {
-                            vyj.jmeno = osoba.Value<string>("jmeno");
-                            vyj.prijmeni = osoba.Value<string>("prijmeni");
-                            vyj.osobaId = osoba.Value<string>("osobaid");
-                            var info = Regex.Replace(mluvci, $@"({vyj.jmeno} \s {vyj.prijmeni} \s* ,?) | ({vyj.prijmeni} \s {vyj.jmeno} \s* ,?)", "", options)
-                                        .Replace(":", "");
-                            vyj.osobainfo = info?.Trim();
-                        }
-                        else
-                        {
-                            vyj.osobainfo = mluvci;
-                        }
+                        vyj.jmeno = osoba.Jmeno;
+                        vyj.prijmeni = osoba.Prijmeni;
+                        vyj.osobaId = osoba.NameId;
+                        var info = Regex.Replace(mluvci, $@"({vyj.jmeno} \s {vyj.prijmeni} \s* ,?) | ({vyj.prijmeni} \s {vyj.jmeno} \s* ,?)", "", options)
+                                    .Replace(":", "");
+                        vyj.osobainfo = info?.Trim();
+                    }
+                    else
+                    {
+                        vyj.osobainfo = mluvci;
+
                     }
                     text = text.Replace(mluvci, "").Trim();
                     vyj.text = text;
@@ -207,7 +246,7 @@ namespace Tiskove_konference_vlady_CR
             }
             Console.WriteLine(zap.Id + " " + zap.nazev);
             zap.PrepareBeforeSave();
-            var id = dsc.AddItemToDataset<zapis>(Parse.datasetname, zap, DatasetConnector.AddItemMode.Rewrite).Result;
+            var id = dsc.AddOrUpdateItem(zap, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
 
             return id;
         }
@@ -217,6 +256,15 @@ namespace Tiskove_konference_vlady_CR
                 return 0;
             MatchCollection collection = Regex.Matches(s, @"[\S]+");
             return collection.Count;
+        }
+
+        public class person
+        {
+            public string Jmeno { get; set; }
+            public string Prijmeni { get; set; }
+            public DateTime Narozeni { get; set; }
+            public string NameId { get; set; }
+            public string Profile { get; set; }
         }
     }
 }

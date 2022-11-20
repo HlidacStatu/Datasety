@@ -166,11 +166,11 @@ namespace ZasedaniZastupitelstev
             else
             {
 
-                System.Diagnostics.ProcessStartInfo pi = new System.Diagnostics.ProcessStartInfo("youtube-dl",
+                System.Diagnostics.ProcessStartInfo pi = new System.Diagnostics.ProcessStartInfo("yt-dlp",
                     $"--flat-playlist --get-id --playlist-end {max} " + playlist
                     );
                 Devmasters.ProcessExecutor pe = new Devmasters.ProcessExecutor(pi, 60 * 6 * 24);
-                logger.Info("Starting Youtube-dl playlist video list with {param}", $"--flat-playlist --get-id --playlist-end {max} {playlist}");
+                logger.Info("Starting yt-dlp playlist video list with {param}", $"--flat-playlist --get-id --playlist-end {max} {playlist}");
                 pe.Start();
 
                 videos = pe.StandardOutput

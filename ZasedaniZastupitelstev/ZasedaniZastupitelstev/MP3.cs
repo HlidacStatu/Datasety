@@ -40,13 +40,13 @@ namespace ZasedaniZastupitelstev
             {
 
                 System.Diagnostics.ProcessStartInfo piv =
-                            new System.Diagnostics.ProcessStartInfo("youtube-dl.exe",
+                            new System.Diagnostics.ProcessStartInfo("yt-dlp.exe",
                                 $"--no-progress --extract-audio --audio-format mp3 --postprocessor-args \" -ac 1 -ar 16000\" -o \"{fnFile}.%(ext)s\" " + videourl
                                 );
                 Devmasters.ProcessExecutor pev = new Devmasters.ProcessExecutor(piv, 60 * 6 * 24);
-                pev.StandardOutputDataReceived += (o, e) => { Program.logger.Debug($"Starting Youtube-dl for {videourl} :" + e.Data); };
+                pev.StandardOutputDataReceived += (o, e) => { Program.logger.Debug($"Starting yt-dlp for {videourl} :" + e.Data); };
 
-                Program.logger.Info("Starting Youtube-dl download for {videourl} into {filename}",videourl,fnFile);
+                Program.logger.Info("Starting yt-dlp download for {videourl} into {filename}",videourl,fnFile);
                 pev.Start();
             }
             bool exists_S2T = System.IO.File.Exists(newtonFn) || System.IO.File.Exists(dockerFn);

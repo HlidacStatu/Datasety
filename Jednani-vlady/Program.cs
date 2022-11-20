@@ -3,39 +3,54 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HlidacStatu.Api.Dataset.Connector;
+
+using Newtonsoft.Json.Schema.Generation;
+using Newtonsoft.Json;
+using HlidacStatu.Api.V2.CoreApi.Client;
+using Newtonsoft.Json.Linq;
 
 namespace Jednani_vlady
 {
     class Program
     {
-        static HlidacStatu.Api.Dataset.Connector.DatasetConnector dsc;
+        static HlidacStatu.Api.V2.Dataset.Typed.Dataset<jednani> dsc;
         public static Dictionary<string, string> args = new Dictionary<string, string>();
+        public static string apiKey = "";
 
         static void Main(string[] arguments)
         {
-            dsc = new HlidacStatu.Api.Dataset.Connector.DatasetConnector(
-                System.Configuration.ConfigurationManager.AppSettings["apikey"]
-                );
 
             args = arguments
                 .Select(m => m.Split('='))
                 .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1]);
 
+            if (args.ContainsKey("/?") || args.ContainsKey("/h") || args.ContainsKey("/apikey") == false)
+            {
+                Console.WriteLine("Jednani vlady downloader");
+                Console.WriteLine("[/h] [/from=yyyy] /apikey=xxxyyy");
+                return;
+            }
+
             if (args.ContainsKey("/debug"))
                 Parse.parallel = false;
+
+            apiKey = args["/apikey"];
 
             int? from = null;
             if (args.ContainsKey("/from"))
                 from = int.Parse(args["/from"]);
 
             //create dataset
-            var dsDef = new HlidacStatu.Api.Dataset.Connector.Dataset<jednani>(
+            var jsonGen = new JSchemaGenerator
+            {
+                DefaultRequired = Required.Default
+            };
+            var genJsonSchema = jsonGen.Generate(typeof(jednani)).ToString();
+            HlidacStatu.Api.V2.CoreApi.Model.Registration dsDef = new HlidacStatu.Api.V2.CoreApi.Model.Registration(
                 "Jednání vlády ČR", Parse.datasetname, "https://apps.odok.cz/zvlady", "Databáze \"Jednání vlády\" zobrazuje a umožňuje prohledávat veřejnosti programy jednání vlády, záznamy, usnesení a uveřejňované materiály pro jednání vlády, nepodléhají-li režimu utajení.",
-                "https://github.com/HlidacStatu/Datasety/tree/master/jednani-vlady",
-                true, false,
-                new string[,] { { "Datum jednání", "datum" } },
-                new Template() { Body= @"
+                "https://github.com/HlidacStatu/Datasety/tree/master/jednani-vlady", genJsonSchema,
+                "michal@michalblaha.cz", DateTime.Now, false, false,false,
+                new HlidacStatu.Api.V2.Dataset.ClassicTemplate.ClassicDetailTemplate() { Body= @"
 <!-- scriban {{ date.now }} --> 
 <table class='table table-hover'>
                         <thead>
@@ -56,7 +71,7 @@ namespace Jednani_vlady
 
 </tbody></table>
 " },
-                new Template() { Body = @"
+                new HlidacStatu.Api.V2.Dataset.ClassicTemplate.ClassicDetailTemplate() { Body = @"
 {{this.item = model}}
 
 <table class=""table table-hover""><tbody>
@@ -118,13 +133,27 @@ namespace Jednani_vlady
 </table>
 
 " }
+                , null, new string[,] { { "Datum jednání", "datum" } }
+
                 );
 
-            //dsc.DeleteDataset(dsDef).Wait();
-            if (!dsc.DatasetExists(dsDef).Result)
+            try
             {
-                dsc.CreateDataset(dsDef).Wait();
+                dsc = HlidacStatu.Api.V2.Dataset.Typed.Dataset<jednani>.OpenDataset(
+                apiKey, Parse.datasetname
+                    );
+
             }
+            catch (ApiException e)
+            {
+                //api = HlidacStatu.Api.V2.Dataset.Typed.Dataset<Record>.CreateDataset(apikey, Registration());
+
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+
 
             //Parse.ParseUsneseni(new DateTime(2019,8,26), "624");
             //var js = Parse.ParseAgenda("2020-03-16");

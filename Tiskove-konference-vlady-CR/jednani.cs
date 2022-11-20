@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Tiskove_konference_vlady_CR
 {
-    public class zapis : HlidacStatu.Api.Dataset.Connector.IDatasetItem
+    public class zapis 
     {
         public class vstup
         {

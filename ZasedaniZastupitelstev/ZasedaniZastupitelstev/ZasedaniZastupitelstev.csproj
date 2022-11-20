@@ -2,35 +2,35 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
-    <Version>1.1.1</Version>
+    <TargetFramework>net6.0</TargetFramework>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
 
   <ItemGroup>
     <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.2.0" />
-	  <PackageReference Include="AngleSharp" Version="0.16.1" />
-	  <PackageReference Include="CliWrap" Version="3.4.0" />
-	  <PackageReference Include="Devmasters.Args" Version="3.1.0" />
-	  <PackageReference Include="Devmasters.Batch" Version="3.1.1" />
-	  <PackageReference Include="Devmasters.Core" Version="3.1.0" />
-	  <PackageReference Include="Devmasters.Crypto" Version="3.1.0" />
-	  <PackageReference Include="Devmasters.DT" Version="3.1.1" />
-	  <PackageReference Include="Devmasters.Lang" Version="3.1.0" />
-	  <PackageReference Include="Devmasters.Logging" Version="3.1.2.1" />
-	  <PackageReference Include="Devmasters.Net" Version="3.1.0" />
-	  <PackageReference Include="Devmasters.SpeechToText" Version="3.1.0" />
-	  <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.2.0" />
-	  <PackageReference Include="HtmlAgilityPack" Version="1.11.40" />
-	  <PackageReference Include="IPNetwork2" Version="2.5.386" />
-	  <PackageReference Include="JsonSubTypes" Version="1.8.0" />
-	  <PackageReference Include="KaldiASR.SpeechToText" Version="3.1.0" />
-	  <PackageReference Include="log4net" Version="2.0.14" />
-	  <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
-	  <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
-	  <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="6.0.0" />
-	  <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
-	  <PackageReference Include="Newton.SpeechToText.Cloud" Version="3.1.0" />
+	  <PackageReference Include="AngleSharp" Version="0.17.1" />
+	  <PackageReference Include="CliWrap" Version="3.5.0" />
+	  <PackageReference Include="Devmasters.Args" Version="4.1.1" />
+	  <PackageReference Include="Devmasters.Batch" Version="4.0.3" />
+	  <PackageReference Include="Devmasters.Core" Version="4.1.1" />
+	  <PackageReference Include="Devmasters.Crypto" Version="4.0.0" />
+	  <PackageReference Include="Devmasters.DT" Version="4.1.0" />
+	  <PackageReference Include="Devmasters.Lang" Version="4.0.2" />
+	  <PackageReference Include="Devmasters.Logging" Version="4.0.2" />
+	  <PackageReference Include="Devmasters.Net" Version="4.2.1" />
+	  <PackageReference Include="Devmasters.SpeechToText" Version="4.0.0" />
+	  <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.3.0" />
+	  <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
+	  <PackageReference Include="IPNetwork2" Version="2.6.508" />
+	  <PackageReference Include="JsonSubTypes" Version="2.0.1" />
+	  <PackageReference Include="KaldiASR.SpeechToText" Version="4.0.0" />
+	  <PackageReference Include="log4net" Version="2.0.15" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="7.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+	  <PackageReference Include="Newton.SpeechToText.Cloud" Version="4.0.0" />
   
   </ItemGroup>
 
@@ -57,7 +57,7 @@
     <None Update="Logger.serilog.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="youtube-dl.exe">
+    <None Update="yt-dlp.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
