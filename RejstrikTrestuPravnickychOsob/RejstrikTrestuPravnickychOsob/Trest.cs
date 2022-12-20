@@ -1,15 +1,14 @@
-﻿using HlidacStatu.Api.Dataset.Connector;
-using System;
+﻿using System;
 using System.Linq;
 
 namespace RejstrikTrestuPravnickychOsob
 {
-    public class Trest : IDatasetItem
+    public class Trest 
     {
         static System.Text.RegularExpressions.RegexOptions options = ((System.Text.RegularExpressions.RegexOptions.IgnorePatternWhitespace | System.Text.RegularExpressions.RegexOptions.Multiline)
             | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-        System.Text.RegularExpressions.Regex regZakon = new System.Text.RegularExpressions.Regex("(?<cislo>\\d*)/(?<rok>\\d*)", options);
+        System.Text.RegularExpressions.Regex regZakon = new System.Text.RegularExpressions.Regex("(?<cislo>\\d*([a-z]?))/(?<rok>\\d*)", options);
 
 
         public Trest() { }
@@ -58,7 +57,7 @@ namespace RejstrikTrestuPravnickychOsob
                 {
                     Zakon = new paragraf.zakon(){
                         Rok =Convert.ToInt32(regZakon.Match(m.paragrafCisel.zakon.zkratka).Groups["rok"]?.Value ),
-                        ZakonCislo = Convert.ToInt32(regZakon.Match(m.paragrafCisel.zakon.zkratka).Groups["cislo"].Value),
+                        ZakonCislo = regZakon.Match(m.paragrafCisel.zakon.zkratka).Groups["cislo"].Value,
                         OdstavecPismeno = m.paragrafCisel.odstavecPismeno,
                         ParagrafCislo = m.paragrafCisel.paragrafCislo
                         },
@@ -85,6 +84,27 @@ namespace RejstrikTrestuPravnickychOsob
                                     DruhText = druh.Value,
                                 };
                             }
+                            var vymery = m.Items.FirstOrDefault(d => d.GetType() == typeof(RejstrikTrestuPravnickychOsob.VypisXML.vymery)) as RejstrikTrestuPravnickychOsob.VypisXML.vymery;
+                            if (vymery != null)
+                                t.vymery = vymery.vymera?.Select(m => new vymera()
+                                {
+                                    PolozkaText = m.polozka?.Value,
+                                    PolozkaZkratka = m.polozka?.zkratka,
+                                    SkupinaText = m.skupina?.Value,
+                                    SkupinaZkratka = m.skupina?.zkratka,
+                                    Hodnota = m.hodnota,
+                                }).ToArray();
+
+                            var prubehy = m.Items.FirstOrDefault(d => d.GetType() == typeof(RejstrikTrestuPravnickychOsob.VypisXML.prubehy)) as RejstrikTrestuPravnickychOsob.VypisXML.prubehy;
+                            if (prubehy != null)
+                                t.prubehy = prubehy.prubeh?.Select(m => new prubeh()
+                                {
+                                    PolozkaText = m.polozka?.Value,
+                                    PolozkaZkratka = m.polozka?.zkratka,
+                                    SkupinaText = m.skupina?.Value,
+                                    SkupinaZkratka = m.skupina?.zkratka,
+                                    Hodnota = m.hodnota,
+                                }).ToArray();
                             return t;
                         }
                     )
@@ -115,6 +135,37 @@ namespace RejstrikTrestuPravnickychOsob
             public string Druh { get; set; }
             public string DruhText { get; set; }
 
+            public vymera[] vymery { get;set; }
+            public prubeh[] prubehy { get; set; }
+
+        }
+        public class vymera
+        {
+            public string SkupinaZkratka { get; set; }
+            public string SkupinaText { get; set; }
+
+            public string PolozkaZkratka { get; set; }
+            public string PolozkaText { get; set; }
+
+            public string Hodnota { get; set; }
+        }
+
+        public class prubeh
+        {
+            public string SkupinaZkratka { get; set; }
+            public string SkupinaText { get; set; }
+
+            public string PolozkaZkratka { get; set; }
+            public string PolozkaText { get; set; }
+
+            public string Hodnota { get; set; }
+        }
+
+        public class ZkratkaText
+        {
+            public string Zkratka { get; set; }
+            public string Text { get; set; }
+
         }
 
         public class soud
@@ -131,8 +182,8 @@ namespace RejstrikTrestuPravnickychOsob
             public class zakon
             {
                 public int Rok { get; set; }
-                public int ZakonCislo { get; set; }
-                public int ParagrafCislo { get; set; }
+                public string ZakonCislo { get; set; }
+                public string ParagrafCislo { get; set; }
                 public string OdstavecPismeno { get; set; }
             }
             public string ZakonPopis { get; set; }

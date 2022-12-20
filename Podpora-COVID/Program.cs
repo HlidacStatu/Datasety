@@ -10,7 +10,8 @@ using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using Google.Apis.Util.Store;
-using HlidacStatu.Api.Dataset.Connector;
+
+using HlidacStatu.Api.V2.CoreApi;
 
 namespace Podpora_COVID
 {
@@ -18,7 +19,6 @@ namespace Podpora_COVID
     {
 
         public class pomoc
-            : HlidacStatu.Api.Dataset.Connector.IDatasetItem
         {
             public string Id { get; set; }
             public string ministerstvo { get; set; }
@@ -33,7 +33,7 @@ namespace Podpora_COVID
 
         }
 
-
+        private const string DatasetNameId = "pomoc-covid";
         static string[] Scopes = { SheetsService.Scope.SpreadsheetsReadonly };
         static void Main(string[] args)
         {
@@ -65,9 +65,7 @@ namespace Podpora_COVID
                 ApplicationName = "Podpora-COVID-Update",
             });
 
-            var ds = new HlidacStatu.Api.Dataset.Connector.DatasetConnector(
-                                System.Configuration.ConfigurationManager.AppSettings["apikey"]
-                                );
+            var ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<pomoc>.OpenDataset(System.Configuration.ConfigurationManager.AppSettings["apikey"], DatasetNameId);
             //ds.SetDeveleperUrl("http://local.hlidacstatu.cz/api/v1");
 
             //
@@ -91,9 +89,9 @@ namespace Podpora_COVID
                         p.ministerstvo = row[1].ToString();
                         p.typ_pomoci = row[2].ToString();
                         p.program = row[3].ToString();
-                        p.odhadovana_celkova_vyse_v_mld_kc = decimal.Parse(row[4].ToString());
-                        p.vyplacena = decimal.Parse(row[5].ToString());
-                        p.pocet_subjektu = int.Parse(row[6].ToString().Replace(" ",""));
+                        p.odhadovana_celkova_vyse_v_mld_kc = decimal.TryParse(row[4].ToString(), out var dd) ? decimal.Parse(row[4].ToString()) : 0 ;
+                        p.vyplacena = decimal.TryParse(row[5].ToString(), out var dd1) ?  decimal.Parse(row[5].ToString()) : 0;
+                        p.pocet_subjektu = int.Parse(row[6].ToString().Replace(" ","").Replace(((char)160).ToString(),string.Empty));
                         p.udaj_ke_dni = DateTime.ParseExact(row[7].ToString(), "d.M.yyyy", System.Globalization.CultureInfo.GetCultureInfo("cs-CZ"));
                         if (row.Count > 8)
                         {
@@ -107,7 +105,7 @@ namespace Podpora_COVID
                         if (p.typ_pomoci.Length > 5)
                         {
                             Console.WriteLine(p.Id);
-                            var id = ds.AddItemToDataset<pomoc>("pomoc-covid", p, HlidacStatu.Api.Dataset.Connector.DatasetConnector.AddItemMode.Rewrite).Result;
+                            var id = ds.AddOrUpdateItem(p, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                         }
                     }
                 }

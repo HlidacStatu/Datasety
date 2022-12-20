@@ -1,5 +1,4 @@
 ﻿using CsvHelper;
-using HlidacStatu.Api.Dataset.Connector;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Generation;
@@ -18,7 +17,7 @@ namespace StenozaznamyPSP
     class Program
     {
         static string apikey = System.Configuration.ConfigurationManager.AppSettings["apikey"];
-        static HlidacStatu.Api.Dataset.Connector.DatasetConnector dsc;
+        static HlidacStatu.Api.V2.Dataset.Typed.Dataset<Steno> dsc;
         internal static Random rnd = new Random();
 
         static void Help()
@@ -50,6 +49,8 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
             {
                 Help(); return;
             }
+
+
             int daysBack = 3;
             if (arguments.TryGetValue("/daysback", out argValue))
                 daysBack = Convert.ToInt32(argValue);
@@ -71,21 +72,11 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                 schuze = Convert.ToInt32(argValue);
 
 
-            dsc = new HlidacStatu.Api.Dataset.Connector.DatasetConnector(apikey);
 
+            dsc = HlidacStatu.Api.V2.Dataset.Typed.Dataset<Steno>.OpenDataset(apikey,"stenozaznamy-psp");
             //create dataset
-            var dsDef = Ds();
 
-            string datasetid = dsDef.DatasetId;
-            if (apikey != "csv")
-            {
-                if (!dsc.DatasetExists<Steno>(dsDef).Result)
-                    datasetid = dsc.CreateDataset<Steno>(dsDef).Result;
-                else
-                {
-                    //dsc.UpdateDataset<Steno>(dsDef).Result;
-                }
-            }
+            string datasetid = "stenozaznamy-psp";
 
             //var data = ParsePSPWeb.ParseSchuze(2010, 5).ToArray();
             //System.Diagnostics.Debugger.Break();
@@ -131,8 +122,9 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                     {
                         if (rewrite == false)
                         {
-                            var exists = dsc.GetItemFromDataset<Steno>(dsDef.DatasetId, item.Id).Result;
-                            continue; //exists, skip
+                            var exists = dsc.ItemExists(item.Id);
+                            if (exists)
+                                continue; //exists, skip
                         }
                     }
                     catch (Exception) //doesnt exists
@@ -168,11 +160,11 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                             csv.Flush();
                     }
                     else
-                        SaveItem(dsDef, item, true);
+                        SaveItem(item, true);
                 }
 
                 return new Devmasters.Batch.ActionOutputData();
-            }, true);
+            }, !System.Diagnostics.Debugger.IsAttached);
 
             if (apikey == "csv")
             {
@@ -202,90 +194,8 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
 
 
 
-        [Obsolete()]
-        static void _getData(Dataset<Steno> ds, string datasetId, string fn, bool rewrite = false)
-        {
-
-
-
-            int num = 0;
-            int skip = 0;
-            using (var reader = new StreamReader(fn))
-            {
-                using (var csv = new CsvReader(reader,
-                    new CsvHelper.Configuration.Configuration()
-                    {
-                        HasHeaderRecord = true,
-                        Delimiter = ","
-                    }
-                        )
-                    )
-                {
-                    csv.Read();
-                    csv.ReadHeader();
-
-                    while (csv.Read())
-                    {
-                        //csv rok,datum,schuze,fn,autor,funkce,tema,text
-                        var item = new Steno()
-                        {
-                            obdobi = csv.GetField<int>("rok"),
-                            datum = null,
-                            schuze = csv.GetField<int>("schuze"),
-                            url = csv.GetField<string>("fn"),
-                            celeJmeno = csv.GetField<string>("autor"),
-                            funkce = csv.GetField<string>("funkce"),
-                            tema = csv.GetField<string>("tema"),
-                            text = csv.GetField<string>("text"),
-                        };
-
-                        if (rewrite == false && num == 0) //first line
-                        {
-                            //find latest item already in DB
-                            var last = dsc.SearchItemsInDataset<Steno>(ds.DatasetId, $"rok_zahajeni_vo:{item.obdobi}", 1, "DbCreated", true)
-                                .Result.results.FirstOrDefault();
-
-                            skip = last?.poradi ?? 0;
-
-                        }
-                        num++;
-                        if (num < skip - 10)
-                            continue;
-
-
-                        var osobaId = findInHS(item.celeJmeno, item.funkce);
-
-                        item.OsobaId = osobaId;
-
-                        //if (num % 50 == 0)
-                        //    Console.WriteLine($"{fn} - {num} records");
-
-                        int tries = 0;
-                    AddAgain:
-                        try
-                        {
-                            tries++;
-                            var id = dsc.AddItemToDataset<Steno>(ds, item, DatasetConnector.AddItemMode.Rewrite).Result;
-                            Console.WriteLine(id);
-
-                        }
-                        catch (Exception e)
-                        {
-                            if (tries < 300)
-                            {
-                                Console.Write(".");
-                                System.Threading.Thread.Sleep(10 * 1000);
-                                goto AddAgain;
-                            }
-                            else
-                                Console.WriteLine(e.Message);
-                        }
-                    }
-                }
-            }
-        }
-
-        static void SaveItem(Dataset<Steno> ds, Steno item, bool loadOsobaId)
+    
+        static void SaveItem( Steno item, bool loadOsobaId)
         {
 
             if (string.IsNullOrEmpty(item.OsobaId) && loadOsobaId)
@@ -300,7 +210,7 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
             try
             {
                 tries++;
-                var id = dsc.AddItemToDataset<Steno>(ds, item, DatasetConnector.AddItemMode.Rewrite).Result;
+                var id = dsc.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                 Console.Write("s");
 
             }
@@ -355,148 +265,6 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                 }
             }
             return string.Empty;
-        }
-
-
-        private static Dataset<Steno> Ds()
-        {
-            return new HlidacStatu.Api.Dataset.Connector.Dataset<Steno>(
-                    "Stenozáznamy Poslanecké sněmovny Parlamentu ČR", "stenozaznamy-psp", "http://www.psp.cz", "Stenozáznamy (těsnopisecké záznamy) jednání Poslanecké sněmovny a jejích orgánů. S využitím Open dat knihovny Ondřeje Kokeše https://github.com/kokes/od/tree/master/data/psp/steno",
-                    "https://github.com/HlidacStatu/Datasety/tree/master/StenozaznamyPSP",
-                    true, true,
-                    new string[,] {
-                        { "Podle data konání", "datum" },
-                        { "Podle osoby", "celeJmeno.keyword" },
-                        { "Podle délky projevu", "pocetSlov" },
-                        { "Podle pořadí projevu při schůzi", "Id.keyword" },
-                    },
-                    new Template()
-                    {
-                        Body = @"
-<!-- scriban {{ date.now }} -->   
-  <table class=""table table-hover"">                                                                                                                                                                                                                                
-    <thead>      
-      <tr>                                                                                                                                                                                                                                                                                                                                                                                                                
-        <th>Id        
-        </th>
-        <th>Datum        
-        </th>
-        <th>Schůze        
-        </th>
-        <th>Osoba                
-        </th>
-        <th>Téma                
-        </th>
-        <th>Délka projevu                
-        </th>
-        <th>Politici zmínění v projevu                
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      {{ for item in model.Result }}                                                                                                                                                                                                                                                                                                      
-      <tr>                
-        <td >                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-          <a href=""{{ fn_DatasetItemUrl item.Id }}"">Detail                    
-          </a>
-        </td>
-        <td >{{ fn_FormatDate item.datum }}                                                                                                                                                                                                                                                                                                                                                                                                        
-        </td>
-        <td>                                                                                                                                                                                                                                                                                                                                                                        
-          <a href=""/data/Hledat/stenozaznamy-psp?Q=obdobi%3A{{ item.obdobi }}%20AND%20schuze%3A{{ item.schuze}}&order=Id.keyword%20asc"">Schůze
-            {{ item.schuze }}/{{ item.obdobi}}                                                                                                                                                                                                                                                                                                                                                                        
-          </a>
-        </td>
-        <td style=""white-space: nowrap"">{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno """" }}                                                                                                                        
-        </td>
-        <td >{{ fn_ShortenText item.tema 50 }}                                                                                                                                                                                                                                
-        </td>
-        <td>{{  string.to_long item.pocetSlov | math.divided_by 200 | fn_Pluralize ""do minuty"" ""minuta"" ""{0} minuty"" ""{0} minut"" }}                                                                                                                                                                                                                
-        </td>
-        <td>
-          {{ if (item.politiciZminky && item.politiciZminky.size > 0) }}
-          {{ fn_RenderPersonNoLink item.politiciZminky[0] }}
-          {{ if item.politiciZminky.size > 1 }}{{ fn_Pluralize (item.politiciZminky.size-1) """" (""a "" + (fn_RenderPersonNoLink item.politiciZminky[1])) ""a {0} další politiky"" ""a {0} dalších politiků""  }}
-          {{ end }}
-          {{ end }}                                                                                                                                        
-        </td>
-      </tr>
-      {{ end }}                                                                
-    </tbody>
-  </table>
-
-
-"
-                    },
-                    new Template()
-                    {
-                        Body = @"
-<!-- scriban {{ date.now }} -->
-  {{this.item = model}}                                      
-  <h2> Schůze
-    {{ item.schuze }}/{{ item.obdobi}}                                                                  
-    <small>{{ fn_FormatDate item.datum }} 
-    </small>
-  </h2>
-  <h4>Téma                                                             
-    <i>{{ item.tema }}
-    </i>
-  </h4>
-  <div class=""panel panel-default"">                                                  
-    <div class=""panel-heading"">
-      <h3 class=""panel-title"">{{ fn_RenderPersonWithLink item.OsobaId item.celeJmeno """" }}
-        {{if item.funkce }}({{ item.funkce }} )
-        {{end}}(                                                                                        
-        <i>délka {{  string.to_long item.pocetSlov | math.divided_by 200 | fn_Pluralize ""do minuty"" ""minuta"" ""{0} minuty"" ""{0} minut"" }}                
-        </i>
-)      
-      </h3>
-    </div>
-    <div class=""panel-body"">                                                                             
-      <pre style=""font-size:90%;background:none;line-height:1.6em;"">
-        {{ fn_HighlightText highlightingData item.text ""text"" }}                                                                                                                                                                                                                                                                        
-      </pre>
-    </div>
-    <div class=""panel-footer"">
-      {{ if item.poradi > 1 }}                                                                                                                                                                                                            
-      <a href=""{{ item.obdobi + ""_""+item.schuze + ""_"" + (string.to_long item.poradi | math.minus 1 | object.format ""00000"" ) | fn_DatasetItemUrl  }}"" >&lt;&lt; Předchozí projev                  
-      </a>
-      {{else}}&nbsp;{{ end }}                                      
-      <a style=""padding-left:30px;"" href=""{{ item.obdobi + ""_""+item.schuze + ""_"" + (string.to_long item.poradi | math.plus 1 | object.format ""00000"" ) | fn_DatasetItemUrl  }}"" >Následující projev  &gt;&gt;                                                                                                                                                                                                                                               
-      </a>
-&nbsp;&nbsp;-&nbsp;&nbsp;                                          
-      <a href=""/data/Hledat/stenozaznamy-psp?Q=obdobi%3A{{ item.obdobi }}%20AND%20schuze%3A{{ item.schuze}}&order=Id.keyword%20asc"">Všechny projevy na schůzi
-        {{ item.schuze }}/{{ item.obdobi}}                                                                                                                                                                                                                                                                                                                                  
-      </a>
-    </div>
-  </div>
-  {{ if (item.politiciZminky && item.politiciZminky.size > 0) }}                      
-  <p>V projevu zmínění politici:            
-    <ul>{{for p in item.politiciZminky}}                                                                  
-      <li>{{ fn_RenderPersonWithLink2 p }}       
-(najít další zmínky                 
-        <a href='/data/hledat/stenozaznamy-psp?Q=OsobaId.keyword%3A{{item.OsobaId}}+AND+politiciZminky.keyword%3A{{p}}'>
-          {{ fn_RenderPersonNoLink item.OsobaId }} o
-          {{ fn_RenderPersonNoLink p }}
-        </a>
- a 
-        <a href='/data/hledat/stenozaznamy-psp?Q=OsobaId.keyword%3A{{p}}+AND+politiciZminky.keyword%3A{{item.OsobaId}}'>naopak                
-        </a>
-)                                    
-      </li>
-      {{end}}                            
-    </ul>
-  </p>
-  {{end}}            
-  <p class=""text-muted"">Zdroj:                                                                                                                                                                 
-    <a href=""{{ item.url }}"" target=""_blank"">{{ item.url }}                                                                                                                                                                                                    
-    </a>
-  </p>
-
-"
-                    }
-
-                    );
         }
 
 

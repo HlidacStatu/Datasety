@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Devmasters.Log;
+
 using HlidacStatu.Api.V2.CoreApi.Client;
 using HlidacStatu.Api.V2.Dataset;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema.Generation;
+
+using Serilog;
 
 namespace deMinimis
 {
@@ -15,19 +19,40 @@ namespace deMinimis
         public static Dictionary<string, string> args = new Dictionary<string, string>();
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<JednoduchaPodpora> ds = null;
 
+        public static Devmasters.Log.Logger logger = Devmasters.Log.Logger.CreateLogger("deMinimis",
+                    Devmasters.Log.Logger.DefaultConfiguration()
+                    .Enrich.WithProperty("codeversion", System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString())
+                    .AddFileLoggerFilePerLevel("/Data/Logs/deMinimis/", "slog.txt",
+                                      outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {SourceContext} [{Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
+                                      rollingInterval: RollingInterval.Day,
+                                      fileSizeLimitBytes: null,
+                                      retainedFileCountLimit: 9,
+                                      shared: true
+                                      )
+                    .WriteTo.Console()
+                   );
+
+        static Devmasters.Batch.MultiOutputWriter outputWriter =
+             new Devmasters.Batch.MultiOutputWriter(
+                Devmasters.Batch.Manager.DefaultOutputWriter,
+                new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Debug).OutputWriter
+             );
+
+        static Devmasters.Batch.MultiProgressWriter progressWriter =
+            new Devmasters.Batch.MultiProgressWriter(
+                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Write,
+                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Write
+            );
+
         static void Main(string[] arguments)
         {
             args = arguments
                 .Select(m => m.Split('='))
                 .ToDictionary(m => m[0].ToLower(), v => v.Length == 1 ? "" : v[1]);
 
-            int skip = 0;
-            if (args.ContainsKey("/skip"))
-                skip = int.Parse(args["/skip"]);
-
             int days = 30;
             if (args.ContainsKey("/days"))
-                skip = int.Parse(args["/days"]);
+                days = int.Parse(args["/days"]);
 
             var jsonGen = new JSchemaGenerator
             {
@@ -41,12 +66,12 @@ namespace deMinimis
                 "https://github.com/HlidacStatu/Datasety/tree/master/deMinimis/deMinimis",
                 "Centrální registr podpor malého rozsahu (Registr de minimis) slouží od pro evidenci podpor de minimis poskytovaných na základě přímo použitelných předpisů EU. Data Ministerstva zemědělství, dostupná pouze přes komplikované API, poskytujeme v jednoduché formě po jednotlivých podporách.",
                 genJsonSchema, betaversion: false, allowWriteAccess: false,
-                orderList: new string[,] { 
-                    { "Podle datumu poskytnutí podpory", "PodporaDatum" }, 
-                    { "Podle výše podpory v CZK", "PodporaCzk" }, 
-                    { "Podle výše podpory v EUR", "PodporaEur" }, 
+                orderList: new string[,] {
+                    { "Podle datumu poskytnutí podpory", "PodporaDatum" },
+                    { "Podle výše podpory v CZK", "PodporaCzk" },
+                    { "Podle výše podpory v EUR", "PodporaEur" },
                 },
-                defaultOrderBy:"PodporaDatum desc",
+                defaultOrderBy: "PodporaDatum desc",
                 searchResultTemplate: new ClassicTemplate.ClassicSearchResultTemplate()
                     .AddColumn("Podpora", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{item.Id}}</a>")
                     .AddColumn("Subjekt", "{{fn_RenderCompanyWithLink item.Ico}}")
@@ -86,9 +111,15 @@ namespace deMinimis
 
             if (args.ContainsKey("/missing"))
             {
-                AddMissingFromJsonDump();return;
+                AddMissingFromJsonDump(); return;
             }
 
+            if (args.ContainsKey("/subject"))
+            {
+                string subjectId = args["/subject"];
+                FixSubject(subjectId, true);
+                return;
+            }
 
             int[] changes = null;
             if (args.ContainsKey("/fn"))
@@ -102,27 +133,7 @@ namespace deMinimis
                 Devmasters.Batch.Manager.DoActionForAll<int>(changes,
                 szrId =>
                 {
-                    var podporyApi = DeMinimisCalls.GetSubjPerSubjectId(szrId.ToString());
-
-                    var podpory = JednoduchaPodpora.FromAPI(podporyApi);
-                    if (podpory != null)
-                    {
-                        foreach (var p in podpory)
-                        {
-                            try
-                            {
-                                if (!ds.ItemExists(p.Id.ToString()))
-                                {
-                                    ds.AddOrUpdateItem(p, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                ds.AddOrUpdateItem(p, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
-                            }
-
-                        }
-                    }
+                    FixSubject(szrId.ToString(), true); //pokud záznam existuje, bude přepsán (update)
 
                     return new Devmasters.Batch.ActionOutputData();
                 }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
@@ -130,6 +141,31 @@ namespace deMinimis
 
                 //AddMissingFromJsonDump();
 
+            }
+
+            static void FixSubject(string szrId, bool overwrite = false)
+            {
+                var podporyApi = DeMinimisCalls.GetSubjPerSubjectId(szrId);
+
+                var podpory = JednoduchaPodpora.FromAPI(podporyApi);
+                if (podpory != null)
+                {
+                    foreach (var p in podpory)
+                    {
+                        try
+                        {
+                            if (overwrite || !ds.ItemExists(p.Id.ToString()))
+                            {
+                                ds.AddOrUpdateItem(p, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            ds.AddOrUpdateItem(p, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                        }
+
+                    }
+                }
             }
 
             static void AddMissingFromJsonDump()

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using HlidacStatu.Api.Dataset.Connector;
 
 namespace Jednani_vlady
 {
@@ -17,7 +16,7 @@ namespace Jednani_vlady
         static string listUrl = "https://apps.odok.cz/djv-agenda-list?year={0}";
         static string agendaUrl = "https://apps.odok.cz/djv-agenda?date={0}";
         static string usneseniUrl = "https://apps.odok.cz/zvlady/usneseni/-/usn/{0}/{1}";
-        public static void DownloadAllData(DatasetConnector dsc, int? fromYear = null)
+        public static void DownloadAllData(HlidacStatu.Api.V2.Dataset.Typed.Dataset<jednani> dsc, int? fromYear = null)
         {
             int ifromYear = fromYear ?? 2007;
             var years = Enumerable.Range(ifromYear, DateTime.Now.Year - ifromYear + 1);
@@ -30,8 +29,8 @@ namespace Jednani_vlady
                     agendy.AddRange(AgendaList(y).OrderBy(o=>o));
                     return new Devmasters.Batch.ActionOutputData();
                 }
-                , Devmasters.Batch.Manager.DefaultOutputWriter
-                , new Devmasters.Batch.ActionProgressWriter(0.1f).Write
+                , Program.outputWriter.OutputWriter
+                , Program.progressWriter.ProgressWriter
                 , false
                 , maxDegreeOfParallelism: 5
             );
@@ -50,7 +49,7 @@ namespace Jednani_vlady
                         try
                         {
                             Console.Write(j.Id + " L");
-                            exists = dsc.GetItemFromDataset<jednani>(datasetname, j.Id).Result;
+                            exists = dsc.GetItem(j.Id);
                         }
                         catch (Exception)
                         {
@@ -59,7 +58,7 @@ namespace Jednani_vlady
                         string id = "";
                         if (exists == null)
                         {
-                            id = dsc.AddItemToDataset(datasetname, j, DatasetConnector.AddItemMode.Rewrite).Result;
+                            id = dsc.AddOrUpdateItem(j, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                             totalSave++;
                             Console.Write("S");
                         }
@@ -84,7 +83,7 @@ namespace Jednani_vlady
 
                             if (replace)
                             {
-                                id = dsc.AddItemToDataset(datasetname, j, DatasetConnector.AddItemMode.Rewrite).Result;
+                                id = dsc.AddOrUpdateItem(j,  HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                                 Console.Write("S");
                                 totalSave++;
                             }
@@ -94,15 +93,15 @@ namespace Jednani_vlady
                     }
                     return new Devmasters.Batch.ActionOutputData();
                 }
-                , null //Devmasters.Core.Batch.Manager.DefaultOutputWriter
-                , null //new Devmasters.Core.Batch.ActionProgressWriter(0.1f).Write
+                , Program.outputWriter.OutputWriter
+                , Program.progressWriter.ProgressWriter
                 , false
                 , maxDegreeOfParallelism: 5, prefix:"AGENDY: "
             );
 
             Console.WriteLine();
             Console.WriteLine();
-            Console.WriteLine("TOtal saved: " + totalSave);
+            Program.logger.Info("TOtal saved {count}", totalSave);
 
         }
 
@@ -314,8 +313,8 @@ namespace Jednani_vlady
 
                     return new Devmasters.Batch.ActionOutputData();
                 }
-                , null
-                , null //new Devmasters.Core.Batch.ActionProgressWriter(0.1f).Write
+                , Program.outputWriter.OutputWriter
+                , Program.progressWriter.ProgressWriter
                 , true
                 , maxDegreeOfParallelism: 5, prefix:"DAT " + sdatum + ":"
             );
@@ -339,15 +338,30 @@ namespace Jednani_vlady
 
         public static string[] AgendaList(int year)
         {
-            using (var net = new Devmasters.Net.HttpClient.URLContent(string.Format(listUrl, year)))
+            string url = string.Format(listUrl, year);
+            using (var net = new Devmasters.Net.HttpClient.URLContent(url))
             {
                 net.UserAgent = Devmasters.Net.HttpClient.BrowserUserAgent.IE11;
                 //net.RequestParams.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
-                var html = net.GetContent().Text;
-                var xp = new XPath(html);
-                return xp.GetNodes("//div[@class='content-main']//a[starts-with(@href,'/djv-agenda')]")
-                    .Select(m => m.InnerText)
-                    .ToArray();
+                string html = "";
+                try
+                {
+                    html = net.GetContent(System.Text.Encoding.UTF8).Text;
+                    var xp = new XPath(html);
+                    return xp.GetNodes("//div[@class='content-main']//a[starts-with(@href,'/djv-agenda')]")
+                        .Select(m => m.InnerText)
+                        .ToArray();
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine();
+                    Program.logger.Error("Downloaded HTML from {url}\nHtml:{html}",e,url,html);
+                    Console.WriteLine(html);
+
+                    throw;
+                }
             }
         }
 

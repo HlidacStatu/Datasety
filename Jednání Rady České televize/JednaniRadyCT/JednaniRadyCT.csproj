@@ -2,25 +2,25 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Version>1.3.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Devmasters.Args" Version="2.0.4" />
-    <PackageReference Include="Devmasters.Batch" Version="2.1.3" />
-    <PackageReference Include="Devmasters.Core" Version="2.1.9" />
-    <PackageReference Include="Devmasters.Logging" Version="2.1.2" />
-    <PackageReference Include="Devmasters.Net" Version="2.1.5" />
-    <PackageReference Include="Devmasters.SpeechToText" Version="2.2.4" />
-    <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.2.0" />
-    <PackageReference Include="KaldiASR.SpeechToText" Version="2.2.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
-    <PackageReference Include="Newton.SpeechToText.Cloud" Version="2.2.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Devmasters.Args" Version="4.1.1" />
+    <PackageReference Include="Devmasters.Batch" Version="4.0.3" />
+    <PackageReference Include="Devmasters.Core" Version="4.1.1" />
+    <PackageReference Include="Devmasters.Logging" Version="4.0.2" />
+    <PackageReference Include="Devmasters.Net" Version="4.2.1" />
+    <PackageReference Include="Devmasters.SpeechToText" Version="4.0.0" />
+    <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.3.0" />
+    <PackageReference Include="KaldiASR.SpeechToText" Version="4.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+    <PackageReference Include="Newton.SpeechToText.Cloud" Version="4.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,6 +28,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Logger.log4net">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="yt-dlp.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

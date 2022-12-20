@@ -28,6 +28,7 @@ namespace RejstrikTrestuPravnickychOsob
 
 		public void Execute()
 		{
+			Program.logger.Info("Loading data from url");
 			var client = new HttpClient();
 			var content = client.GetStringAsync("https://eservice-po.rejtr.justice.cz/public/odsouzeni_xml").Result;
 
@@ -42,14 +43,27 @@ namespace RejstrikTrestuPravnickychOsob
 			List<Trest> tresty = new List<Trest>();
 			foreach (var item in data.vypis)
 			{
+				if (item.osobaPravnicka?.osobaPravnickaCeska?.ico == null)
+					continue;
+
 				var jd = new Trest(item);
 				tresty.Add(jd);
+
 			}
+			Program.logger.Info("Adding {count} records", tresty.Count);
 			foreach (var item in tresty)
 			{
-				DatasetConnector.Add(item).Wait();
+                try
+                {
+					DatasetConnector.Add(item).Wait();
 
-				Console.WriteLine($" - {item.ICO};{item.NazevFirmy}");
+					Console.WriteLine($" - {item.ICO};{item.NazevFirmy}");
+
+				}
+				catch (Exception e)
+                {
+					Console.WriteLine($" - {item.ICO};{e.ToString()}");
+                }
 			}
 		}
 	}

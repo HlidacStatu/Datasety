@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Jednani_vlady
 {
-    public class jednani : HlidacStatu.Api.Dataset.Connector.IDatasetItem
+    public class jednani 
     {
         public class dokument
         {

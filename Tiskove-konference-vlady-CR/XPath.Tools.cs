@@ -73,7 +73,7 @@ namespace Tiskove_konference_vlady_CR
                     return null;
                 HtmlNode n = GetNode(doc, xpath);
                 if (n != null)
-                    return Devmasters.Core.TextUtil.NormalizeToBlockText(System.Net.WebUtility.HtmlDecode(n.InnerText));
+                    return Devmasters.TextUtil.NormalizeToBlockText(System.Net.WebUtility.HtmlDecode(n.InnerText));
                 else
                     return null;
             }

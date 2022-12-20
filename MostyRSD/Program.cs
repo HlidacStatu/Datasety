@@ -1,6 +1,8 @@
-﻿using HlidacStatu.Api.Dataset.Connector;
+﻿
 using Newtonsoft.Json.Linq;
+
 using SharpKml.Dom;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,48 +14,40 @@ namespace MostyRSD
 {
     class Program
     {
-        static HlidacStatu.Api.Dataset.Connector.DatasetConnector dsc;
-        static void Main(string[] args)
+        static HlidacStatu.Api.V2.Dataset.Typed.Dataset<Most> ds = null;
+
+        static void Main(string[] arguments)
         {
-            dsc = new HlidacStatu.Api.Dataset.Connector.DatasetConnector( 
-                System.Configuration.ConfigurationManager.AppSettings["apikey"]
-                );
+            var args = new Devmasters.Args(arguments, new string[] { "/apikey" });
+
 
             //create dataset
-            var dsDef = new HlidacStatu.Api.Dataset.Connector.Dataset<Most>(
-                "Stav Mostů v ČR", "Stav-Mostu", "http://bms.clevera.cz/Public", "Stav mostů v ČR. V tuto chvíli na dálnicích a silnicích I.třídy, které spravuje ŘSD.", "https://github.com/HlidacStatu/Datasety/tree/master/MostyRSD",
-                false, true,
-                new string[,] { { "Stav mostů", "Stav" }, { "Poslední kontrola", "PosledniProhlidka" } },
-                new ClassicTemplate.ClassicSearchResultTemplate()
-                    .AddColumn("Označení", @"<a href=""@(fn_DatasetItemUrl(item.Id))"">@item.Oznaceni</a>")
-                    .AddColumn("Jméno", "@item.Jmeno")
-                    .AddColumn("Stav mostu", "@item.PopisStavu")
-                    .AddColumn("Poslední kontrola", "@fn_FormatDate(item.PosledniProhlidka,\"dd.MM.yyyy\")")
-                    .AddColumn("Mapa", "<a target='blank' href='https://mapy.cz/zakladni?q=@(fn_FormatNumber(item.GPS_Lat,\"en\")),@(fn_FormatNumber(item.GPS_Lng,\"en\"))'>na mapě</a>")
-                ,
-                new ClassicTemplate.ClassicDetailTemplate()
-                    .AddColumn("Jméno", "@item.Jmeno")
-                    .AddColumn("Místní název", "@item.MistniNazev")
-                    .AddColumn("Poslední kontrola", "@fn_FormatDate(item.PosledniProhlidka,\"dd.MM.yyyy\")")
-                    .AddColumn("Stav mostu", "@item.PopisStavu")
-                    .AddColumn("Spravuje", "@item.SpravaOrganizace, @item.SpravaProvozniUsek, @item.SpravaStredisko")
-                    .AddColumn("Souřadnice", "Lat: @(fn_FormatNumber(item.GPS_Lat,\"en\"))<br/>Long: @(fn_FormatNumber(item.GPS_Lng,\"en\"))")
-                    .AddColumn("Mapa", "<iframe src=\"https://api.mapy.cz/frame?params=%7B%22x%22%3A@(fn_FormatNumber(item.GPS_Lng,\"en\"))%2C%22y%22%3A@(fn_FormatNumber(item.GPS_Lat,\"en\"))%2C%22base%22%3A%221%22%2C%22layers%22%3A%5B%5D%2C%22zoom%22%3A16%2C%22url%22%3A%22https%3A%2F%2Fmapy.cz%2Fs%2F3auci%22%2C%22mark%22%3A%7B%22x%22%3A%22@(fn_FormatNumber(item.GPS_Lng,\"en\"))%22%2C%22y%22%3A%22@(fn_FormatNumber(item.GPS_Lat,\"en\"))%22%2C%22title%22%3A%22Poloha+mostu%22%7D%2C%22overview%22%3Atrue%7D&amp;width=500&amp;height=333&amp;lang=cs\" width=\"500\" height=\"333\" style=\"border:none\" frameBorder=\"0\"></iframe>")
-                );
 
+            if (!args.MandatoryPresent())
+            {
+                Console.WriteLine("MostyRSD /apikey=....");
+                return;
+            }
+            try
+            {
+                ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<Most>.OpenDataset(args["/apikey"], "stav-mostu");
 
-            //var datasetId = dsc.CreateDataset<Most>(dsDef).Result;
+            }
+            catch (HlidacStatu.Api.V2.CoreApi.Client.ApiException e)
+            {
+                //ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<Most>.CreateDataset(apiKey, reg);
 
-            //use this later for updating dataset
-            //var datasetId = dsc.UpdateDataset<Most>(dsDef).Result;
-
-
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
             //download, parse and save data into dataset
-            DownloadData(dsDef, "stav-mostu");
-            GenerateAllKML();
+            var mosty = DownloadData(ds);
+            GenerateAllKML(mosty);
         }
 
-        static void DownloadData(Dataset<Most> ds, string datasetId)
+        static List<Most> DownloadData(HlidacStatu.Api.V2.Dataset.Typed.Dataset<Most> ds)
         {
             HttpClient httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Accept.Clear();
@@ -141,13 +135,13 @@ namespace MostyRSD
                              System.Globalization.DateTimeStyles.AssumeLocal, out var datum))
                             m.PosledniProhlidka = datum;
                     }
-
-                    var id = dsc.AddItemToDataset<Most>(ds, m).Result;
+                    mosty.Add(m);
+                    var id = ds.AddOrUpdateItem(m, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
 
                 }
 
             });
-
+            return mosty;
         }
 
         public static string GetRegexGroupValue(string txt, string regex, string groupname)
@@ -165,28 +159,17 @@ namespace MostyRSD
             return string.Empty;
         }
 
-        static void GenerateAllKML()
+        static void GenerateAllKML(List<Most> mosty)
         {
             for (int i = 0; i < 8; i++)
             {
-                GenerateKML(i);
+                GenerateKML(i,mosty.Where(m=>m.Stav == i));
             }
         }
-            static void GenerateKML(int stav)
+        static void GenerateKML(int stav, IEnumerable<Most> data )
         {
 
             int page = 1;
-            SearchResult<Most> res = null;
-            List<Most> data = new List<Most>();
-            do
-            {
-                Console.WriteLine($"stav {stav} page {page}");
-                res = dsc.SearchItemsInDataset<Most>("stav-mostu", "Stav:" + stav, page).Result;
-                page++;
-                data.AddRange(res.results);
-
-                //break;
-            } while ((res?.results?.Count() ?? 0) > 0);
 
             Kml kml = new Kml();
 

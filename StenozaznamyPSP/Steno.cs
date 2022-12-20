@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace StenozaznamyPSP
 {
-    public class Steno : HlidacStatu.Api.Dataset.Connector.IDatasetItem
+    public class Steno 
     {
         //csv rok,datum,schuze,fn,autor,funkce,tema,text
 
