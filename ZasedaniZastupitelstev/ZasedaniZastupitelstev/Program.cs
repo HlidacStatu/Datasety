@@ -104,7 +104,7 @@ namespace ZasedaniZastupitelstev
             HttpClient httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("Authorization", apikey);
 
-            var jsonResult = httpClient.GetStringAsync("https://www.hlidacstatu.cz/api/v2/firmy/social?typ=Zaznam_zastupitelstva")
+            var jsonResult = httpClient.GetStringAsync("https://api.hlidacstatu.cz/api/v2/firmy/social?typ=Zaznam_zastupitelstva")
                         .Result;
             var firmy = Newtonsoft.Json.JsonConvert.DeserializeObject<firma[]>(jsonResult);
             if (!string.IsNullOrEmpty(ico) && !string.IsNullOrEmpty(playlist))

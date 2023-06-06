@@ -55,7 +55,7 @@ namespace ZasedaniZastupitelstev
                 Program.logger.Info("Starting Voice2Text from {filename} and rec {recId}", fnFile, recId);
 
                 using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
-                    $"https://www.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{datasetid}/{recId}")
+                    $"https://api.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{datasetid}/{recId}")
                 )
                 {
                     net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
