@@ -1,5 +1,5 @@
 ﻿using Devmasters.Log;
-
+using Devmasters.Net.Proxies;
 using HlidacStatu.Api.V2.CoreApi.Client;
 using HlidacStatu.Api.V2.Dataset;
 
@@ -220,7 +220,14 @@ namespace ZasedaniZastupitelstev
                             return new Devmasters.Batch.ActionOutputData();
                         if (vids == null || vids?.Count() == 0)
                         {
-                            if (!inName.Any(n => Devmasters.TextUtil.RemoveDiacritics(rec.nazev).ToLower().Contains(n)))
+                            bool okVideo = false;
+
+                            okVideo = inName.Any(n => Devmasters.TextUtil.RemoveDiacritics(rec.nazev).ToLower().Contains(n));
+                            okVideo = okVideo || inName.Any(n => Devmasters.TextUtil.RemoveDiacritics(rec.popis).ToLower().Contains(n));
+                            //vyjimky
+                            //usti
+                            okVideo = okVideo || (fIco == "00081531" && rec.nazev.Contains("ZM "));
+                            if (okVideo == false)
                             {
                                 logger.Info($"Name: {rec.nazev}\nSkip {rec.url} ");
                                 return new Devmasters.Batch.ActionOutputData();

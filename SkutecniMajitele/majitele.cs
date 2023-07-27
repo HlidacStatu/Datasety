@@ -56,12 +56,8 @@ namespace SkutecniMajitele
             }
             else
             {
-                var parts = maj.osoba_jmeno.Split(' ');
-                if (parts.Count() > 1)
-                {
-                    maj.osoba_jmeno = parts[0];
-                    maj.osoba_prijmeni = string.Join(' ', parts.Skip(1));
-                }
+                    maj.osoba_jmeno = maj.osoba_jmeno;
+                    maj.osoba_prijmeni = maj.osoba_prijmeni;
             }
 
             if (maj.osoba_datum_narozeni < minDate)
