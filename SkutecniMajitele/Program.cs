@@ -14,20 +14,7 @@ namespace SkutecniMajitele
 {
     class Program
     {
-        static Devmasters.Logging.Logger logger = new Devmasters.Logging.Logger("SkutecniMajitele");
-
-        static Devmasters.Batch.MultiOutputWriter outputWriter =
-    new Devmasters.Batch.MultiOutputWriter(
-        Devmasters.Batch.Manager.DefaultOutputWriter,
-        new Devmasters.Batch.LoggerWriter(logger, Devmasters.Logging.PriorityLevel.Debug).OutputWriter
-    );
-
-        static Devmasters.Batch.MultiProgressWriter progressWriter =
-            new Devmasters.Batch.MultiProgressWriter(
-                new Devmasters.Batch.ActionProgressWriter(1.0f,Devmasters.Batch.Manager.DefaultProgressWriter).Write,
-                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Logging.PriorityLevel.Information).ProgressWriter).Write
-            );
-
+        static Devmasters.Log.Logger logger = Devmasters.Log.Logger.CreateLogger("SkutecniMajitele");
 
         //static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitel_flat> ds_flat = null;
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele> ds = null;
