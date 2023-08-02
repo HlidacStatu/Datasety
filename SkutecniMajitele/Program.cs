@@ -1,10 +1,8 @@
 ﻿using HlidacStatu.Api.V2.CoreApi.Client;
 using HlidacStatu.Api.V2.Dataset;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Generation;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,10 +18,11 @@ namespace SkutecniMajitele
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele> ds = null;
         public static string apiKey = "";
         public static bool force = false;
+
         static void Main(string[] parameters)
         {
             var args = new Devmasters.Args(parameters);
-            logger.Info($"Starting with args {string.Join(' ',parameters)}");
+            logger.Info($"Starting with args {string.Join(' ', parameters)}");
 
             apiKey = args["/apikey"];
             force = args.Exists("/force");
@@ -35,18 +34,20 @@ namespace SkutecniMajitele
             var genJsonSchema = jsonGen.Generate(typeof(majitele)).ToString();
 
             HlidacStatu.Api.V2.CoreApi.Model.Registration reg = new HlidacStatu.Api.V2.CoreApi.Model.Registration(
-    "Skuteční majitelé firem", "skutecni-majitele",
-    "https://esm.justice.cz/",
-    "https://github.com/HlidacStatu/Datasety/tree/master/SkutecniMajitele",
-    "Evidence skutečných majitelů firem podle zákona č. 37/2021 Sb.",
-    genJsonSchema, betaversion: true, allowWriteAccess: false,
-    orderList: new string[,] {
+                "Skuteční majitelé firem", "skutecni-majitele",
+                "https://esm.justice.cz/",
+                "https://github.com/HlidacStatu/Datasety/tree/master/SkutecniMajitele",
+                "Evidence skutečných majitelů firem podle zákona č. 37/2021 Sb.",
+                genJsonSchema, betaversion: true, allowWriteAccess: false,
+                orderList: new string[,]
+                {
                     { "Podle datumu zápisu", "datum_zapis" },
                     { "Podle IČ subjektu", "ico" },
-    },
-    defaultOrderBy: "datum_zapis desc",
-
-    searchResultTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template() { Body = @"
+                },
+                defaultOrderBy: "datum_zapis desc",
+                searchResultTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template()
+                {
+                    Body = @"
 <!-- scriban {{ date.now }} --> 
 <table class=""table table-hover"">
                         <thead>
@@ -76,8 +77,11 @@ namespace SkutecniMajitele
 {{ end }}
 
 </tbody></table>
-" },
-    detailTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template() { Body = @"
+"
+                },
+                detailTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template()
+                {
+                    Body = @"
 <!-- scriban {{ date.now }} --> 
  {{this.item = model}}
 <table class=""table table-hover""><tbody>
@@ -114,9 +118,9 @@ namespace SkutecniMajitele
 </td></tr>
 </table>
 
-" }
-
-    );
+"
+                }
+            );
 
 
             try
@@ -125,43 +129,44 @@ namespace SkutecniMajitele
                 {
                     Configuration configuration = new Configuration();
                     configuration.AddDefaultHeader("Authorization", apiKey);
-                    HlidacStatu.Api.V2.CoreApi.DatasetyApi datasetyApi = new HlidacStatu.Api.V2.CoreApi.DatasetyApi(configuration);
+                    HlidacStatu.Api.V2.CoreApi.DatasetyApi datasetyApi =
+                        new HlidacStatu.Api.V2.CoreApi.DatasetyApi(configuration);
                     datasetyApi.ApiV2DatasetyDelete(reg.DatasetId);
                 }
-                ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele>.OpenDataset(apiKey, "skutecni-majitele");
 
+                ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele>.OpenDataset(apiKey, "skutecni-majitele");
             }
             catch (HlidacStatu.Api.V2.CoreApi.Client.ApiException e)
             {
                 ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele>.CreateDataset(apiKey, reg);
-
             }
             catch (Exception e)
             {
                 throw;
             }
+
             var wc = new System.Net.WebClient();
 
             var package_list = Newtonsoft.Json.Linq.JObject.Parse(
                 wc.DownloadString("https://dataor.justice.cz/api/3/action/package_list")
-                );
+            );
 
             var onlyCurrYears = package_list["result"]
-                .ToArray()
-                .Select(m => m.Value<string>())
-                .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"))
+                    .ToArray()
+                    .Select(m => m.Value<string>())
+                    .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"))
                 //.Where(m => m == "as-full-praha-2021") //DEBUG
                 ;
 
             Devmasters.Batch.Manager.DoActionForAll<string>(onlyCurrYears,
-            name =>
-            {
-                ProcessXML(args, name);
+                name =>
+                {
+                    ProcessXML(args, name);
 
-                return new Devmasters.Batch.ActionOutputData();
-            }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
-            !System.Diagnostics.Debugger.IsAttached, 
-            maxDegreeOfParallelism: 2, prefix: "Get XMLS ");
+                    return new Devmasters.Batch.ActionOutputData();
+                }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
+                !System.Diagnostics.Debugger.IsAttached,
+                maxDegreeOfParallelism: 2, prefix: "Get XMLS ");
         }
 
         private static void ProcessXML(Devmasters.Args args, string name)
@@ -195,8 +200,8 @@ namespace SkutecniMajitele
                 var serializer = new XmlSerializer(typeof(rawXML));
                 d = (rawXML)serializer.Deserialize(xmlReader);
             }
-            Console.WriteLine($"{d.Subjekt?.Count()} subjects");
 
+            Console.WriteLine($"{d.Subjekt?.Count()} subjects");
 
 
             Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(d.Subjekt
@@ -205,61 +210,56 @@ namespace SkutecniMajitele
                     var item = majitele.GetMajitele(subj);
                     if (item != null && item?.skutecni_majitele?.Count() > 0)
                     {
-                        if (!ds.ItemExists(item.ico) || force)
+                        //check change
+                        var old = ds.GetItem(item.ico);
+                        if (old != null)
+                        {
+                            var same = true;
+                            if (old.skutecni_majitele?.Count() != item.skutecni_majitele?.Count())
+                                same = false;
+                            else if (item.skutecni_majitele?.Count() == old.skutecni_majitele?.Count() &&
+                                     item.skutecni_majitele?.Count() > 0)
+                            {
+                                foreach (var sm in item.skutecni_majitele)
+                                {
+                                    same = same && old.skutecni_majitele.Any(m =>
+                                        m.osoba_jmeno == sm.osoba_jmeno
+                                        && m.osoba_prijmeni == sm.osoba_prijmeni
+                                        && m.osoba_datum_narozeni == sm.osoba_datum_narozeni
+                                        && m.osoba_titul_pred == sm.osoba_titul_pred
+                                        && m.osoba_titul_za == sm.osoba_titul_za
+                                        && m.adresa_cast_obce == sm.adresa_cast_obce
+                                        && m.adresa_cislo_ev == sm.adresa_cislo_ev
+                                        && m.adresa_cislo_or == sm.adresa_cislo_or
+                                        && m.adresa_cislo_po == sm.adresa_cislo_po
+                                        && m.adresa_obec == sm.adresa_obec
+                                        && m.adresa_okres == sm.adresa_okres
+                                        && m.adresa_psc == sm.adresa_psc
+                                        && m.adresa_stat_nazev == sm.adresa_stat_nazev
+                                        && m.adresa_text == sm.adresa_text
+                                        && m.adresa_ulice == sm.adresa_ulice
+                                        && !string.IsNullOrEmpty(m.osobaId)
+                                    );
+                                }
+
+                                if (same == false)
+                                {
+                                    item.UpdateOsobaId();
+                                    ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                                }
+                            }
+                        }
+                        else
                         {
                             item.UpdateOsobaId();
                             ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                         }
-                        else
-                        {
-                            //check change
-                            var old = ds.GetItem(item.ico);
-                            if (old != null)
-                            {
-                                var same = true;
-                                if (old.skutecni_majitele?.Count() != item.skutecni_majitele?.Count())
-                                    same = false;
-                                else if (item.skutecni_majitele?.Count() == old.skutecni_majitele?.Count() && item.skutecni_majitele?.Count()>0)
-                                {
-                                    foreach (var sm in item.skutecni_majitele)
-                                    {
-                                        same = same && old.skutecni_majitele.Any(m =>
-                                            m.osoba_jmeno == sm.osoba_jmeno
-                                            && m.osoba_prijmeni == sm.osoba_prijmeni
-                                            && m.osoba_datum_narozeni == sm.osoba_datum_narozeni
-                                            && m.osoba_titul_pred == sm.osoba_titul_pred
-                                            && m.osoba_titul_za == sm.osoba_titul_za
-                                            && m.adresa_cast_obce == sm.adresa_cast_obce
-                                            && m.adresa_cislo_ev == sm.adresa_cislo_ev
-                                            && m.adresa_cislo_or == sm.adresa_cislo_or
-                                            && m.adresa_cislo_po == sm.adresa_cislo_po
-                                            && m.adresa_obec == sm.adresa_obec
-                                            && m.adresa_okres == sm.adresa_okres
-                                            && m.adresa_psc == sm.adresa_psc
-                                            && m.adresa_stat_nazev == sm.adresa_stat_nazev
-                                            && m.adresa_text == sm.adresa_text
-                                            && m.adresa_ulice == sm.adresa_ulice
-                                            && !string.IsNullOrEmpty(m.osobaId)
-                                        );
-                                    }
-                                    if (same == false)
-                                    {
-                                        item.UpdateOsobaId();
-                                        ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
-                                    }
-                                }
-                            }
-                        }
                     }
+
                     return new Devmasters.Batch.ActionOutputData();
                 }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
-            !System.Diagnostics.Debugger.IsAttached, 
-            maxDegreeOfParallelism: 6, prefix: $"{name} ITEMS ");
-
-
-
-
-
+                !System.Diagnostics.Debugger.IsAttached,
+                maxDegreeOfParallelism: 6, prefix: $"{name} ITEMS ");
         }
 
         private static void DownloadFile(string name)
@@ -268,7 +268,6 @@ namespace SkutecniMajitele
             try
             {
                 wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", name + ".xml");
-
             }
             catch (Exception e1)
             {
@@ -279,8 +278,8 @@ namespace SkutecniMajitele
                 }
                 catch (Exception e2)
                 {
-
-                    Console.WriteLine($"Cannot download https://dataor.justice.cz/api/file/{name}.xml   ex:" + e2.Message);
+                    Console.WriteLine($"Cannot download https://dataor.justice.cz/api/file/{name}.xml   ex:" +
+                                      e2.Message);
                 }
             }
         }

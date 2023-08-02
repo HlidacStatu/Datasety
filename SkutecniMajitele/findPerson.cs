@@ -12,7 +12,7 @@ namespace SkutecniMajitele
         
         public static string GetOsobaId(string jmeno, string prijmeni, DateTime narozeni)
         {
-            string url = $"https://www.hlidacstatu.cz/api/v2/osoby/hledat?jmeno={System.Net.WebUtility.UrlEncode(jmeno)}&prijmeni={System.Net.WebUtility.UrlEncode(prijmeni)}&datumNarozeni={narozeni:yyyy-MM-dd}";
+            string url = $"https://api.hlidacstatu.cz/api/v2/osoby/hledat?jmeno={System.Net.WebUtility.UrlEncode(jmeno)}&prijmeni={System.Net.WebUtility.UrlEncode(prijmeni)}&datumNarozeni={narozeni:yyyy-MM-dd}";
             using (var net = new Devmasters.Net.HttpClient.URLContent(url))
             {
                 net.RequestParams.Headers.Add("Authorization", Program.apiKey);
