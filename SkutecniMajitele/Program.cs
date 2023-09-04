@@ -1,5 +1,6 @@
 ﻿using HlidacStatu.Api.V2.CoreApi.Client;
 using HlidacStatu.Api.V2.Dataset;
+using KellermanSoftware.CompareNetObjects;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Generation;
@@ -18,6 +19,7 @@ namespace SkutecniMajitele
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele> ds = null;
         public static string apiKey = "";
         public static bool force = false;
+        public static bool debug = false;
 
         static void Main(string[] parameters)
         {
@@ -26,6 +28,7 @@ namespace SkutecniMajitele
 
             apiKey = args["/apikey"];
             force = args.Exists("/force");
+            debug = args.Exists("/debug");
 
             var jsonGen = new JSchemaGenerator
             {
@@ -154,9 +157,11 @@ namespace SkutecniMajitele
             var onlyCurrYears = package_list["result"]
                     .ToArray()
                     .Select(m => m.Value<string>())
-                    .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"))
-                //.Where(m => m == "as-full-praha-2021") //DEBUG
-                ;
+                    .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"));
+
+            if (System.Diagnostics.Debugger.IsAttached)
+                onlyCurrYears = onlyCurrYears.Where(m => m.Contains("sro-full-brno")); //DEBUG
+                
 
             Devmasters.Batch.Manager.DoActionForAll<string>(onlyCurrYears,
                 name =>
@@ -203,47 +208,71 @@ namespace SkutecniMajitele
 
             Console.WriteLine($"{d.Subjekt?.Count()} subjects");
 
+            var subjs = d.Subjekt;
+            if (System.Diagnostics.Debugger.IsAttached)
+                subjs = d.Subjekt.Where(m => m.ico == "1708643").ToArray();
 
-            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(d.Subjekt
-                , subj =>
+            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(subjs, 
+                subj =>
                 {
+                    CompareLogic cl = new CompareLogic();
+                    cl.Config.IgnoreProperty<majitel_base>(m=>m.osobaId);
+
                     var item = majitele.GetMajitele(subj);
                     if (item != null && item?.skutecni_majitele?.Count() > 0)
                     {
+                        bool sameAll = true;
                         //check change
                         var old = ds.GetItem(item.ico);
                         if (old != null)
                         {
-                            var same = true;
                             if (old.skutecni_majitele?.Count() != item.skutecni_majitele?.Count())
-                                same = false;
+                                sameAll = false;
                             else if (item.skutecni_majitele?.Count() == old.skutecni_majitele?.Count() &&
                                      item.skutecni_majitele?.Count() > 0)
                             {
-                                foreach (var sm in item.skutecni_majitele)
+                                foreach (SkutecniMajitele.majitel_base sm in item.skutecni_majitele)
                                 {
-                                    same = same && old.skutecni_majitele.Any(m =>
-                                        m.osoba_jmeno == sm.osoba_jmeno
-                                        && m.osoba_prijmeni == sm.osoba_prijmeni
-                                        && m.osoba_datum_narozeni == sm.osoba_datum_narozeni
-                                        && m.osoba_titul_pred == sm.osoba_titul_pred
-                                        && m.osoba_titul_za == sm.osoba_titul_za
-                                        && m.adresa_cast_obce == sm.adresa_cast_obce
-                                        && m.adresa_cislo_ev == sm.adresa_cislo_ev
-                                        && m.adresa_cislo_or == sm.adresa_cislo_or
-                                        && m.adresa_cislo_po == sm.adresa_cislo_po
-                                        && m.adresa_obec == sm.adresa_obec
-                                        && m.adresa_okres == sm.adresa_okres
-                                        && m.adresa_psc == sm.adresa_psc
-                                        && m.adresa_stat_nazev == sm.adresa_stat_nazev
-                                        && m.adresa_text == sm.adresa_text
-                                        && m.adresa_ulice == sm.adresa_ulice
-                                        && !string.IsNullOrEmpty(m.osobaId)
-                                    );
+                                    bool same = false;
+                                    foreach (SkutecniMajitele.majitel_base oldSm in old.skutecni_majitele)
+                                    {
+                                        ComparisonResult result = cl.Compare(oldSm,sm);
+                                        bool areEq = result.AreEqual;
+/*                                        if (!areEq)
+                                        {
+                                            if (result.Differences.All(m => m.ChildPropertyName == "GetType()"))
+                                                areEq = true;
+                                        }
+*/
+                                        if (areEq)
+                                        {
+                                            same = true;
+                                            break;
+                                        }
+                                    }
+                                    if (same == false)
+                                    {
+                                        sameAll = false;
+                                        break;
+                                    }
+
                                 }
 
-                                if (same == false)
+
+                                if (sameAll == false)
                                 {
+                                    if (debug)
+                                    {
+                                        if (!System.IO.Directory.Exists("changes"))
+                                            System.IO.Directory.CreateDirectory("changes");
+                                        ComparisonResult result = cl.Compare(old, item);
+
+                                        Console.WriteLine("writing debug object changes for " + item.ico);
+
+                                        System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-old.json", Newtonsoft.Json.JsonConvert.SerializeObject(old, Formatting.Indented));
+                                        System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-new.json", Newtonsoft.Json.JsonConvert.SerializeObject(item, Formatting.Indented));
+                                        System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-changes.json", Newtonsoft.Json.JsonConvert.SerializeObject(result.Differences, Formatting.Indented));
+                                    }
                                     item.UpdateOsobaId();
                                     ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                                 }
