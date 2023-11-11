@@ -55,7 +55,9 @@ namespace RejstrikTrestuPravnickychOsob
 				return;
 			}
 
-			if (System.Diagnostics.Debugger.IsAttached )
+            var ctmp= HlidacStatu.Api.V2.Dataset.Typed.Dataset<Trest>.OpenDataset(token, "rejstrik-trestu-pravnickych-osob");
+
+            if (System.Diagnostics.Debugger.IsAttached )
 				System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("127.0.0.1", 8888);
 
 			var dataset = new Dataset(token);
