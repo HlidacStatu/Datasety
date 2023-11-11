@@ -4,10 +4,10 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyTitle>Jednani-vlady</AssemblyTitle>
-    <Product>Jednani-vlady</Product>
+    <AssemblyTitle>YoutubeToVyjadreniPolitikuCore</AssemblyTitle>
+    <Product>YoutubeToVyjadreniPolitikuCore</Product>
     <Copyright>Copyright ©  2020</Copyright>
-    <AssemblyVersion>1.7.0.0</AssemblyVersion>
+    <AssemblyVersion>2.0.1.1</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Devmasters.Args" Version="4.5.1" />
@@ -21,7 +21,7 @@
     <PackageReference Include="Devmasters.Net" Version="4.5.11" />
     <PackageReference Include="Devmasters.SpeechToText" Version="4.5.20" />
     <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.3.0.2" />
-    <PackageReference Include="HlidacStatu.Api.VoiceToText" Version="2.3.2" />
+    <PackageReference Include="HlidacStatu.Api.VoiceToText" Version="2.3.2.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.54" />
     <PackageReference Include="IPNetwork2" Version="2.6.618" />
     <PackageReference Include="JsonSubTypes" Version="2.0.1" />
@@ -46,5 +46,10 @@
     <PackageReference Include="System.Text.Encodings.Web" Version="7.0.0" />
     <PackageReference Include="System.Text.Json" Version="7.0.3" />
     <PackageReference Include="WeCantSpell.Hunspell" Version="4.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="yt-dlp.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

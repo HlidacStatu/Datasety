@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Devmasters.SpeechToText;
+using System.Text.RegularExpressions;
+using WordcabTranscribe.SpeechToText;
 
 namespace YoutubeToVyjadreniPolitiku
 {
@@ -20,10 +17,11 @@ namespace YoutubeToVyjadreniPolitiku
 
         //public static HlidacStatu.Api.V2.CoreApi.DatasetyApi api = null;
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<rec> api2 = null;
+        static HlidacStatu.Api.VoiceToText.Client v2tApi = null;
+        static HttpClient httpcl = new HttpClient();
+
         static void Main(string[] arguments)
         {
-
-            api2 = HlidacStatu.Api.V2.Dataset.Typed.Dataset<rec>.OpenDataset(System.Configuration.ConfigurationManager.AppSettings["apikey"], DataSetId);
 
             args = new Devmasters.Args(arguments, new string[] { "/mp3path" });
             logger.Info("Starting with params" + string.Join(" ", args.Arguments));
@@ -33,6 +31,9 @@ namespace YoutubeToVyjadreniPolitiku
 
             if (!args.MandatoryPresent())
             { Help(); return; }
+
+            api2 = HlidacStatu.Api.V2.Dataset.Typed.Dataset<rec>.OpenDataset(System.Configuration.ConfigurationManager.AppSettings["apikey"], DataSetId);
+
 
             string osobaId = args["/osobaid"];
 
@@ -51,6 +52,74 @@ namespace YoutubeToVyjadreniPolitiku
             HttpClient httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("Authorization", System.Configuration.ConfigurationManager.AppSettings["apikey"]);
 
+
+            //Prvni zkontroluj zpracovane VoiceToText
+            System.Net.Http.HttpClient.DefaultProxy = new System.Net.WebProxy("127.0.0.1", 8888);
+
+            Console.WriteLine("Loading voice2text results");
+            v2tApi = new HlidacStatu.Api.VoiceToText.Client(System.Configuration.ConfigurationManager.AppSettings["apikey"]);
+            var tasks = v2tApi.GetTasksAsync(1000, "vyjadreni-politiku", status: HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Done)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            if (tasks != null)
+            {
+                foreach (var task in tasks)
+                {
+                    Console.WriteLine($"procesing voice2text results for task {task.QId}");
+                    if (string.IsNullOrEmpty(task.Result))
+                        continue;
+                    WordcabTranscribe.SpeechToText.TranscribeResult res = System.Text.Json.JsonSerializer.Deserialize<WordcabTranscribe.SpeechToText.TranscribeResult>(
+                        task.Result, new System.Text.Json.JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+                    var text = res.ToTerms().ToText(true);
+                    if (text == "<EMPTY AUDIO>")
+                    {
+                        text = "";
+                        res.utterances = Array.Empty<TranscribeResult.Utterance>();
+                    }
+                    var prepis = res.ToTerms()
+                          .Select(t => new rec.Blok() { sekundOdZacatku = (long)t.TimestampInTS.TotalSeconds, text = t.Value })
+                          .ToArray();
+                    try
+                    {
+                        var vp_record = api2.GetItemSafe(task.CallerTaskId);
+                        if (vp_record != null && !string.IsNullOrEmpty(text))
+                        {
+                            Console.WriteLine($"procesing YT video title&Description for task {task.QId}");
+                            if (string.IsNullOrEmpty(vp_record.titulek))
+                            {
+                                //vezmi to z YT videa
+                                var ytrec = YTDL.GetVideoInfo(vp_record.url);
+                                if (ytrec != null)
+                                {
+                                    vp_record.titulek = ytrec.titulek;
+                                    vp_record.popis = ytrec.popis;
+                                }
+                                else
+                                {
+                                    System.Threading.Thread.Sleep(20000);
+                                    continue;//skip to next record
+                                }
+                            }
+
+                            vp_record.text = text;
+                            vp_record.prepisAudia = prepis;
+                            vp_record.pocetSlov = CountWords(text);
+                            Console.WriteLine($"saving prepis into dataset for task {task.QId}");
+                            _ = api2.AddOrUpdateItem(vp_record, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                        }
+                        Console.WriteLine($"changing status for task {task.QId}");
+                        bool ok = v2tApi.SetTaskStatusAsync(task.QId, HlidacStatu.DS.Api.Voice2Text.Task.CheckState.ResultTaken)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
+            }
+
+
             var jsonResult = httpClient.GetStringAsync("https://api.hlidacstatu.cz/api/v2/osoby/social?typ=Youtube")
                         .Result;
             var osoby = Newtonsoft.Json.JsonConvert.DeserializeObject<osoba[]>(jsonResult);
@@ -60,8 +129,8 @@ namespace YoutubeToVyjadreniPolitiku
                 foreach (var url in o.SocialniSite)
                 {
                     if (string.IsNullOrEmpty(osobaId))
-                        Process(o, url.Url, threads, max, vids,mp3path);
-                    else if (o.NameId== osobaId)
+                        Process(o, url.Url, threads, max, vids, mp3path);
+                    else if (o.NameId == osobaId)
                         Process(o, url.Url, threads, max, vids, mp3path);
                 }
             }
@@ -162,13 +231,32 @@ namespace YoutubeToVyjadreniPolitiku
                     bool exists_S2T = System.IO.File.Exists(newtonFn) || System.IO.File.Exists(dockerFn);
                     if (exists_S2T == false && rec.prepisAudia == null)
                     {
-                        using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
-                            $"https://api.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{recId}?priority=2")
-                        )
+                        var localUrl = $"https://somedata.hlidacstatu.cz/mp3/{DataSetId}/{rec.id}.mp3";
+                        var respLocal = httpcl.GetAsync(localUrl, HttpCompletionOption.ResponseHeadersRead)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                        if (respLocal.IsSuccessStatusCode)
                         {
-                            net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
-                            net.RequestParams.Headers.Add("Authorization", System.Configuration.ConfigurationManager.AppSettings["apikey"]);
-                            net.GetContent();
+                            //Console.WriteLine(localUrl);
+                            _ = v2tApi.AddNewTaskAsync(
+                                new HlidacStatu.DS.Api.Voice2Text.Options()
+                                {
+                                    datasetName = DataSetId,
+                                    itemId = rec.id,
+                                    audioOptions = new WordcabTranscribe.SpeechToText.AudioRequestOptions() { diarization = true, source_lang = "cs" }
+                                },
+                                new Uri(localUrl), DataSetId, rec.id, 2);
+
+                            if (false)
+                            {
+                                using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
+                                    $"https://api.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{recId}?priority=2")
+                                )
+                                {
+                                    net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
+                                    net.RequestParams.Headers.Add("Authorization", System.Configuration.ConfigurationManager.AppSettings["apikey"]);
+                                    net.GetContent();
+                                }
+                            }
                         }
                     }
                     if (exists_S2T && !(rec.prepisAudia?.Count() > 0))
@@ -203,7 +291,16 @@ namespace YoutubeToVyjadreniPolitiku
 
 
 
+        public static int CountWords(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                return 0;
+            }
 
+            MatchCollection matchCollection = Regex.Matches(s, "[\\S]+");
+            return matchCollection.Count;
+        }
         static void Help()
         {
             Console.WriteLine("YoutubeToVyjadreniPolitiku /osobaid= /mp3path= /playlist= /ids= /t= /max=");

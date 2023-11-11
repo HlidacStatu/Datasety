@@ -24,6 +24,8 @@ namespace YoutubeToVyjadreniPolitiku
         public string origid { get; set; }
         public string id { get; set; }
         public string url { get; set; }
+        public string titulek { get; set; }
+        public string popis { get; set; }
         public string text { get; set; }
         public int pocetSlov { get; set; }
         public string[] tags { get; set; }

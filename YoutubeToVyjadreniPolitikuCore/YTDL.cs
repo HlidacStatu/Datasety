@@ -191,7 +191,8 @@ namespace YoutubeToVyjadreniPolitiku
             rec.osobaid = "";//filled later
             rec.server = "Youtube";
             rec.typserveru = "video";
-            rec.text = info.title + "\n" + info.description;
+            rec.titulek = info.title;
+            rec.popis = info.description;
             rec.url = youtubeUrl;
             rec.tags = info.tags;
             return rec;
