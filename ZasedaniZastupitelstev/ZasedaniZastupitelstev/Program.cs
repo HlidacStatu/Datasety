@@ -1,8 +1,7 @@
 ﻿using Devmasters.Log;
-using Devmasters.Net.Proxies;
+using Devmasters.SpeechToText;
 using HlidacStatu.Api.V2.CoreApi.Client;
 using HlidacStatu.Api.V2.Dataset;
-
 using Microsoft.Extensions.Configuration;
 
 using Newtonsoft.Json;
@@ -15,9 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-
+using WordcabTranscribe.SpeechToText;
 
 namespace ZasedaniZastupitelstev
 {
@@ -62,6 +59,7 @@ namespace ZasedaniZastupitelstev
                 new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Writer
             );
 
+        public static HlidacStatu.Api.VoiceToText.Client v2tApi = null;
 
         static void Main(string[] arguments)
         {
@@ -101,10 +99,95 @@ namespace ZasedaniZastupitelstev
             System.IO.Directory.CreateDirectory(mp3path + @"\" + DataSetId);
 
 
-            HttpClient httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("Authorization", apikey);
+            try
+            {
+                api = HlidacStatu.Api.V2.Dataset.Typed.Dataset<Record>.OpenDataset(apikey, DataSetId);
 
-            var jsonResult = httpClient.GetStringAsync("https://api.hlidacstatu.cz/api/v2/firmy/social?typ=Zaznam_zastupitelstva")
+            }
+            catch (ApiException e)
+            {
+                //api = HlidacStatu.Api.V2.Dataset.Typed.Dataset<Record>.CreateDataset(apikey, Registration());
+
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+
+
+            //Prvni zkontroluj zpracovane VoiceToText
+            //System.Net.Http.HttpClient.DefaultProxy = new System.Net.WebProxy("127.0.0.1", 8888);
+            HttpClient apiHttpClient = new HttpClient();
+            apiHttpClient.DefaultRequestHeaders.Add("Authorization", apikey);
+
+            Console.WriteLine("Loading zasedani-zastupitelstev voice2text results");
+            v2tApi = new HlidacStatu.Api.VoiceToText.Client(apikey);
+            var tasks = v2tApi.GetTasksAsync(1000, DataSetId, status: HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Done)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+
+            if (tasks != null)
+            {
+                foreach (var task in tasks)
+                {
+                    Console.WriteLine($"procesing voice2text results for task {task.QId}");
+                    if (string.IsNullOrEmpty(task.Result))
+                        continue;
+                    WordcabTranscribe.SpeechToText.TranscribeResult res = System.Text.Json.JsonSerializer.Deserialize<WordcabTranscribe.SpeechToText.TranscribeResult>(
+                        task.Result, new System.Text.Json.JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+                    var text = res.ToTerms().ToText(true);
+                    if (text == "<EMPTY AUDIO>")
+                    {
+                        text = "";
+                        res.utterances = Array.Empty<TranscribeResult.Utterance>();
+                    }
+                    var prepis = res.ToTerms().ToTextWithTimestamps(TimeSpan.FromSeconds(20),speakerTagName:"speaker")
+                          .Select(t => new Record.Blok() { sekundOdZacatku = (long)t.Start.TotalSeconds, text = t.Text })
+                          .ToArray();
+                    try
+                    {
+                        var vp_record = api.GetItemSafe(task.CallerTaskId);
+                        if (vp_record != null && !string.IsNullOrEmpty(text))
+                        {
+                            Console.WriteLine($"procesing YT video title&Description for task {task.QId}");
+                            if (string.IsNullOrEmpty(vp_record.nazev))
+                            {
+                                //vezmi to z YT videa
+                                var ytrec = YTDL.GetVideoInfo(vp_record.url);
+                                if (ytrec != null)
+                                {
+                                    vp_record.nazev = ytrec.nazev;
+                                    vp_record.popis = ytrec.popis;
+                                }
+                                else
+                                {
+                                    System.Threading.Thread.Sleep(20000);
+                                    continue;//skip to next record
+                                }
+                            }
+
+                            //vp_record. = text;
+                            vp_record.PrepisAudia = prepis;
+                            //vp_record.pocetSlov = CountWords(text);
+                            Console.WriteLine($"saving prepis into dataset for task {task.QId}");
+                            _ = api.AddOrUpdateItem(vp_record, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+                        }
+                        Console.WriteLine($"changing status for task {task.QId}");
+                        bool ok = v2tApi.SetTaskStatusAsync(task.QId, HlidacStatu.DS.Api.Voice2Text.Task.CheckState.ResultTaken)
+                            .ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
+            }
+
+
+
+
+
+            var jsonResult = apiHttpClient.GetStringAsync("https://api.hlidacstatu.cz/api/v2/firmy/social?typ=Zaznam_zastupitelstva")
                         .Result;
             var firmy = Newtonsoft.Json.JsonConvert.DeserializeObject<firma[]>(jsonResult);
             if (!string.IsNullOrEmpty(ico) && !string.IsNullOrEmpty(playlist))
@@ -157,20 +240,6 @@ namespace ZasedaniZastupitelstev
             var apiConf = new HlidacStatu.Api.V2.CoreApi.Client.Configuration();
             apiConf.AddDefaultHeader("Authorization", apikey);
             apiConf.Timeout = 180 * 1000;
-            try
-            {
-                api = HlidacStatu.Api.V2.Dataset.Typed.Dataset<Record>.OpenDataset(apikey, DataSetId);
-
-            }
-            catch (ApiException e)
-            {
-                //api = HlidacStatu.Api.V2.Dataset.Typed.Dataset<Record>.CreateDataset(apikey, Registration());
-
-            }
-            catch (Exception e)
-            {
-                throw;
-            }
 
 
             List<string> videos = null;
@@ -243,38 +312,14 @@ namespace ZasedaniZastupitelstev
 
 
                     var mp3 = new MP3(mp3path, apikey);
-                    var blocks = mp3.CheckDownloadAndStartV2TOrGet(DataSetId, rec.id, vid);
-                    if (blocks != null)
-                    {
-                        var bs = blocks
-                           .Select(t => new Record.Blok() { sekundOdZacatku = (long)t.Start.TotalSeconds, text = t.Text })
-                           .ToArray();
+                    mp3.CheckDownloadAndStartV2TOrGet(DataSetId, rec.id, vid);
 
-                        changed = false;
-                        if (bs.Length != rec.PrepisAudia?.Length)
-                            changed = true;
-                        else
-                        {
-                            for (int i = 0; i < rec.PrepisAudia.Length; i++)
-                            {
-                                changed = changed || (bs[i].text != rec.PrepisAudia[i].text || bs[i].sekundOdZacatku != rec.PrepisAudia[i].sekundOdZacatku);
-                            }
-                        }
-                        if (changed)
-                        {
-                            Program.logger.Debug("Converted Text from rec {recId} changed", rec.id);
-                            rec.PrepisAudia = bs;
-                        }
-                    }
+                    Program.logger.Info("Saving converted Text into rec {recId}", rec.id);
+                    api.AddOrUpdateItem(rec, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
 
-                    if (changed)
-                    {
-                        Program.logger.Info("Saving converted Text into rec {recId}", rec.id);
-                        api.AddOrUpdateItem(rec, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
-                    }
                     return new Devmasters.Batch.ActionOutputData();
-                }, 
-                Program.outputWriter.OutputWriter, 
+                },
+                Program.outputWriter.OutputWriter,
                 Program.progressWriter.ProgressWriter,
                 !System.Diagnostics.Debugger.IsAttached, maxDegreeOfParallelism: threads
                 );

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,18 +18,20 @@ namespace ZasedaniZastupitelstev
         public string Mp3Path { get; }
         public string Apikey { get; }
 
-        public List<Devmasters.SpeechToText.VoiceToTextFormatter.TextWithTimestamp> CheckAndDownload(string datasetid, string recordid, string videourl)
+        public void CheckAndDownload(string datasetid, string recordid, string videourl)
         {
-            return _checkDownloadAndStartV2TOrGet(false, datasetid, recordid, videourl);
+            _checkDownloadAndStartV2T(false, datasetid, recordid, videourl);
         }
 
-        public List<Devmasters.SpeechToText.VoiceToTextFormatter.TextWithTimestamp> CheckDownloadAndStartV2TOrGet(string datasetid, string recordid, string videourl)
+        public void CheckDownloadAndStartV2TOrGet(string datasetid, string recordid, string videourl)
         {
-            return _checkDownloadAndStartV2TOrGet(true, datasetid, recordid, videourl);
+            _checkDownloadAndStartV2T(true, datasetid, recordid, videourl);
         }
-        private List<Devmasters.SpeechToText.VoiceToTextFormatter.TextWithTimestamp> _checkDownloadAndStartV2TOrGet(bool startV2T, string datasetid, string recordid, string videourl)
+
+        static HttpClient httpcl = new HttpClient();
+
+        private void _checkDownloadAndStartV2T(bool startV2T, string datasetid, string recordid, string videourl)
         {
-            List<Devmasters.SpeechToText.VoiceToTextFormatter.TextWithTimestamp> blocks = null;
 
             string recId = recordid;
             string fnFile = $"{Mp3Path}\\{datasetid}\\{recId}";
@@ -54,16 +57,25 @@ namespace ZasedaniZastupitelstev
             {
                 Program.logger.Info("Starting Voice2Text from {filename} and rec {recId}", fnFile, recId);
 
-                using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
-                    $"https://api.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{datasetid}/{recId}")
-                )
+                var localUrl = $"https://somedata.hlidacstatu.cz/mp3/{Program.DataSetId}/{recordid}.mp3";
+                var respLocal = httpcl.GetAsync(localUrl, HttpCompletionOption.ResponseHeadersRead)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                if (respLocal.IsSuccessStatusCode)
                 {
-                    net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
-                    net.RequestParams.Headers.Add("Authorization", Apikey);
-                    net.GetContent();
+                    //Console.WriteLine(localUrl);
+                    _ = Program.v2tApi.AddNewTaskAsync(
+                        new HlidacStatu.DS.Api.Voice2Text.Options()
+                        {
+                            datasetName = Program.DataSetId,
+                            itemId = recordid,
+                            audioOptions = new WordcabTranscribe.SpeechToText.AudioRequestOptions() { diarization = true, source_lang = "cs" }
+                        },
+                        new Uri(localUrl), Program.DataSetId, recordid, 2);
+
                 }
             }
 
+            /*
             if (exists_S2T)
             {
 
@@ -83,8 +95,8 @@ namespace ZasedaniZastupitelstev
 
                 }
             }
-
-            return blocks;
+            */
+            //return blocks;
 
         }
     }

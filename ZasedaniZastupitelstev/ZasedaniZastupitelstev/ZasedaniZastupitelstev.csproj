@@ -3,33 +3,35 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
-    <Version>1.4.0</Version>
+    <Version>1.5.0</Version>
   </PropertyGroup>
 
 
   <ItemGroup>
-	  <PackageReference Include="AngleSharp" Version="1.0.3" />
-	  <PackageReference Include="CliWrap" Version="3.6.3" />
-	  <PackageReference Include="Devmasters.Args" Version="4.1.1" />
-	  <PackageReference Include="Devmasters.Batch" Version="4.0.3" />
-	  <PackageReference Include="Devmasters.Core" Version="4.1.1" />
-	  <PackageReference Include="Devmasters.Crypto" Version="4.0.0" />
-	  <PackageReference Include="Devmasters.DT" Version="4.1.0" />
-	  <PackageReference Include="Devmasters.Lang" Version="4.0.2" />
-	  <PackageReference Include="Devmasters.Logging" Version="4.0.2" />
-	  <PackageReference Include="Devmasters.Net" Version="4.2.1" />
-	  <PackageReference Include="Devmasters.SpeechToText" Version="4.0.0" />
-	  <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.3.0" />
-	  <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
-	  <PackageReference Include="IPNetwork2" Version="2.6.589" />
+	  <PackageReference Include="AngleSharp" Version="1.0.6" />
+	  <PackageReference Include="CliWrap" Version="3.6.4" />
+	  <PackageReference Include="Devmasters.Args" Version="4.5.1" />
+	  <PackageReference Include="Devmasters.Batch" Version="4.5.2" />
+	  <PackageReference Include="Devmasters.Core" Version="4.5.1" />
+	  <PackageReference Include="Devmasters.Crypto" Version="4.5.1" />
+	  <PackageReference Include="Devmasters.DT" Version="4.5.3" />
+	  <PackageReference Include="Devmasters.Lang" Version="4.5.1" />
+	  <PackageReference Include="Devmasters.Logging" Version="4.5.27" />
+	  <PackageReference Include="Devmasters.Net" Version="4.5.11" />
+	  <PackageReference Include="Devmasters.SpeechToText" Version="4.5.22" />
+	  <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.3.0.2" />
+	  <PackageReference Include="HlidacStatu.Api.VoiceToText" Version="2.3.2.2" />
+	  <PackageReference Include="HtmlAgilityPack" Version="1.11.54" />
+	  <PackageReference Include="IPNetwork2" Version="2.6.618" />
 	  <PackageReference Include="JsonSubTypes" Version="2.0.1" />
-	  <PackageReference Include="KaldiASR.SpeechToText" Version="4.0.0" />
+	  <PackageReference Include="KaldiASR.SpeechToText" Version="4.5.1" />
 	  <PackageReference Include="log4net" Version="2.0.15" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="7.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
-	  <PackageReference Include="Newton.SpeechToText.Cloud" Version="4.0.0" />
+	  <PackageReference Include="Newton.SpeechToText.Cloud" Version="4.5.1" />
+	  <PackageReference Include="WordcabTranscribe.SpeechToText" Version="4.5.22" />
   
   </ItemGroup>
 
