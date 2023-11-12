@@ -54,7 +54,7 @@ namespace YoutubeToVyjadreniPolitiku
 
 
             //Prvni zkontroluj zpracovane VoiceToText
-            System.Net.Http.HttpClient.DefaultProxy = new System.Net.WebProxy("127.0.0.1", 8888);
+            //System.Net.Http.HttpClient.DefaultProxy = new System.Net.WebProxy("127.0.0.1", 8888);
 
             Console.WriteLine("Loading voice2text results");
             v2tApi = new HlidacStatu.Api.VoiceToText.Client(System.Configuration.ConfigurationManager.AppSettings["apikey"]);
@@ -259,6 +259,7 @@ namespace YoutubeToVyjadreniPolitiku
                             }
                         }
                     }
+                    /*
                     if (exists_S2T && !(rec.prepisAudia?.Count() > 0))
                     {
                         if (System.IO.File.Exists(dockerFn))
@@ -278,6 +279,7 @@ namespace YoutubeToVyjadreniPolitiku
 
                         }
                     }
+                    */
                     if (changed)
                         api2.AddOrUpdateItem(rec, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
 
