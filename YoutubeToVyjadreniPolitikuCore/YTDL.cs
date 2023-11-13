@@ -195,6 +195,7 @@ namespace YoutubeToVyjadreniPolitiku
             rec.popis = info.description;
             rec.url = youtubeUrl;
             rec.tags = info.tags;
+            rec.delka_s = info.duration;
             return rec;
         }
     }

@@ -237,26 +237,18 @@ namespace YoutubeToVyjadreniPolitiku
                         if (respLocal.IsSuccessStatusCode)
                         {
                             //Console.WriteLine(localUrl);
+                            bool diarization = false;
+                            if (rec.delka_s < 90 * 60)//90 min
+                                diarization = true;
                             _ = v2tApi.AddNewTaskAsync(
                                 new HlidacStatu.DS.Api.Voice2Text.Options()
                                 {
                                     datasetName = DataSetId,
                                     itemId = rec.id,
-                                    audioOptions = new WordcabTranscribe.SpeechToText.AudioRequestOptions() { diarization = true, source_lang = "cs" }
+                                    audioOptions = new WordcabTranscribe.SpeechToText.AudioRequestOptions() { diarization = diarization, source_lang = "cs" }
                                 },
                                 new Uri(localUrl), DataSetId, rec.id, 2);
 
-                            if (false)
-                            {
-                                using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(
-                                    $"https://api.hlidacstatu.cz/api/v2/internalq/Voice2TextNewTask/{DataSetId}/{recId}?priority=2")
-                                )
-                                {
-                                    net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
-                                    net.RequestParams.Headers.Add("Authorization", System.Configuration.ConfigurationManager.AppSettings["apikey"]);
-                                    net.GetContent();
-                                }
-                            }
                         }
                     }
                     /*

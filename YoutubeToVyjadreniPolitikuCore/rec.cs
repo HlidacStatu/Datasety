@@ -30,7 +30,7 @@ namespace YoutubeToVyjadreniPolitiku
         public int pocetSlov { get; set; }
         public string[] tags { get; set; }
         public Blok[] prepisAudia { get; set; }
-
+        public long? delka_s { get; set; }
     }
 
     public class Youtube_dl_video
