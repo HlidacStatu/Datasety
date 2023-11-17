@@ -7,11 +7,11 @@
     <AssemblyTitle>YoutubeToVyjadreniPolitikuCore</AssemblyTitle>
     <Product>YoutubeToVyjadreniPolitikuCore</Product>
     <Copyright>Copyright ©  2020</Copyright>
-    <AssemblyVersion>2.0.3.0</AssemblyVersion>
+    <AssemblyVersion>2.0.3.1</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Devmasters.Args" Version="4.5.1" />
-    <PackageReference Include="Devmasters.Batch" Version="4.6.0" />
+    <PackageReference Include="Devmasters.Batch" Version="4.6.0.2" />
     <PackageReference Include="Devmasters.Collections" Version="4.5.1.1" />
     <PackageReference Include="Devmasters.Core" Version="4.5.1" />
     <PackageReference Include="Devmasters.Crypto" Version="4.5.1.1" />
