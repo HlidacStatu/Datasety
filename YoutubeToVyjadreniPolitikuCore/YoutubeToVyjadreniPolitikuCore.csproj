@@ -7,7 +7,7 @@
     <AssemblyTitle>YoutubeToVyjadreniPolitikuCore</AssemblyTitle>
     <Product>YoutubeToVyjadreniPolitikuCore</Product>
     <Copyright>Copyright ©  2020</Copyright>
-    <AssemblyVersion>2.0.3.1</AssemblyVersion>
+    <AssemblyVersion>2.0.3.2</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Devmasters.Args" Version="4.5.1" />

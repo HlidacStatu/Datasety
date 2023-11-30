@@ -132,6 +132,9 @@ namespace ZasedaniZastupitelstev
                     Console.WriteLine($"procesing voice2text results for task {task.QId}");
                     if (string.IsNullOrEmpty(task.Result))
                         continue;
+                    if (task.Status == HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Error)
+                        continue;
+
                     WordcabTranscribe.SpeechToText.TranscribeResult res = System.Text.Json.JsonSerializer.Deserialize<WordcabTranscribe.SpeechToText.TranscribeResult>(
                         task.Result, new System.Text.Json.JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
                     var text = res.ToTerms().ToText(true);
