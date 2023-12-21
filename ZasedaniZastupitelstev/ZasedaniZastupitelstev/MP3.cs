@@ -62,13 +62,18 @@ namespace ZasedaniZastupitelstev
                     .ConfigureAwait(false).GetAwaiter().GetResult();
                 if (respLocal.IsSuccessStatusCode)
                 {
+                    var diarization = false;
+                    var duration = Devmasters.SpeechToText.Audio.Util.AudioDurationSafe(new Uri(localUrl));
+                    if (duration.HasValue && duration.Value.TotalHours < 1.1)
+                        diarization = true;
+
                     //Console.WriteLine(localUrl);
                     _ = Program.v2tApi.AddNewTaskAsync(
                         new HlidacStatu.DS.Api.Voice2Text.Options()
                         {
                             datasetName = Program.DataSetId,
                             itemId = recordid,
-                            audioOptions = new WordcabTranscribe.SpeechToText.AudioRequestOptions() { diarization = true, source_lang = "cs" }
+                            audioOptions = new WordcabTranscribe.SpeechToText.AudioRequestOptions() { diarization = diarization, source_lang = "cs" }
                         },
                         new Uri(localUrl), Program.DataSetId, recordid, 2);
 
