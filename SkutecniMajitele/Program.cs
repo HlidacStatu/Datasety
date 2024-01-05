@@ -1,11 +1,9 @@
 ﻿using HlidacStatu.Api.V2.CoreApi.Client;
-using HlidacStatu.Api.V2.Dataset;
 using KellermanSoftware.CompareNetObjects;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Generation;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Serialization;
 
@@ -25,6 +23,8 @@ namespace SkutecniMajitele
         {
             var args = new Devmasters.Args(parameters);
             logger.Info($"Starting with args {string.Join(' ', parameters)}");
+
+            //System.Net.Http.HttpClient.DefaultProxy = new System.Net.WebProxy("127.0.0.1", 8888);
 
             apiKey = args["/apikey"];
             force = args.Exists("/force");
@@ -160,8 +160,8 @@ namespace SkutecniMajitele
                     .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"));
 
             if (System.Diagnostics.Debugger.IsAttached)
-                onlyCurrYears = onlyCurrYears.Where(m => m.Contains("sro-full-brno")); //DEBUG
-                
+                onlyCurrYears = onlyCurrYears.Where(m => m.Contains("sro-full-praha")); //DEBUG
+
 
             Devmasters.Batch.Manager.DoActionForAll<string>(onlyCurrYears,
                 name =>
@@ -210,18 +210,18 @@ namespace SkutecniMajitele
 
             var subjs = d.Subjekt;
             if (System.Diagnostics.Debugger.IsAttached)
-                subjs = d.Subjekt.Where(m => m.ico == "1708643").ToArray();
+                subjs = d.Subjekt.Where(m => m.ico == "1901613").ToArray();
 
-            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(subjs, 
+            Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(subjs,
                 subj =>
                 {
                     CompareLogic cl = new CompareLogic();
-                    cl.Config.IgnoreProperty<majitel_base>(m=>m.osobaId);
+                    cl.Config.IgnoreProperty<majitel_base>(m => m.osobaId);
 
                     var item = majitele.GetMajitele(subj);
-                    if (item != null && item?.skutecni_majitele?.Count() > 0)
+                    bool sameAll = true;
+                    if (item != null)
                     {
-                        bool sameAll = true;
                         //check change
                         var old = ds.GetItem(item.ico);
                         if (old != null)
@@ -236,14 +236,14 @@ namespace SkutecniMajitele
                                     bool same = false;
                                     foreach (SkutecniMajitele.majitel_base oldSm in old.skutecni_majitele)
                                     {
-                                        ComparisonResult result = cl.Compare(oldSm,sm);
+                                        ComparisonResult result = cl.Compare(oldSm, sm);
                                         bool areEq = result.AreEqual;
-/*                                        if (!areEq)
-                                        {
-                                            if (result.Differences.All(m => m.ChildPropertyName == "GetType()"))
-                                                areEq = true;
-                                        }
-*/
+                                        /*                                        if (!areEq)
+                                                                                {
+                                                                                    if (result.Differences.All(m => m.ChildPropertyName == "GetType()"))
+                                                                                        areEq = true;
+                                                                                }
+                                        */
                                         if (areEq)
                                         {
                                             same = true;
@@ -259,30 +259,27 @@ namespace SkutecniMajitele
                                 }
 
 
-                                if (sameAll == false)
-                                {
-                                    if (debug)
-                                    {
-                                        if (!System.IO.Directory.Exists("changes"))
-                                            System.IO.Directory.CreateDirectory("changes");
-                                        ComparisonResult result = cl.Compare(old, item);
-
-                                        Console.WriteLine("writing debug object changes for " + item.ico);
-
-                                        System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-old.json", Newtonsoft.Json.JsonConvert.SerializeObject(old, Formatting.Indented));
-                                        System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-new.json", Newtonsoft.Json.JsonConvert.SerializeObject(item, Formatting.Indented));
-                                        System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-changes.json", Newtonsoft.Json.JsonConvert.SerializeObject(result.Differences, Formatting.Indented));
-                                    }
-                                    item.UpdateOsobaId();
-                                    ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
-                                }
                             }
                         }
-                        else
+
+                        if (sameAll == false)
                         {
+                            if (debug)
+                            {
+                                if (!System.IO.Directory.Exists("changes"))
+                                    System.IO.Directory.CreateDirectory("changes");
+                                ComparisonResult result = cl.Compare(old, item);
+
+                                Console.WriteLine("writing debug object changes for " + item.ico);
+
+                                System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-old.json", Newtonsoft.Json.JsonConvert.SerializeObject(old, Formatting.Indented));
+                                System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-new.json", Newtonsoft.Json.JsonConvert.SerializeObject(item, Formatting.Indented));
+                                System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-changes.json", Newtonsoft.Json.JsonConvert.SerializeObject(result.Differences, Formatting.Indented));
+                            }
                             item.UpdateOsobaId();
                             ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                         }
+
                     }
 
                     return new Devmasters.Batch.ActionOutputData();
