@@ -14,6 +14,7 @@
     <PackageReference Include="CompareNETObjects" Version="4.83.0" />
     <PackageReference Include="Devmasters.Args" Version="5.0.0" />
     <PackageReference Include="Devmasters.Batch" Version="5.0.0" />
+    <PackageReference Include="Devmasters.Core" Version="5.0.1" />
     <PackageReference Include="Devmasters.Crypto" Version="5.0.0" />
     <PackageReference Include="Devmasters.Net" Version="5.0.10" />
     <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.3.0.2" />
