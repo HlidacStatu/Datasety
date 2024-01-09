@@ -90,17 +90,26 @@ namespace YoutubeToVyjadreniPolitiku
                             Console.WriteLine($"procesing YT video title&Description for task {task.QId}");
                             if (string.IsNullOrEmpty(vp_record.titulek))
                             {
-                                //vezmi to z YT videa
-                                var ytrec = YTDL.GetVideoInfo(vp_record.url);
-                                if (ytrec != null)
+                                try
                                 {
-                                    vp_record.titulek = ytrec.titulek;
-                                    vp_record.popis = ytrec.popis;
+                                    //vezmi to z YT videa
+                                    var ytrec = YTDL.GetVideoInfo(vp_record.url);
+                                    if (ytrec != null)
+                                    {
+                                        vp_record.titulek = ytrec.titulek;
+                                        vp_record.popis = ytrec.popis;
+                                    }
+                                    else
+                                    {
+                                        System.Threading.Thread.Sleep(20000);
+                                        continue;//skip to next record
+                                    }
+
                                 }
-                                else
+                                catch (Exception e)
                                 {
-                                    System.Threading.Thread.Sleep(20000);
-                                    continue;//skip to next record
+
+                                    Console.WriteLine(e.Message);
                                 }
                             }
 
