@@ -64,8 +64,8 @@ namespace ZasedaniZastupitelstev
                 {
                     var diarization = false;
                     var duration = Devmasters.SpeechToText.Audio.Util.AudioDurationSafe(new Uri(localUrl));
-                    if (duration.HasValue && duration.Value.TotalHours < 1.1)
-                        diarization = true;
+                    //if (duration.HasValue && duration.Value.TotalHours < 1.1)
+                    //    diarization = true;
 
                     //Console.WriteLine(localUrl);
                     _ = Program.v2tApi.AddNewTaskAsync(
@@ -73,7 +73,9 @@ namespace ZasedaniZastupitelstev
                         {
                             datasetName = Program.DataSetId,
                             itemId = recordid,
-                            audioOptions = new WordcabTranscribe.SpeechToText.AudioRequestOptions() { diarization = diarization, source_lang = "cs" }
+                            
+                            diarization = diarization, 
+                            language = "cs" 
                         },
                         new Uri(localUrl), Program.DataSetId, recordid, 2);
 

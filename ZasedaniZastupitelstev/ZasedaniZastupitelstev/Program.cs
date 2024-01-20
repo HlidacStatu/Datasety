@@ -130,20 +130,14 @@ namespace ZasedaniZastupitelstev
                 foreach (var task in tasks)
                 {
                     Console.WriteLine($"procesing voice2text results for task {task.QId}");
-                    if (string.IsNullOrEmpty(task.Result))
+                    if (task.Result.Any() == false)
                         continue;
                     if (task.Status == HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Error)
                         continue;
 
-                    WordcabTranscribe.SpeechToText.TranscribeResult res = System.Text.Json.JsonSerializer.Deserialize<WordcabTranscribe.SpeechToText.TranscribeResult>(
-                        task.Result, new System.Text.Json.JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-                    var text = res.ToTerms().ToText(true);
-                    if (text == "<EMPTY AUDIO>")
-                    {
-                        text = "";
-                        res.utterances = Array.Empty<TranscribeResult.Utterance>();
-                    }
-                    var prepis = res.ToTerms().ToTextWithTimestamps(TimeSpan.FromSeconds(20),speakerTagName:"speaker")
+                    Term[] terms = task.Result;
+                    var text = terms.ToText(true);
+                    var prepis = terms.ToTextWithTimestamps(TimeSpan.FromSeconds(20),speakerTagName:"speaker")
                           .Select(t => new Record.Blok() { sekundOdZacatku = (long)t.Start.TotalSeconds, text = t.Text })
                           .ToArray();
                     try

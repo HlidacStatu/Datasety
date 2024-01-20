@@ -1,6 +1,5 @@
 ﻿using Devmasters.SpeechToText;
 using System.Text.RegularExpressions;
-using WordcabTranscribe.SpeechToText;
 
 namespace YoutubeToVyjadreniPolitiku
 {
@@ -66,20 +65,14 @@ namespace YoutubeToVyjadreniPolitiku
                 foreach (var task in tasks)
                 {
                     Console.WriteLine($"procesing voice2text results for task {task.QId}");
-                    if (string.IsNullOrEmpty(task.Result))
+                    if (task.Result.Any()==false)
                         continue;
                     if (task.Status == HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Error)
                         continue;
-                    
-                    WordcabTranscribe.SpeechToText.TranscribeResult res = System.Text.Json.JsonSerializer.Deserialize<WordcabTranscribe.SpeechToText.TranscribeResult>(
-                        task.Result, new System.Text.Json.JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-                    var text = res.ToTerms().ToText(true);
-                    if (text == "<EMPTY AUDIO>")
-                    {
-                        text = "";
-                        res.utterances = Array.Empty<TranscribeResult.Utterance>();
-                    }
-                    var prepis = res.ToTerms()
+
+                    Term[] terms = task.Result;
+                    var text = terms.ToText(true);
+                    var prepis = terms
                           .Select(t => new rec.Blok() { sekundOdZacatku = (long)t.TimestampInTS.TotalSeconds, text = t.Value })
                           .ToArray();
                     try
@@ -87,7 +80,7 @@ namespace YoutubeToVyjadreniPolitiku
                         var vp_record = api2.GetItemSafe(task.CallerTaskId);
                         if (vp_record != null && !string.IsNullOrEmpty(text))
                         {
-                            Console.WriteLine($"procesing YT video title&Description for task {task.QId}");
+                            Console.WriteLine($"procesing YT video title & Description for task {task.QId}");
                             if (string.IsNullOrEmpty(vp_record.titulek))
                             {
                                 try
@@ -101,8 +94,8 @@ namespace YoutubeToVyjadreniPolitiku
                                     }
                                     else
                                     {
-                                        System.Threading.Thread.Sleep(20000);
-                                        continue;//skip to next record
+                                        System.Threading.Thread.Sleep(2000);
+                                        //continue;//skip to next record
                                     }
 
                                 }
@@ -256,8 +249,9 @@ namespace YoutubeToVyjadreniPolitiku
                                 new HlidacStatu.DS.Api.Voice2Text.Options()
                                 {
                                     datasetName = DataSetId,
-                                    itemId = rec.id,
-                                    audioOptions = new WordcabTranscribe.SpeechToText.AudioRequestOptions() { diarization = diarization, source_lang = "cs" }
+                                    itemId = rec.id,                                     
+                                    diarization = diarization, 
+                                    language = "cs" 
                                 },
                                 new Uri(localUrl), DataSetId, rec.id, 2);
 
