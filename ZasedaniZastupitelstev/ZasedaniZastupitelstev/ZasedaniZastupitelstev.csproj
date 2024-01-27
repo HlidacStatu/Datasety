@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <Version>1.6.0.0</Version>
+    <Version>1.6.1.0</Version>
   </PropertyGroup>
 
 
@@ -18,21 +18,21 @@
 	  <PackageReference Include="Devmasters.Lang" Version="5.0.0" />
 	  <PackageReference Include="Devmasters.Logging" Version="5.0.0" />
 	  <PackageReference Include="Devmasters.Net" Version="5.0.10" />
-	  <PackageReference Include="Devmasters.SpeechToText" Version="5.0.0" />
+	  <PackageReference Include="Devmasters.SpeechToText" Version="5.1.0" />
 	  <PackageReference Include="Devmasters.SpeechToText.Audio" Version="5.0.1" />
 	  <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.3.0.2" />
-	  <PackageReference Include="HlidacStatu.Api.VoiceToText" Version="2.5.1.1" />
+	  <PackageReference Include="HlidacStatu.Api.VoiceToText" Version="2.5.1.2" />
 	  <PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
-	  <PackageReference Include="IPNetwork2" Version="3.0.643" />
+	  <PackageReference Include="IPNetwork2" Version="3.0.648" />
 	  <PackageReference Include="JsonSubTypes" Version="2.0.1" />
-	  <PackageReference Include="KaldiASR.SpeechToText" Version="5.0.0" />
+	  <PackageReference Include="KaldiASR.SpeechToText" Version="5.0.1" />
 	  <PackageReference Include="log4net" Version="2.0.15" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
-	  <PackageReference Include="Newton.SpeechToText.Cloud" Version="5.0.1" />
-	  <PackageReference Include="WordcabTranscribe.SpeechToText" Version="5.0.1" />
+	  <PackageReference Include="Newton.SpeechToText.Cloud" Version="5.0.2" />
+	  <PackageReference Include="WordcabTranscribe.SpeechToText" Version="5.0.2" />
   
   </ItemGroup>
 

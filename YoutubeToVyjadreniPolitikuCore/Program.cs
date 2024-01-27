@@ -62,7 +62,7 @@ namespace YoutubeToVyjadreniPolitiku
 
             if (tasks != null)
             {
-                foreach (var task in tasks)
+                foreach (var task in tasks.OrderBy(o=>o.Done))
                 {
                     Console.WriteLine($"procesing voice2text results for task {task.QId}");
                     if (task.Result.Any()==false)
@@ -117,8 +117,9 @@ namespace YoutubeToVyjadreniPolitiku
                             .ConfigureAwait(false).GetAwaiter().GetResult();
 
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
+                        Console.WriteLine($"exception {e}");
 
                     }
                 }
