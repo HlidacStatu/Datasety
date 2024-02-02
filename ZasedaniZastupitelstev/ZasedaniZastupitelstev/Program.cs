@@ -120,66 +120,73 @@ namespace ZasedaniZastupitelstev
             HttpClient apiHttpClient = new HttpClient();
             apiHttpClient.DefaultRequestHeaders.Add("Authorization", apikey);
 
-            Console.WriteLine("Loading zasedani-zastupitelstev voice2text results");
-            v2tApi = new HlidacStatu.Api.VoiceToText.Client(apikey);
-            var tasks = v2tApi.GetTasksAsync(1000, DataSetId, status: HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Done)
-                .ConfigureAwait(false).GetAwaiter().GetResult();
-
-            if (tasks != null)
+            v2tApi = new HlidacStatu.Api.VoiceToText.Client(apikey, timeOut: TimeSpan.FromMinutes(10));
+            HlidacStatu.DS.Api.Voice2Text.Task[] tasks = null;
+                
+            do
             {
-                foreach (var task in tasks)
+                Console.WriteLine("Loading zasedani-zastupitelstev voice2text results");
+
+                tasks = v2tApi.GetTasksAsync(10, DataSetId, status: HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Done)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
+                if (tasks != null)
                 {
-                    Console.WriteLine($"procesing voice2text results for task {task.QId}");
-                    if (task.Result.Any() == false)
-                        continue;
-                    if (task.Status == HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Error)
-                        continue;
-
-                    Term[] terms = task.Result;
-                    var text = terms.ToText(true);
-                    var prepis = terms.ToTextWithTimestamps(TimeSpan.FromSeconds(20),speakerTagName:"speaker")
-                          .Select(t => new Record.Blok() { sekundOdZacatku = (long)t.Start.TotalSeconds, text = t.Text })
-                          .ToArray();
-                    try
+                    foreach (var task in tasks)
                     {
-                        var vp_record = api.GetItemSafe(task.CallerTaskId);
-                        if (vp_record != null && !string.IsNullOrEmpty(text))
+                        Console.WriteLine($"procesing voice2text results for task {task.QId}");
+                        if (task.Result.Any() == false)
+                            continue;
+                        if (task.Status == HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Error)
+                            continue;
+
+                        Term[] terms = task.Result;
+                        var text = terms.ToText(true);
+                        var prepis = terms.ToTextWithTimestamps(TimeSpan.FromSeconds(20), speakerTagName: "speaker")
+                              .Select(t => new Record.Blok() { sekundOdZacatku = (long)t.Start.TotalSeconds, text = t.Text })
+                              .ToArray();
+                        try
                         {
-                            Console.WriteLine($"procesing YT video title&Description for task {task.QId}");
-                            if (string.IsNullOrEmpty(vp_record.nazev))
+                            var vp_record = api.GetItemSafe(task.CallerTaskId);
+                            if (vp_record != null && !string.IsNullOrEmpty(text))
                             {
-                                //vezmi to z YT videa
-                                var ytrec = YTDL.GetVideoInfo(vp_record.url);
-                                if (ytrec != null)
+                                Console.WriteLine($"procesing YT video title&Description for task {task.QId}");
+                                if (string.IsNullOrEmpty(vp_record.nazev))
                                 {
-                                    vp_record.nazev = ytrec.nazev;
-                                    vp_record.popis = ytrec.popis;
+                                    //vezmi to z YT videa
+                                    var ytrec = YTDL.GetVideoInfo(vp_record.url);
+                                    if (ytrec != null)
+                                    {
+                                        vp_record.nazev = ytrec.nazev;
+                                        vp_record.popis = ytrec.popis;
+                                    }
+                                    else
+                                    {
+                                        System.Threading.Thread.Sleep(20000);
+                                        continue;//skip to next record
+                                    }
                                 }
-                                else
-                                {
-                                    System.Threading.Thread.Sleep(20000);
-                                    continue;//skip to next record
-                                }
+
+                                //vp_record. = text;
+                                vp_record.PrepisAudia = prepis;
+                                //vp_record.pocetSlov = CountWords(text);
+                                Console.WriteLine($"saving prepis into dataset for task {task.QId}");
+                                _ = api.AddOrUpdateItem(vp_record, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                             }
+                            Console.WriteLine($"changing status for task {task.QId}");
+                            bool ok = v2tApi.SetTaskStatusAsync(task.QId, HlidacStatu.DS.Api.Voice2Text.Task.CheckState.ResultTaken)
+                                .ConfigureAwait(false).GetAwaiter().GetResult();
 
-                            //vp_record. = text;
-                            vp_record.PrepisAudia = prepis;
-                            //vp_record.pocetSlov = CountWords(text);
-                            Console.WriteLine($"saving prepis into dataset for task {task.QId}");
-                            _ = api.AddOrUpdateItem(vp_record, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                         }
-                        Console.WriteLine($"changing status for task {task.QId}");
-                        bool ok = v2tApi.SetTaskStatusAsync(task.QId, HlidacStatu.DS.Api.Voice2Text.Task.CheckState.ResultTaken)
-                            .ConfigureAwait(false).GetAwaiter().GetResult();
+                        catch (Exception)
+                        {
 
-                    }
-                    catch (Exception)
-                    {
-
+                        }
                     }
                 }
-            }
 
+            } while (tasks?.Any() == true);
+
+   
 
 
 
