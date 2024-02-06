@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using WordcabTranscribe.SpeechToText;
 
 namespace ZasedaniZastupitelstev
 {
@@ -122,7 +121,7 @@ namespace ZasedaniZastupitelstev
 
             v2tApi = new HlidacStatu.Api.VoiceToText.Client(apikey, timeOut: TimeSpan.FromMinutes(10));
             HlidacStatu.DS.Api.Voice2Text.Task[] tasks = null;
-                
+
             do
             {
                 Console.WriteLine("Loading zasedani-zastupitelstev voice2text results");
@@ -133,19 +132,20 @@ namespace ZasedaniZastupitelstev
                 {
                     foreach (var task in tasks)
                     {
-                        Console.WriteLine($"procesing voice2text results for task {task.QId}");
-                        if (task.Result.Any() == false)
-                            continue;
-                        if (task.Status == HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Error)
-                            continue;
-
-                        Term[] terms = task.Result;
-                        var text = terms.ToText(true);
-                        var prepis = terms.ToTextWithTimestamps(TimeSpan.FromSeconds(20), speakerTagName: "speaker")
-                              .Select(t => new Record.Blok() { sekundOdZacatku = (long)t.Start.TotalSeconds, text = t.Text })
-                              .ToArray();
                         try
                         {
+                            Console.WriteLine($"procesing voice2text results for task {task.QId}");
+                            if (task.Result.Any() == false)
+                                goto setstatus;
+
+                            if (task.Status == HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Error)
+                                continue;
+
+                            Term[] terms = task.Result;
+                            var text = terms.ToText(true);
+                            var prepis = terms.ToTextWithTimestamps(TimeSpan.FromSeconds(20), speakerTagName: "speaker")
+                                  .Select(t => new Record.Blok() { sekundOdZacatku = (long)t.Start.TotalSeconds, text = t.Text })
+                                  .ToArray();
                             var vp_record = api.GetItemSafe(task.CallerTaskId);
                             if (vp_record != null && !string.IsNullOrEmpty(text))
                             {
@@ -172,6 +172,8 @@ namespace ZasedaniZastupitelstev
                                 Console.WriteLine($"saving prepis into dataset for task {task.QId}");
                                 _ = api.AddOrUpdateItem(vp_record, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                             }
+
+                        setstatus:
                             Console.WriteLine($"changing status for task {task.QId}");
                             bool ok = v2tApi.SetTaskStatusAsync(task.QId, HlidacStatu.DS.Api.Voice2Text.Task.CheckState.ResultTaken)
                                 .ConfigureAwait(false).GetAwaiter().GetResult();
@@ -186,7 +188,7 @@ namespace ZasedaniZastupitelstev
 
             } while (tasks?.Any() == true);
 
-   
+
 
 
 

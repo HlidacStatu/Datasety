@@ -68,9 +68,12 @@ namespace YoutubeToVyjadreniPolitiku
                 {
                     foreach (var task in tasks.OrderBy(o => o.Done))
                     {
-                        Console.WriteLine($"procesing voice2text results for task {task.QId}");
+                        try
+                        {
+                            Console.WriteLine($"procesing voice2text results for task {task.QId}");
                         if (task.Result.Any() == false)
-                            continue;
+                            goto setstatus;
+
                         if (task.Status == HlidacStatu.DS.Api.Voice2Text.Task.CheckState.Error)
                             continue;
 
@@ -79,8 +82,6 @@ namespace YoutubeToVyjadreniPolitiku
                         var prepis = terms
                               .Select(t => new rec.Blok() { sekundOdZacatku = (long)t.TimestampInTS.TotalSeconds, text = t.Value })
                               .ToArray();
-                        try
-                        {
                             var vp_record = api2.GetItemSafe(task.CallerTaskId);
                             if (vp_record != null && !string.IsNullOrEmpty(text))
                             {
@@ -116,6 +117,8 @@ namespace YoutubeToVyjadreniPolitiku
                                 Console.WriteLine($"saving prepis into dataset for task {task.QId}");
                                 _ = api2.AddOrUpdateItem(vp_record, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                             }
+
+                            setstatus:
                             Console.WriteLine($"changing status for task {task.QId}");
                             bool ok = v2tApi.SetTaskStatusAsync(task.QId, HlidacStatu.DS.Api.Voice2Text.Task.CheckState.ResultTaken)
                                 .ConfigureAwait(false).GetAwaiter().GetResult();
