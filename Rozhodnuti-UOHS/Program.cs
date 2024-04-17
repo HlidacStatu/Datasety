@@ -149,7 +149,7 @@ namespace Rozhodnuti_UOHS
 
 
                                 //dohledat ICO
-                                var ico = httpClient.GetAsync("https://www.hlidacstatu.cz/api/v2/firmy/" + System.Net.WebUtility.UrlEncode(firmaJmeno))
+                                var ico = httpClient.GetAsync("https://api.hlidacstatu.cz/api/v2/firmy/" + System.Net.WebUtility.UrlEncode(firmaJmeno))
                                                 .Result.Content
                                                 .ReadAsStringAsync().Result;
                                 try
