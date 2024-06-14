@@ -1,6 +1,6 @@
 ﻿using Devmasters.Log;
 using Devmasters.SpeechToText;
-using HlidacStatu.Api.V2.CoreApi.Client;
+using HlidacStatu.Api.V2.Dataset.Client;
 using HlidacStatu.Api.V2.Dataset;
 using Microsoft.Extensions.Configuration;
 
@@ -243,8 +243,8 @@ namespace ZasedaniZastupitelstev
         {
             logger.Info("Starting {Ico} for {playlist} ", fIco, playlist);
 
-            var apiConf = new HlidacStatu.Api.V2.CoreApi.Client.Configuration();
-            apiConf.AddDefaultHeader("Authorization", apikey);
+            var apiConf = new HlidacStatu.Api.V2.Dataset.Client.Configuration();
+            apiConf.DefaultHeaders.Add("Authorization", apikey);
             apiConf.Timeout = 180 * 1000;
 
 
@@ -334,7 +334,7 @@ namespace ZasedaniZastupitelstev
         }
 
 
-        static HlidacStatu.Api.V2.CoreApi.Model.Registration Registration()
+        static HlidacStatu.Api.V2.Dataset.Model.Registration Registration()
         {
             var jsonGen = new JSchemaGenerator
             {
@@ -342,7 +342,7 @@ namespace ZasedaniZastupitelstev
             };
             var genJsonSchema = jsonGen.Generate(typeof(Record)).ToString();
 
-            HlidacStatu.Api.V2.CoreApi.Model.Registration reg = new HlidacStatu.Api.V2.CoreApi.Model.Registration(
+            HlidacStatu.Api.V2.Dataset.Model.Registration reg = new HlidacStatu.Api.V2.Dataset.Model.Registration(
                 "Jednání zastupitelstev", DataSetId,
                 "",
                 "https://github.com/HlidacStatu/Datasety/tree/master/deMinimis/ZasedaniZastupitelstev",

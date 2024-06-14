@@ -20,7 +20,7 @@
 	  <PackageReference Include="Devmasters.Net" Version="5.0.22" />
 	  <PackageReference Include="Devmasters.SpeechToText" Version="5.1.24" />
 	  <PackageReference Include="Devmasters.SpeechToText.Audio" Version="5.0.22" />
-	  <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.3.0.2" />
+	  <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.4.1" />
 	  <PackageReference Include="HlidacStatu.Api.VoiceToText" Version="2.5.3.2" />
 	  <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
 	  <PackageReference Include="IPNetwork2" Version="3.0.667" />

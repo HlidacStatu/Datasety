@@ -21,7 +21,7 @@
     <PackageReference Include="Devmasters.Net" Version="5.0.22" />
     <PackageReference Include="Devmasters.SpeechToText" Version="5.1.24" />
     <PackageReference Include="Devmasters.SpeechToText.Audio" Version="5.0.22" />
-    <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.3.0.2" />
+    <PackageReference Include="HlidacStatu.Api.V2.Dataset" Version="2.4.1" />
     <PackageReference Include="HlidacStatu.Api.VoiceToText" Version="2.5.3.2" />
     <PackageReference Include="HlidacStatu.Datastructures" Version="2.5.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
@@ -35,8 +35,8 @@
     <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.16" />
-	  <PackageReference Include="RestSharp" Version="111.0.0" />
+    <PackageReference Include="Newtonsoft.Json.Schema" Version="4.0.1" />
+	  <PackageReference Include="RestSharp" Version="111.2.0" allowedVersions="[106.15,106.16)" />
 	  <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
