@@ -83,7 +83,7 @@ Hodnoty:
          public static deMinimis.Response.Ciselnik[] Ciselnik(string ciselnik)
         {
 
-            string url = "https://eagri.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx";
+            string url = "https://epomze.gov.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx";
             string req = @"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:v02=""http://www.pds.eu/vOKO/v0200"" xmlns:rdm=""http://www.pds.eu/RdmServices/RDM_CIS01A"">
    <soapenv:Header/>
    <soapenv:Body>
@@ -127,7 +127,7 @@ Hodnoty:
         public static deMinimis.Response.Detail.Response GetSubjPerSubjectId(string subjectId)
         {
 
-            string url = "https://eagri.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx";
+            string url = "https://epomze.gov.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx";
             string req = subjIdSubReq.Replace("#SUBJID#", subjectId);
 
             Soap net = new Soap();
@@ -153,7 +153,7 @@ Hodnoty:
         public static deMinimis.Response.Detail.Response GetSubjPerIco(string ico)
         {
 
-            string url = "https://eagri.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx";
+            string url = "https://epomze.gov.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx";
             string req = icoSubReq.Replace("#ICO#", ico);
 
             Soap net = new Soap();
@@ -179,7 +179,7 @@ Hodnoty:
            public static deMinimis.Response.Changes.Response GetChanges(DateTime odDatum)
         {
 
-            string url = "https://eagri.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx";
+            string url = "https://epomze.gov.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx";
             string req = icoChangesReq.Replace("#DATUMOD#", odDatum.ToString("yyyy-MM-dd"));
 
             Soap net = new Soap();

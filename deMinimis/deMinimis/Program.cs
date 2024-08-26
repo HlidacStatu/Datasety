@@ -40,8 +40,8 @@ namespace deMinimis
 
         static Devmasters.Batch.MultiProgressWriter progressWriter =
             new Devmasters.Batch.MultiProgressWriter(
-                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Write,
-                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Write
+                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Writer,
+                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Writer
             );
 
         static void Main(string[] arguments)
@@ -62,7 +62,7 @@ namespace deMinimis
 
             HlidacStatu.Api.V2.CoreApi.Model.Registration reg = new HlidacStatu.Api.V2.CoreApi.Model.Registration(
                 "Příjemci podpor z registru de minimis", "de-minimis",
-                "http://eagri.cz/public/web/mze/dotace/verejna-podpora-a-de-minimis/registr-de-minimis/",
+                "http://epomze.gov.cz/public/web/mze/dotace/verejna-podpora-a-de-minimis/registr-de-minimis/",
                 "https://github.com/HlidacStatu/Datasety/tree/master/deMinimis/deMinimis",
                 "Centrální registr podpor malého rozsahu (Registr de minimis) slouží od pro evidenci podpor de minimis poskytovaných na základě přímo použitelných předpisů EU. Data Ministerstva zemědělství, dostupná pouze přes komplikované API, poskytujeme v jednoduché formě po jednotlivých podporách.",
                 genJsonSchema, betaversion: false, allowWriteAccess: false,

@@ -2884,7 +2884,7 @@ namespace deMinimis.WS
         {
             if ((endpointConfiguration == EndpointConfiguration.RDM_PUB01BPort))
             {
-                return new System.ServiceModel.EndpointAddress("https://eagri.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx");
+                return new System.ServiceModel.EndpointAddress("https://epomze.gov.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx");
             }
             throw new System.InvalidOperationException(string.Format("Could not find endpoint with name \'{0}\'.", endpointConfiguration));
         }
