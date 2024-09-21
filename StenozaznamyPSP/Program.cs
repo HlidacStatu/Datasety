@@ -140,14 +140,31 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                         net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
                         net.RequestParams.Form.Add("text", item.text);
                         net.Timeout = 60 * 1000;
-                        var sosoby = net.GetContent().Text;
-                        var osoby = Newtonsoft.Json.Linq.JArray.Parse(sosoby);
-                        if (osoby != null && osoby.Count > 0)
+                        string sosoby = "";
+
+                        try
                         {
-                            item.politiciZminky = osoby
-                                .Select(ja => ja.Value<string>("osobaid"))
-                                .Where(o => !string.IsNullOrWhiteSpace(o))
-                                .ToArray();
+                            var resp = net.GetContent();
+                            if (resp != null)
+                            {
+                                sosoby = net.GetContent().Text;
+                            }
+
+                        }
+                        catch (Exception)
+                        {
+                            sosoby = "";
+                        }
+                        if (sosoby.Length > 5)
+                        {
+                            var osoby = Newtonsoft.Json.Linq.JArray.Parse(sosoby);
+                            if (osoby != null && osoby.Count > 0)
+                            {
+                                item.politiciZminky = osoby
+                                    .Select(ja => ja.Value<string>("osobaid"))
+                                    .Where(o => !string.IsNullOrWhiteSpace(o))
+                                    .ToArray();
+                            }
                         }
                     }
 
@@ -243,9 +260,28 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                 net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
                 net.RequestParams.Form.Add("text", $"{fullname} {fce}");
                 net.Timeout = 60 * 1000;
-                var sosoba = net.GetContent().Text;
-                var osoba = Newtonsoft.Json.Linq.JObject.Parse(sosoba);
-                return osoba.Value<string>("osobaid");
+                string sosoba = "";
+
+                try
+                {
+                    var resp = net.GetContent();
+                    if (resp != null)
+                    {
+                        sosoba = net.GetContent().Text;
+                    }
+                    if (sosoba.Length > 5)
+                    {
+                        var osoba = Newtonsoft.Json.Linq.JObject.Parse(sosoba);
+                        return osoba.Value<string>("osobaid");
+                    }
+
+                }
+                catch (Exception)
+                {
+                    sosoba = "";
+                    return "";
+                }
+                return "";
             }
 
         }
