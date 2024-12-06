@@ -4,7 +4,7 @@ using System.Linq;
 
 using Devmasters.Log;
 
-using HlidacStatu.Api.V2.CoreApi.Client;
+using HlidacStatu.Api.V2.Dataset.Client;
 using HlidacStatu.Api.V2.Dataset;
 
 using Newtonsoft.Json;
@@ -60,7 +60,7 @@ namespace deMinimis
             };
             var genJsonSchema = jsonGen.Generate(typeof(JednoduchaPodpora)).ToString();
 
-            HlidacStatu.Api.V2.CoreApi.Model.Registration reg = new HlidacStatu.Api.V2.CoreApi.Model.Registration(
+            HlidacStatu.Api.V2.Dataset.Model.Registration reg = new HlidacStatu.Api.V2.Dataset.Model.Registration(
                 "Příjemci podpor z registru de minimis", "de-minimis",
                 "http://epomze.gov.cz/public/web/mze/dotace/verejna-podpora-a-de-minimis/registr-de-minimis/",
                 "https://github.com/HlidacStatu/Datasety/tree/master/deMinimis/deMinimis",
@@ -113,6 +113,10 @@ namespace deMinimis
             {
                 AddMissingFromJsonDump(); return;
             }
+            if (args.ContainsKey("/rebuild"))
+            {
+                Rebuild(args["/fn"]); return;
+            }
 
             if (args.ContainsKey("/subject"))
             {
@@ -121,16 +125,37 @@ namespace deMinimis
                 return;
             }
 
-            int[] changes = null;
+            List<int> changes = new();
             if (args.ContainsKey("/fn"))
-                changes = System.IO.File.ReadAllLines(args["/fn"]).Select(m => Convert.ToInt32(m)).ToArray();
+                changes = System.IO.File.ReadAllLines(args["/fn"]).Select(m => Convert.ToInt32(m)).ToList();
             else
-                changes = DeMinimisCalls.GetChanges(DateTime.Now.Date.AddDays(-1 * days))?.seznam_subjektid;
-
-
-            if (changes != null && changes.Length > 0)
             {
-                Devmasters.Batch.Manager.DoActionForAll<int>(changes,
+                int totalDays = days;
+                int interval = 10;
+
+                List<(int Start, int End)> intervals = new List<(int, int)>();
+
+                for (int start = 0; start <= totalDays; start += interval)
+                {
+                    int end = Math.Min(start + interval - 1, totalDays);
+                    intervals.Add((start, end));
+                }
+                intervals.Reverse();
+
+                foreach (var interv in intervals)
+                {
+                    DateTime fromDt = DateTime.Now.Date.AddDays(-1 * interv.End);
+                    DateTime toDt = DateTime.Now.Date.AddDays(-1 * interv.Start + 1);
+
+                    Console.WriteLine($"Changes from Start: {fromDt:yyyy-MM-dd}, End: {toDt:yyyy-MM-dd}");
+                    changes.AddRange(DeMinimisCalls.GetChanges(fromDt, toDt)?.seznam_subjektid);
+
+                }
+            }
+
+            if (changes?.Any() == true)
+            {
+                Devmasters.Batch.Manager.DoActionForAll<int>(changes.Distinct(),
                 szrId =>
                 {
                     FixSubject(szrId.ToString(), true); //pokud záznam existuje, bude přepsán (update)
@@ -199,6 +224,31 @@ namespace deMinimis
                     !System.Diagnostics.Debugger.IsAttached, maxDegreeOfParallelism: 10);
 
             }
+
         }
+
+        public class dumpItem
+        {
+            public string id { get; set; }
+            public DateTime lastUpdate { get; set; }
+        }
+
+        static void Rebuild(string fn)
+        {
+            dumpItem[] dump = Newtonsoft.Json.JsonConvert.DeserializeObject<dumpItem[]>(System.IO.File.ReadAllText(fn));
+
+            Devmasters.Batch.Manager.DoActionForAll<dumpItem>(dump,
+            d =>
+            {
+                var item = ds.GetItemSafe(d.id);
+
+                ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
+
+                return new Devmasters.Batch.ActionOutputData();
+            }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
+                !System.Diagnostics.Debugger.IsAttached, maxDegreeOfParallelism: 10);
+
+        }
+
     }
 }

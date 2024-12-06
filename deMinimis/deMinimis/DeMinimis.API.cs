@@ -62,6 +62,7 @@ namespace deMinimis
 <rdm:Request>
 <rdm:dotaz_zmeny>
     <rdm:zmeny_od>#DATUMOD#</rdm:zmeny_od>
+    <rdm:zmeny_do>#DATUMDO#</rdm:zmeny_do>
 </rdm:dotaz_zmeny>
 </rdm:Request>
 </v02:RequestContent>
@@ -176,11 +177,14 @@ Hodnoty:
             return resObj;
 
         }
-           public static deMinimis.Response.Changes.Response GetChanges(DateTime odDatum)
+           public static deMinimis.Response.Changes.Response GetChanges(DateTime odDatum, DateTime doDatum)
         {
 
             string url = "https://epomze.gov.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx";
-            string req = icoChangesReq.Replace("#DATUMOD#", odDatum.ToString("yyyy-MM-dd"));
+            string req = icoChangesReq
+                .Replace("#DATUMOD#", odDatum.ToString("yyyy-MM-dd"))
+                .Replace("#DATUMDO#", doDatum.ToString("yyyy-MM-dd"))
+                ;
 
             Soap net = new Soap();
             string resp = net.UploadString(url, req);
