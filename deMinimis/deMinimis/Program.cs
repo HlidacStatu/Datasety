@@ -67,11 +67,11 @@ namespace deMinimis
                 "Centrální registr podpor malého rozsahu (Registr de minimis) slouží od pro evidenci podpor de minimis poskytovaných na základě přímo použitelných předpisů EU. Data Ministerstva zemědělství, dostupná pouze přes komplikované API, poskytujeme v jednoduché formě po jednotlivých podporách.",
                 genJsonSchema, betaversion: false, allowWriteAccess: false,
                 orderList: new string[,] {
-                    { "Podle datumu poskytnutí podpory", "PodporaDatum" },
-                    { "Podle výše podpory v CZK", "PodporaCzk" },
-                    { "Podle výše podpory v EUR", "PodporaEur" },
+                    { "Podle datumu poskytnutí podpory", "podporaDatum" },
+                    { "Podle výše podpory v CZK", "podporaCzk" },
+                    { "Podle výše podpory v EUR", "podporaEur" },
                 },
-                defaultOrderBy: "PodporaDatum desc",
+                defaultOrderBy: "podporaDatum desc",
                 searchResultTemplate: new ClassicTemplate.ClassicSearchResultTemplate()
                     .AddColumn("Podpora", @"<a href=""{{ fn_DatasetItemUrl item.Id }}"">{{item.Id}}</a>")
                     .AddColumn("Subjekt", "{{fn_RenderCompanyWithLink item.Ico}}")
