@@ -1,4 +1,4 @@
-﻿using HlidacStatu.Api.V2.CoreApi.Client;
+﻿using HlidacStatu.Api.V2.Dataset.Client;
 using KellermanSoftware.CompareNetObjects;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -18,11 +18,14 @@ namespace SkutecniMajitele
         public static string apiKey = "";
         public static bool force = false;
         public static bool debug = false;
+        public static string root = "";
 
         static void Main(string[] parameters)
         {
             var args = new Devmasters.Args(parameters);
             logger.Info($"Starting with args {string.Join(' ', parameters)}");
+
+            root = AppDomain.CurrentDomain.BaseDirectory;
 
             //System.Net.Http.HttpClient.DefaultProxy = new System.Net.WebProxy("127.0.0.1", 8888);
 
@@ -36,7 +39,7 @@ namespace SkutecniMajitele
             };
             var genJsonSchema = jsonGen.Generate(typeof(majitele)).ToString();
 
-            HlidacStatu.Api.V2.CoreApi.Model.Registration reg = new HlidacStatu.Api.V2.CoreApi.Model.Registration(
+            HlidacStatu.Api.V2.Dataset.Model.Registration reg = new HlidacStatu.Api.V2.Dataset.Model.Registration(
                 "Skuteční majitelé firem", "skutecni-majitele",
                 "https://esm.justice.cz/",
                 "https://github.com/HlidacStatu/Datasety/tree/master/SkutecniMajitele",
@@ -48,7 +51,7 @@ namespace SkutecniMajitele
                     { "Podle IČ subjektu", "ico" },
                 },
                 defaultOrderBy: "datum_zapis desc",
-                searchResultTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template()
+                searchResultTemplate: new HlidacStatu.Api.V2.Dataset.Model.Template()
                 {
                     Body = @"
 <!-- scriban {{ date.now }} --> 
@@ -82,7 +85,7 @@ namespace SkutecniMajitele
 </tbody></table>
 "
                 },
-                detailTemplate: new HlidacStatu.Api.V2.CoreApi.Model.Template()
+                detailTemplate: new HlidacStatu.Api.V2.Dataset.Model.Template()
                 {
                     Body = @"
 <!-- scriban {{ date.now }} --> 
@@ -131,15 +134,15 @@ namespace SkutecniMajitele
                 if (args.Exists("/new"))
                 {
                     Configuration configuration = new Configuration();
-                    configuration.AddDefaultHeader("Authorization", apiKey);
-                    HlidacStatu.Api.V2.CoreApi.DatasetyApi datasetyApi =
-                        new HlidacStatu.Api.V2.CoreApi.DatasetyApi(configuration);
+                    configuration.AddApiKey("Authorization", apiKey);
+                    HlidacStatu.Api.V2.Dataset.Api.DatasetyApi datasetyApi =
+                        new HlidacStatu.Api.V2.Dataset.Api.DatasetyApi(configuration);
                     datasetyApi.ApiV2DatasetyDelete(reg.DatasetId);
                 }
 
                 ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele>.OpenDataset(apiKey, "skutecni-majitele");
             }
-            catch (HlidacStatu.Api.V2.CoreApi.Client.ApiException e)
+            catch (HlidacStatu.Api.V2.Dataset.Client.ApiException e)
             {
                 ds = HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele>.CreateDataset(apiKey, reg);
             }
@@ -182,7 +185,7 @@ namespace SkutecniMajitele
                 {
                     //skip next, use local file
                 }
-                else if (force || (DateTime.Now - new System.IO.FileInfo(name + ".xml").LastWriteTime).TotalDays > 4)
+                else if (force || (DateTime.Now - new System.IO.FileInfo(root + name + ".xml").LastWriteTime).TotalDays > 4)
                 {
                     Console.WriteLine($"Downloading new {name}");
                     DownloadFile(name);
@@ -200,7 +203,7 @@ namespace SkutecniMajitele
             rawXML d = null;
 
             Console.WriteLine($"Deserializing {name}");
-            using (var xmlReader = new System.IO.StreamReader(name + ".xml"))
+            using (var xmlReader = new System.IO.StreamReader(root + name + ".xml"))
             {
                 var serializer = new XmlSerializer(typeof(rawXML));
                 d = (rawXML)serializer.Deserialize(xmlReader);
@@ -272,9 +275,9 @@ namespace SkutecniMajitele
 
                                 Console.WriteLine("writing debug object changes for " + item.ico);
 
-                                System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-old.json", Newtonsoft.Json.JsonConvert.SerializeObject(old, Formatting.Indented));
-                                System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-new.json", Newtonsoft.Json.JsonConvert.SerializeObject(item, Formatting.Indented));
-                                System.IO.File.WriteAllText($"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-changes.json", Newtonsoft.Json.JsonConvert.SerializeObject(result.Differences, Formatting.Indented));
+                                System.IO.File.WriteAllText(root + $"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-old.json", Newtonsoft.Json.JsonConvert.SerializeObject(old, Formatting.Indented));
+                                System.IO.File.WriteAllText(root + $"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-new.json", Newtonsoft.Json.JsonConvert.SerializeObject(item, Formatting.Indented));
+                                System.IO.File.WriteAllText(root + $"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-changes.json", Newtonsoft.Json.JsonConvert.SerializeObject(result.Differences, Formatting.Indented));
                             }
                             item.UpdateOsobaId();
                             ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
@@ -293,14 +296,14 @@ namespace SkutecniMajitele
             System.Net.WebClient wc = new System.Net.WebClient();
             try
             {
-                wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", name + ".xml");
+                wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", root+ name + ".xml");
             }
             catch (Exception e1)
             {
                 try
                 {
                     System.Threading.Thread.Sleep(2000);
-                    wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", name + ".xml");
+                    wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", root + name + ".xml");
                 }
                 catch (Exception e2)
                 {
