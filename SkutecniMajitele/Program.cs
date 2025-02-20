@@ -163,7 +163,7 @@ namespace SkutecniMajitele
                     .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"));
 
             if (System.Diagnostics.Debugger.IsAttached)
-                onlyCurrYears = onlyCurrYears.Where(m => m.Contains("sro-full-praha")); //DEBUG
+                onlyCurrYears = onlyCurrYears.Where(m => m.Contains("as-full-praha")); //DEBUG
 
 
             Devmasters.Batch.Manager.DoActionForAll<string>(onlyCurrYears,
@@ -213,7 +213,7 @@ namespace SkutecniMajitele
 
             var subjs = d.Subjekt;
             if (System.Diagnostics.Debugger.IsAttached)
-                subjs = d.Subjekt.Where(m => m.ico == "1901613").ToArray();
+                subjs = d.Subjekt.Where(m => m.ico == "21167885").ToArray();
 
             Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(subjs,
                 subj =>
@@ -226,8 +226,12 @@ namespace SkutecniMajitele
                     if (item != null)
                     {
                         //check change
-                        var old = ds.GetItem(item.ico);
-                        if (old != null)
+                        var old = ds.GetItemSafe(item.ico);
+                        if (old == null)
+                        {
+                            sameAll = false;
+                        }
+                        else
                         {
                             if (old.skutecni_majitele?.Count() != item.skutecni_majitele?.Count())
                                 sameAll = false;
