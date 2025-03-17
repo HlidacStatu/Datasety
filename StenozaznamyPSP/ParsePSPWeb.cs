@@ -312,13 +312,22 @@ namespace StenozaznamyPSP
             }
             catch (Devmasters.Net.HttpClient.UrlContentException ex)
             {
-                var innerR = (ex.InnerException as System.Net.WebException)?.Response as System.Net.HttpWebResponse;
-                if (innerR?.StatusCode == System.Net.HttpStatusCode.NotFound)
+                try
                 {
-                    return null;
-                }
+                    var innerR = (ex.InnerException as System.Net.WebException)?.Response as System.Net.HttpWebResponse;
+                    if (innerR?.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        return null;
+                    }
 
-                throw ex;
+                    throw ex;
+
+                }
+                catch (Exception exx)
+                {
+
+                    throw;
+                }
             }
             catch (Exception e)
             {
