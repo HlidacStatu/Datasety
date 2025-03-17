@@ -2,12 +2,12 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Generation;
-using SharpKml.Dom;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -38,6 +38,9 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
             {
                 Help(); return;
             }
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //var enc1250 = Encoding.GetEncoding(1250);
+
 
             Dictionary<string, string> arguments = new Dictionary<string, string>();
             arguments = args
@@ -127,7 +130,7 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                                 continue; //exists, skip
                         }
                     }
-                    catch (Exception) //doesnt exists
+                    catch (Exception e) //doesnt exists
                     {
                     }
 
@@ -147,11 +150,11 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                             var resp = net.GetContent();
                             if (resp != null)
                             {
-                                sosoby = net.GetContent().Text;
+                                sosoby = resp.Text;
                             }
 
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
                             sosoby = "";
                         }
@@ -255,7 +258,8 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
             //    var json = net.DownloadString(url);
             //    return Newtonsoft.Json.Linq.JObject.Parse(json).Value<string>("OsobaId");
             //}
-            using (var net = new Devmasters.Net.HttpClient.URLContent($"https://www.hlidacstatu.cz/api/v1/PolitikFromText?Authorization={apikey}"))
+            var url = $"https://www.hlidacstatu.cz/api/v1/PolitikFromText?Authorization={apikey}";
+            using (var net = new Devmasters.Net.HttpClient.URLContent(url))
             {
                 net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
                 net.RequestParams.Form.Add("text", $"{fullname} {fce}");
@@ -267,7 +271,7 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                     var resp = net.GetContent();
                     if (resp != null)
                     {
-                        sosoba = net.GetContent().Text;
+                        sosoba = resp.Text;
                     }
                     if (sosoba.Length > 5)
                     {
@@ -276,7 +280,7 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                     }
 
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     sosoba = "";
                     return "";

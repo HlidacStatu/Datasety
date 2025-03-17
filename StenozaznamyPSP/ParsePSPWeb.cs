@@ -37,7 +37,7 @@ namespace StenozaznamyPSP
 
         public static List<(int schuze, DateTime last)> VsechnySchuze(int rok)
         {
-            var url = $"http://www.psp.cz/eknih/{rok}ps/stenprot/index.htm";
+            var url = $"https://www.psp.cz/eknih/{rok}ps/stenprot/index.htm";
 
             var html = GetHtml(url);
 
@@ -218,7 +218,7 @@ namespace StenozaznamyPSP
 
 
                     //hlasovaniUrl
-                    //http://www.psp.cz/sqw/hlasy.sqw?G=69684
+                    //https://www.psp.cz/sqw/hlasy.sqw?G=69684
                     //nebo https://www.psp.cz/ff/fa/4c/01.htm s redirectem, to zatim ignoruju
                     string hlasovani = GetRegexGroupValue(b.InnerHtml, @"/sqw/hlasy\.sqw\?g=(?<n>\d*)", "n");
 
@@ -288,7 +288,7 @@ namespace StenozaznamyPSP
 
         static string GenUrl(int rok, int schuze)
         {
-            return $"http://www.psp.cz/eknih/{rok}ps/stenprot/{schuze:000}schuz/s{schuze:000}{{0:000}}.htm";
+            return $"https://www.psp.cz/eknih/{rok}ps/stenprot/{schuze:000}schuz/s{schuze:000}{{0:000}}.htm";
         }
 
 
@@ -302,9 +302,11 @@ namespace StenozaznamyPSP
 
                 using (Devmasters.Net.HttpClient.URLContent net = new Devmasters.Net.HttpClient.URLContent(url))
                 {
+                    
+                    //net.Encoding = Encoding.GetEncoding("utf-8");
                     net.Tries = 10;
                     net.TimeInMsBetweenTries = 2000 * 10; //10s
-                    return net.GetContent().Text;
+                    return net.GetContent(Encoding.GetEncoding("windows-1250")).Text;
                 }
 
             }
