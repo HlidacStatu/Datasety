@@ -314,8 +314,8 @@ namespace StenozaznamyPSP
             {
                 try
                 {
-                    var innerR = (ex.InnerException as System.Net.WebException)?.Response as System.Net.HttpWebResponse;
-                    if (innerR?.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    var inner = (ex.InnerException as System.Net.WebException);
+                    if (inner?.Message?.Contains("404") == true && inner?.Message?.Contains("Not Found")==true)
                     {
                         return null;
                     }
@@ -325,8 +325,7 @@ namespace StenozaznamyPSP
                 }
                 catch (Exception exx)
                 {
-
-                    throw;
+                    return null;
                 }
             }
             catch (Exception e)
