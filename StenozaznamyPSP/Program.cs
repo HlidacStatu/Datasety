@@ -16,8 +16,9 @@ namespace StenozaznamyPSP
 
     class Program
     {
-        static string apikey = System.Configuration.ConfigurationManager.AppSettings["apikey"];
-        static HlidacStatu.Api.V2.Dataset.Typed.Dataset<Steno> dsc;
+        public static string apikey = System.Configuration.ConfigurationManager.AppSettings["apikey"];
+        public static HlidacStatu.Api.V2.Dataset.Typed.Dataset<Steno> dsc;
+        public static bool rewrite = false;
         internal static Random rnd = new Random();
 
         static void Help()
@@ -26,7 +27,7 @@ namespace StenozaznamyPSP
 
 Zpracování steno záznamů:
 StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [/rewrite] /daysback=[3]
-
+    /updateall
 ");
 
         }
@@ -53,20 +54,12 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                 Help(); return;
             }
 
-
             int daysBack = 3;
             if (arguments.TryGetValue("/daysback", out argValue))
                 daysBack = Convert.ToInt32(argValue);
 
-            int rok = 0;
-            if (arguments.TryGetValue("/rok", out argValue))
-                rok = Convert.ToInt32(argValue);
-            else
-            {
-                Help(); return;
-            }
 
-            bool rewrite = false;
+
             if (arguments.TryGetValue("/rewrite", out argValue))
                 rewrite = true;
 
@@ -80,6 +73,21 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
             //create dataset
 
             string datasetid = "stenozaznamy-psp";
+
+
+            if (args.Contains("/updateall"))
+            {
+                UpdateAll.Go();
+                return;
+            }
+
+            int rok = 0;
+            if (arguments.TryGetValue("/rok", out argValue))
+                rok = Convert.ToInt32(argValue);
+            else
+            {
+                Help(); return;
+            }
 
             //var data = ParsePSPWeb.ParseSchuze(2010, 5).ToArray();
             //System.Diagnostics.Debugger.Break();
@@ -125,7 +133,7 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                     {
                         if (rewrite == false)
                         {
-                            var exists = dsc.ItemExists(item.Id);
+                            var exists = dsc.ItemExists(item.id);
                             if (exists)
                                 continue; //exists, skip
                         }
@@ -215,14 +223,17 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
 
 
     
-        static void SaveItem( Steno item, bool loadOsobaId)
+        public static void SaveItem( Steno item, bool loadOsobaId)
         {
 
             if (string.IsNullOrEmpty(item.OsobaId) && loadOsobaId)
             {
-                var osobaId = findInHS(item.celeJmeno, item.funkce);
-
-                item.OsobaId = osobaId;
+                (string osobaid, string politickaStrana)? osoba = findInHS(item.celeJmeno, item.funkce);
+                if (osoba != null)
+                {
+                    item.OsobaId = osoba.Value.osobaid;
+                    item.politickaStrana = osoba.Value.politickaStrana;
+                }
             }
 
             int tries = 0;
@@ -248,7 +259,7 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
 
         }
 
-        public static string findInHS(string fullname, string fce)
+        public static (string nameId, string strana)? findInHS(string fullname, string fce)
         {
             //using (var net = new System.Net.WebClient())
             //{
@@ -258,9 +269,10 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
             //    var json = net.DownloadString(url);
             //    return Newtonsoft.Json.Linq.JObject.Parse(json).Value<string>("OsobaId");
             //}
-            var url = $"https://www.hlidacstatu.cz/api/v1/PolitikFromText?Authorization={apikey}";
+            var url = $"https://api.hlidacstatu.cz/api/v2/osoby/PolitikFromText";
             using (var net = new Devmasters.Net.HttpClient.URLContent(url))
             {
+                net.RequestParams.Headers.Add("Authorization", apikey);
                 net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
                 net.RequestParams.Form.Add("text", $"{fullname} {fce}");
                 net.Timeout = 60 * 1000;
@@ -276,16 +288,16 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                     if (sosoba.Length > 5)
                     {
                         var osoba = Newtonsoft.Json.Linq.JObject.Parse(sosoba);
-                        return osoba.Value<string>("osobaid");
+                        return (osoba.Value<string>("osobaid"), osoba.Value<string>("politickaStrana"));
                     }
 
                 }
                 catch (Exception e)
                 {
                     sosoba = "";
-                    return "";
+                    return null;
                 }
-                return "";
+                return null;
             }
 
         }

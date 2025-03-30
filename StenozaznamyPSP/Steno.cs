@@ -10,7 +10,7 @@ namespace StenozaznamyPSP
     {
         //csv rok,datum,schuze,fn,autor,funkce,tema,text
 
-        public string Id { get { return $"{obdobi}_{schuze}_{poradi:00000}"; } set { } }
+        public string id { get { return $"{obdobi}_{schuze}_{poradi:00000}"; } set { } }
         public int poradi { get; set; }
 
         public int obdobi { get; set; }
@@ -29,6 +29,8 @@ namespace StenozaznamyPSP
         public string text { get; set; }
 
         public long pocetSlov { get { return ParsePSPWeb.CountWords(this.text ?? ""); } set { } }
+        public long dobaProslovuSec { get { return this.pocetSlov/2; } set { } }
+        public string politickaStrana { get; set; }
 
         public string[] politiciZminky { get; set; }
         public string[] temata { get; set; }

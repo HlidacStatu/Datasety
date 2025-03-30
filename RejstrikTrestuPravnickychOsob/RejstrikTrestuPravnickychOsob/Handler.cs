@@ -30,7 +30,7 @@ namespace RejstrikTrestuPravnickychOsob
 		{
 			Program.logger.Info("Loading data from url");
 			var client = new HttpClient();
-			var content = client.GetStringAsync("https://eservice-po.rejtr.justice.cz/public/odsouzeni_xml").Result;
+			var content = client.GetStringAsync("");//https://eservice-po.rejtr.justice.cz/public/odsouzeni_xml").Result;
 
 			//XmlDocument doc = new XmlDocument();
 			//doc.LoadXml(content);
