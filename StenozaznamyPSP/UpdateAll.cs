@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -46,31 +47,67 @@ namespace StenozaznamyPSP
 
             }
             if (System.Diagnostics.Debugger.IsAttached)
-                allIds = allIds.Take(10).ToArray();
+                allIds = new IdItem[]
+                        {
+                            new IdItem(){ id="2002_13_00063" },
+                            new IdItem(){ id="2021_98_00630" },
+                        };
 
             System.IO.File.WriteAllLines("ids.txt", allIds.Select(i => i.id));
-System.Collections.Concurrent.ConcurrentBag<string> done = new System.Collections.Concurrent.ConcurrentBag<string>();
+            System.Collections.Concurrent.ConcurrentBag<string> done = new System.Collections.Concurrent.ConcurrentBag<string>();
             Devmasters.Batch.Manager.DoActionForAll(allIds, (iid) =>
             {
-                string id = iid.id;
+            string id = iid.id;
+            bool changed = false;
 
-                var item = Program.dsc.GetItemSafe(id);
-                if (item != null)
-                {
-                    if (!string.IsNullOrEmpty(item.politickaStrana) && Program.rewrite==false)
-                        return new Devmasters.Batch.ActionOutputData();
+            var item = Program.dsc.GetItemSafe(id);
+            if (item != null)
+            {
+                if (!string.IsNullOrEmpty(item.politickaStrana) && Program.rewrite == false)
+                    return new Devmasters.Batch.ActionOutputData();
 
-                    if (!string.IsNullOrEmpty(item.OsobaId))
+                    if (string.IsNullOrEmpty(item.OsobaId) && !string.IsNullOrEmpty(item.celeJmeno))
                     {
-                        var osob = apicl.OsobyAsync(item.OsobaId).Result;
-                        if (osob != null)
+                        (string osobaid, string politickaStrana)? osoba = Program.findInHS(item.celeJmeno, item.funkce);
+                        if (osoba != null)
                         {
-                            item.politickaStrana = osob.PolitickaStrana;
+                            item.OsobaId = osoba.Value.osobaid;
+                            item.politickaStrana = osoba.Value.politickaStrana;
+                            var osob = apicl.OsobyAsync(item.OsobaId).Result;
+                            item.celeJmeno = osob.Jmeno + " " + osob.Prijmeni;
+                            changed = true;
                         }
                     }
-                    done.Add(id);
-                    Program.SaveItem(item, false);
+                    else if (!string.IsNullOrEmpty(item.OsobaId))
+                    {
+                        try
+                        {
+                            if (item.OsobaId == "hana-marvanova")
+                            {
+                                item.OsobaId = "hana-kordova-marvanova";
+                                changed = true;
+                            }
+                            var osob = apicl.OsobyAsync(item.OsobaId).Result;
+                            if (osob != null)
+                            {
+                                item.politickaStrana = osob.PolitickaStrana;
+                                changed = true;
+                            }
+
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("Not found " + item.OsobaId);
+                        }
+                    }
+                    if (changed)
+                    {
+
+                        done.Add(id);
+                        Program.SaveItem(item, false);
+                    }
                 }
+
                 return new Devmasters.Batch.ActionOutputData();
             },
             null, new Devmasters.Batch.ActionProgressWriter(0.1f).Writer,

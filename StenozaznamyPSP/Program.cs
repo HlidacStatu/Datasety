@@ -269,12 +269,11 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
             //    var json = net.DownloadString(url);
             //    return Newtonsoft.Json.Linq.JObject.Parse(json).Value<string>("OsobaId");
             //}
-            var url = $"https://api.hlidacstatu.cz/api/v2/osoby/PolitikFromText";
+            var url = $"https://api.hlidacstatu.cz/api/v2/osoby/PolitikFromText?text="+System.Net.WebUtility.UrlEncode($"{fullname} {fce}");
             using (var net = new Devmasters.Net.HttpClient.URLContent(url))
             {
                 net.RequestParams.Headers.Add("Authorization", apikey);
-                net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
-                net.RequestParams.Form.Add("text", $"{fullname} {fce}");
+                net.Method = Devmasters.Net.HttpClient.MethodEnum.GET;
                 net.Timeout = 60 * 1000;
                 string sosoba = "";
 
