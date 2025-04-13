@@ -819,7 +819,7 @@
             }
 
             /// <remarks/>
-            [System.Xml.Serialization.XmlElementAttribute(DataType = "date")]
+            [System.Xml.Serialization.XmlElementAttribute(DataType = "dateTime")]
             public System.DateTime datumRozhodnuti
             {
                 get

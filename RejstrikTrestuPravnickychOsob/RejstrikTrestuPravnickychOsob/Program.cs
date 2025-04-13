@@ -38,8 +38,8 @@ namespace RejstrikTrestuPravnickychOsob
 
         public static Devmasters.Batch.MultiProgressWriter progressWriter =
             new Devmasters.Batch.MultiProgressWriter(
-                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Write,
-                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Write
+                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Writer,
+                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Writer
             );
 
         static void Main(string[] args)
@@ -57,8 +57,8 @@ namespace RejstrikTrestuPravnickychOsob
 
             var ctmp= HlidacStatu.Api.V2.Dataset.Typed.Dataset<Trest>.OpenDataset(token, "rejstrik-trestu-pravnickych-osob");
 
-            if (System.Diagnostics.Debugger.IsAttached )
-				System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("127.0.0.1", 8888);
+            //if (System.Diagnostics.Debugger.IsAttached )
+			//	System.Net.WebRequest.DefaultWebProxy = new System.Net.WebProxy("127.0.0.1", 8888);
 
 			var dataset = new Dataset(token);
 

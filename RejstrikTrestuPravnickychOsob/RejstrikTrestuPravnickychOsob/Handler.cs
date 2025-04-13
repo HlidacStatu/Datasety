@@ -15,7 +15,7 @@ namespace RejstrikTrestuPravnickychOsob
 {
 	class Handler
 	{
-		private const string Url = "https://eservice-po.rejtr.justice.cz/public/odsouzeni_xml";
+		private const string Url = "https://isrt.justice.cz/pravnicka-osoba/exportxml";
 
 		private readonly Dataset DatasetConnector;
 		private readonly Regex DateRegex = new Regex(@"Dat. rozhodnutí: (\d{2}.\d{2}.\d{4})", RegexOptions.Compiled);
@@ -30,7 +30,7 @@ namespace RejstrikTrestuPravnickychOsob
 		{
 			Program.logger.Info("Loading data from url");
 			var client = new HttpClient();
-			var content = client.GetStringAsync("");//https://eservice-po.rejtr.justice.cz/public/odsouzeni_xml").Result;
+			var content = client.GetStringAsync(Url).Result;//https://eservice-po.rejtr.justice.cz/public/odsouzeni_xml").Result;
 
 			//XmlDocument doc = new XmlDocument();
 			//doc.LoadXml(content);
