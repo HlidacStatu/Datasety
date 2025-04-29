@@ -30,32 +30,44 @@ namespace RejstrikTrestuPravnickychOsob
                         ];
                     this.Odsouzeni = new odsouzeni();
                     this.Odsouzeni.PrvniInstance = new soud();
-                    this.Odsouzeni.PrvniInstance.DatumRozhodnuti = (DateTime)xml.zaznamy.zaznam.odsouzeni.Items[
-                        xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.datumRozhodnuti)
-                        ];
-                    this.Odsouzeni.PrvniInstance.DruhRozhodnuti = ((RejstrikTrestuPravnickychOsob.VypisXML.vypisListVypisZaznamyZaznamOdsouzeniDruhRozhodnuti)xml.zaznamy.zaznam.odsouzeni.Items[
-                        xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.druhRozhodnuti)
-                        ]).druh;
-                    this.Odsouzeni.PrvniInstance.Jmeno = (string)xml.zaznamy.zaznam.odsouzeni.Items[
+                    if (xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.datumRozhodnuti) >= 0)
+                        this.Odsouzeni.PrvniInstance.DatumRozhodnuti = (DateTime)xml.zaznamy.zaznam.odsouzeni.Items[
+                            xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.datumRozhodnuti)
+                            ];
+
+                    if (xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.druhRozhodnuti) >= 0)
+                        this.Odsouzeni.PrvniInstance.DruhRozhodnuti =
+                        ((RejstrikTrestuPravnickychOsob.VypisXML.vypisListVypisZaznamyZaznamOdsouzeniDruhRozhodnuti)
+                            xml.zaznamy.zaznam.odsouzeni.Items[
+                                xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.druhRozhodnuti)
+                            ]).druh;
+
+
+                    if (xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.organizace) >= 0)
+                        this.Odsouzeni.PrvniInstance.Jmeno = (string)xml.zaznamy.zaznam.odsouzeni.Items[
                         xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.organizace)
                         ];
-                    this.Odsouzeni.PrvniInstance.SpisovaZnacka = (string)xml.zaznamy.zaznam.odsouzeni.Items[
+
+                    if (xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.spisZnacka) >= 0)
+
+                        this.Odsouzeni.PrvniInstance.SpisovaZnacka = (string)xml.zaznamy.zaznam.odsouzeni.Items[
                         xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.spisZnacka)
                         ];
 
                     if (xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.odvolaci) >= 0)
-                    {
-                        RejstrikTrestuPravnickychOsob.VypisXML.vypisListVypisZaznamyZaznamOdsouzeniOdvolaci odvol =
-                            (RejstrikTrestuPravnickychOsob.VypisXML.vypisListVypisZaznamyZaznamOdsouzeniOdvolaci)
-                            xml.zaznamy.zaznam.odsouzeni.Items[
-                                xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.odvolaci)
-                                ];
-                        this.Odsouzeni.OdvolaciSoud = new soud();
-                        this.Odsouzeni.OdvolaciSoud.DatumRozhodnuti = odvol.datumRozhodnuti;
-                        this.Odsouzeni.OdvolaciSoud.DruhRozhodnuti = odvol.druhRozhodnuti.druh;
-                        this.Odsouzeni.OdvolaciSoud.Jmeno = odvol.organizace;
-                        this.Odsouzeni.OdvolaciSoud.SpisovaZnacka = odvol.spisZnacka;
-                    }
+                        if (xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.odvolaci) >= 0)
+                        {
+                            RejstrikTrestuPravnickychOsob.VypisXML.vypisListVypisZaznamyZaznamOdsouzeniOdvolaci odvol =
+                                (RejstrikTrestuPravnickychOsob.VypisXML.vypisListVypisZaznamyZaznamOdsouzeniOdvolaci)
+                                xml.zaznamy.zaznam.odsouzeni.Items[
+                                    xml.zaznamy.zaznam.odsouzeni.ItemsElementName.ToList().IndexOf(VypisXML.ItemsChoiceType.odvolaci)
+                                    ];
+                            this.Odsouzeni.OdvolaciSoud = new soud();
+                            this.Odsouzeni.OdvolaciSoud.DatumRozhodnuti = odvol.datumRozhodnuti;
+                            this.Odsouzeni.OdvolaciSoud.DruhRozhodnuti = odvol.druhRozhodnuti.druh;
+                            this.Odsouzeni.OdvolaciSoud.Jmeno = odvol.organizace;
+                            this.Odsouzeni.OdvolaciSoud.SpisovaZnacka = odvol.spisZnacka;
+                        }
 
                     if (xml.zaznamy.zaznam.paragrafy != null)
                     {

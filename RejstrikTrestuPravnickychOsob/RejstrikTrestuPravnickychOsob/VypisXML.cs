@@ -951,11 +951,11 @@
             /// <remarks/>
             datumPM,
 
-            /// <remarks/>
-            datumRozhodnuti,
 
             /// <remarks/>
             druhRozhodnuti,
+            /// <remarks/>
+            datumRozhodnuti,
 
             /// <remarks/>
             odvolaci,
