@@ -3,6 +3,7 @@ using KellermanSoftware.CompareNetObjects;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Generation;
+using Serilog;
 using System;
 using System.Linq;
 using System.Xml.Serialization;
@@ -11,7 +12,9 @@ namespace SkutecniMajitele
 {
     class Program
     {
-        static Devmasters.Log.Logger logger = Devmasters.Log.Logger.CreateLogger("SkutecniMajitele");
+
+
+        public static Serilog.ILogger _logger = null;  
 
         //static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitel_flat> ds_flat = null;
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele> ds = null;
@@ -22,8 +25,28 @@ namespace SkutecniMajitele
 
         static void Main(string[] parameters)
         {
+            var loggerBuilder = new LoggerConfiguration()
+                .MinimumLevel.Is(Serilog.Events.LogEventLevel.Debug)
+                .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+                .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Error)
+                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", Serilog.Events.LogEventLevel.Error)
+                .MinimumLevel.Override("HlidacStatu", Serilog.Events.LogEventLevel.Error)
+                .MinimumLevel.Override("Devmasters", Serilog.Events.LogEventLevel.Error)
+                .MinimumLevel.Override("HlidacStatu.Connectors.Manager", Serilog.Events.LogEventLevel.Error)
+                //.MinimumLevel.Override("HlidacStatu.AI", Serilog.Events.LogEventLevel.Verbose)
+                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.File(@"\data\logs\skutecni-majitele\log.txt",
+                rollingInterval: RollingInterval.Day,
+                rollOnFileSizeLimit: true, shared: true, flushToDiskInterval: TimeSpan.FromSeconds(10),
+                retainedFileCountLimit: 30
+                //,outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}] {Message:lj}{NewLine}{Exception}"
+                );
+            Serilog.Core.Logger logger = loggerBuilder.CreateLogger();
+            _logger = Serilog.Log.ForContext<Program>();
+
+
             var args = new Devmasters.Args(parameters);
-            logger.Info($"Starting with args {string.Join(' ', parameters)}");
+            logger.Information($"Starting with args {string.Join(' ', parameters)}");
 
             root = AppDomain.CurrentDomain.BaseDirectory;
 
