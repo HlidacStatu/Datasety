@@ -90,7 +90,7 @@ namespace StenozaznamyPSP
                     Console.Write(pageUrl + " ");
                 }
                 else
-                    Console.Write(".");
+                    Console.Write($".{i}.");
 
                 try
                 {
@@ -146,6 +146,7 @@ namespace StenozaznamyPSP
                     bool newProslov = false;
                     //nekdy je v <b><a>, nekdy pouze <a>
                     var mluvci = XPath.Tools.GetNodeText(b, "./a[starts-with(@href,'/sqw/detail')]")
+                        ?? XPath.Tools.GetNodeText(b, "./a[starts-with(@href,'http')]") //obcas odkaz mimo psp
                         ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'http')]") //obcas odkaz mimo psp
                         ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@href,'/sqw/')]")  //obcas ruzne a v 1998
                         ?? XPath.Tools.GetNodeText(b, "./b/a[starts-with(@HREF,'/sqw/')]")  //obcas HREF 

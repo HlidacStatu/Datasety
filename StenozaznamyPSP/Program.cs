@@ -146,39 +146,41 @@ StenozaznamyPSP /apikey=hlidac-Api-Key /rok=volebni-rok [/schuze=cislo-schuze] [
                         if (!jmena2Check.Contains(item.celeJmeno))
                             jmena2Check.Add(item.celeJmeno);
 
-                    using (var net = new Devmasters.Net.HttpClient.URLContent($"https://www.hlidacstatu.cz/api/v1/PoliticiFromText?Authorization={apikey}"))
+                    if (false) //vypni hledani zminek o politicich
                     {
-                        net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
-                        net.RequestParams.Form.Add("text", item.text);
-                        net.Timeout = 60 * 1000;
-                        string sosoby = "";
-
-                        try
+                        using (var net = new Devmasters.Net.HttpClient.URLContent($"https://www.hlidacstatu.cz/api/v1/PoliticiFromText?Authorization={apikey}"))
                         {
-                            var resp = net.GetContent();
-                            if (resp != null)
+                            net.Method = Devmasters.Net.HttpClient.MethodEnum.POST;
+                            net.RequestParams.Form.Add("text", item.text);
+                            net.Timeout = 60 * 1000;
+                            string sosoby = "";
+
+                            try
                             {
-                                sosoby = resp.Text;
+                                var resp = net.GetContent();
+                                if (resp != null)
+                                {
+                                    sosoby = resp.Text;
+                                }
+
                             }
-
-                        }
-                        catch (Exception e)
-                        {
-                            sosoby = "";
-                        }
-                        if (sosoby.Length > 5)
-                        {
-                            var osoby = Newtonsoft.Json.Linq.JArray.Parse(sosoby);
-                            if (osoby != null && osoby.Count > 0)
+                            catch (Exception e)
                             {
-                                item.politiciZminky = osoby
-                                    .Select(ja => ja.Value<string>("osobaid"))
-                                    .Where(o => !string.IsNullOrWhiteSpace(o))
-                                    .ToArray();
+                                sosoby = "";
+                            }
+                            if (sosoby.Length > 5)
+                            {
+                                var osoby = Newtonsoft.Json.Linq.JArray.Parse(sosoby);
+                                if (osoby != null && osoby.Count > 0)
+                                {
+                                    item.politiciZminky = osoby
+                                        .Select(ja => ja.Value<string>("osobaid"))
+                                        .Where(o => !string.IsNullOrWhiteSpace(o))
+                                        .ToArray();
+                                }
                             }
                         }
                     }
-
 
                     if (apikey == "csv")
                     {
