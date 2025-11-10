@@ -261,34 +261,35 @@ namespace SkutecniMajitele
                             else if (item.skutecni_majitele?.Count() == old.skutecni_majitele?.Count() &&
                                      item.skutecni_majitele?.Count() > 0)
                             {
-                                foreach (SkutecniMajitele.majitel_base sm in item.skutecni_majitele)
+                                var oldDict = old.skutecni_majitele  //this was added for big performance boost
+                                    .GroupBy(x => x.GetHashCode())
+                                    .ToDictionary(g => g.Key, g => g.ToList());
+                                
+                                foreach (majitel_base sm in item.skutecni_majitele)
                                 {
                                     bool same = false;
-                                    foreach (SkutecniMajitele.majitel_base oldSm in old.skutecni_majitele)
+                                    if (oldDict.TryGetValue(sm.GetHashCode(), out var oldSmList))
                                     {
-                                        ComparisonResult result = cl.Compare(oldSm, sm);
-                                        bool areEq = result.AreEqual;
-                                        /*                                        if (!areEq)
-                                                                                {
-                                                                                    if (result.Differences.All(m => m.ChildPropertyName == "GetType()"))
-                                                                                        areEq = true;
-                                                                                }
-                                        */
-                                        if (areEq)
+                                        foreach (majitel_base oldSm in oldSmList)
                                         {
-                                            same = true;
-                                            break;
+                                            ComparisonResult result = cl.Compare(oldSm, sm);
+                                            bool areEq = result.AreEqual;
+                     
+                                            if (areEq)
+                                            {
+                                                same = true;
+                                                break;
+                                            }
                                         }
+                        
                                     }
+                                    
                                     if (same == false)
                                     {
                                         sameAll = false;
                                         break;
                                     }
-
                                 }
-
-
                             }
                         }
 

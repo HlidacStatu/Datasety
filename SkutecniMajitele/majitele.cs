@@ -294,6 +294,11 @@ namespace SkutecniMajitele
             public string jedna_ve_shode_s_osoby { get; set; }
 
         }
+        
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(osoba_prijmeni, osoba_jmeno, datum_zapis, datum_vymaz);
+        }
     }
 
 
