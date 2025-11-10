@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema.Generation;
 using Serilog;
 using System;
+using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
 
@@ -12,9 +13,7 @@ namespace SkutecniMajitele
 {
     class Program
     {
-
-
-        public static Serilog.ILogger _logger = null;  
+        public static Serilog.ILogger _logger = null;
 
         //static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitel_flat> ds_flat = null;
         static HlidacStatu.Api.V2.Dataset.Typed.Dataset<majitele> ds = null;
@@ -34,19 +33,19 @@ namespace SkutecniMajitele
                 .MinimumLevel.Override("Devmasters", Serilog.Events.LogEventLevel.Error)
                 .MinimumLevel.Override("HlidacStatu.Connectors.Manager", Serilog.Events.LogEventLevel.Error)
                 //.MinimumLevel.Override("HlidacStatu.AI", Serilog.Events.LogEventLevel.Verbose)
-                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}] {Message:lj}{NewLine}{Exception}")
+                .WriteTo.Console(
+                    outputTemplate:
+                    "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}] {Message:lj}{NewLine}{Exception}")
                 .WriteTo.File(@"\data\logs\skutecni-majitele\log.txt",
-                rollingInterval: RollingInterval.Day,
-                rollOnFileSizeLimit: true, shared: true, flushToDiskInterval: TimeSpan.FromSeconds(10),
-                retainedFileCountLimit: 30
-                //,outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}] {Message:lj}{NewLine}{Exception}"
+                    rollingInterval: RollingInterval.Day,
+                    rollOnFileSizeLimit: true, shared: true, flushToDiskInterval: TimeSpan.FromSeconds(10),
+                    retainedFileCountLimit: 30
+                    //,outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext}] {Message:lj}{NewLine}{Exception}"
                 );
-            Serilog.Core.Logger logger = loggerBuilder.CreateLogger();
-            _logger = Serilog.Log.ForContext<Program>();
-
+            _logger = loggerBuilder.CreateLogger();
 
             var args = new Devmasters.Args(parameters);
-            logger.Information($"Starting with args {string.Join(' ', parameters)}");
+            _logger.Information($"Starting with args {string.Join(' ', parameters)}");
 
             root = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -171,6 +170,7 @@ namespace SkutecniMajitele
             }
             catch (Exception e)
             {
+                _logger.Error(e, "problem with dataset");
                 throw;
             }
 
@@ -181,9 +181,9 @@ namespace SkutecniMajitele
             );
 
             var onlyCurrYears = package_list["result"]
-                    .ToArray()
-                    .Select(m => m.Value<string>())
-                    .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"));
+                .ToArray()
+                .Select(m => m.Value<string>())
+                .Where(m => m.EndsWith($"-{DateTime.Now.Year}") && m.Contains("-full-"));
 
             if (System.Diagnostics.Debugger.IsAttached)
                 onlyCurrYears = onlyCurrYears.Where(m => m.Contains("as-full-praha")); //DEBUG
@@ -202,38 +202,45 @@ namespace SkutecniMajitele
 
         private static void ProcessXML(Devmasters.Args args, string name)
         {
-            if (System.IO.File.Exists(name + ".xml"))
+            _logger.Information($"Processing {name} started");
+            var filename = $"{name}.xml";
+            var filepath = Path.Combine(root, filename);
+            
+            
+            if (System.IO.File.Exists(filepath))
             {
                 if (args.Exists("/uselocal"))
                 {
                     //skip next, use local file
                 }
-                else if (force || (DateTime.Now - new System.IO.FileInfo(root + name + ".xml").LastWriteTime).TotalDays > 4)
+                else if (force ||
+                         (DateTime.Now - new System.IO.FileInfo(root + name + ".xml").LastWriteTime).TotalDays > 4)
                 {
                     Console.WriteLine($"Downloading new {name}");
-                    DownloadFile(name);
+                    DownloadFile(name, filepath);
                 }
             }
             else
             {
-                Console.WriteLine($"Downloading {name}");
-                DownloadFile(name);
+                DownloadFile(name, filepath);
             }
 
-            if (!System.IO.File.Exists(name + ".xml"))
+            if (!System.IO.File.Exists(filepath))
+            {
+                _logger.Warning($"File [{filepath}] not found");
                 return;
+            }
 
             rawXML d = null;
 
-            Console.WriteLine($"Deserializing {name}");
-            using (var xmlReader = new System.IO.StreamReader(root + name + ".xml"))
+            _logger.Information($"Deserializing {filename}");
+            using (var xmlReader = new System.IO.StreamReader(filepath))
             {
                 var serializer = new XmlSerializer(typeof(rawXML));
                 d = (rawXML)serializer.Deserialize(xmlReader);
             }
 
-            Console.WriteLine($"{d.Subjekt?.Count()} subjects");
-
+            _logger.Information($"{filename} has {d.Subjekt?.Length} subjects");
             var subjs = d.Subjekt;
             if (System.Diagnostics.Debugger.IsAttached)
                 subjs = d.Subjekt.Where(m => m.ico == "21167885").ToArray();
@@ -241,77 +248,92 @@ namespace SkutecniMajitele
             Devmasters.Batch.Manager.DoActionForAll<xmlSubjekt>(subjs,
                 subj =>
                 {
-                    CompareLogic cl = new CompareLogic();
-                    cl.Config.IgnoreProperty<majitel_base>(m => m.osobaId);
-
-                    var item = majitele.GetMajitele(subj);
-                    bool sameAll = true;
-                    if (item != null)
+                    try
                     {
-                        //check change
-                        var old = ds.GetItemSafe(item.ico);
-                        if (old == null)
+                        CompareLogic cl = new CompareLogic();
+                        cl.Config.IgnoreProperty<majitel_base>(m => m.osobaId);
+
+                        var item = majitele.GetMajitele(subj);
+                        bool sameAll = true;
+                        if (item != null)
                         {
-                            sameAll = false;
-                        }
-                        else
-                        {
-                            if (old.skutecni_majitele?.Count() != item.skutecni_majitele?.Count())
-                                sameAll = false;
-                            else if (item.skutecni_majitele?.Count() == old.skutecni_majitele?.Count() &&
-                                     item.skutecni_majitele?.Count() > 0)
+                            //check change
+                            var old = ds.GetItemSafe(item.ico);
+                            if (old == null)
                             {
-                                var oldDict = old.skutecni_majitele  //this was added for big performance boost
-                                    .GroupBy(x => x.GetHashCode())
-                                    .ToDictionary(g => g.Key, g => g.ToList());
-                                
-                                foreach (majitel_base sm in item.skutecni_majitele)
+                                sameAll = false;
+                            }
+                            else
+                            {
+                                if (old.skutecni_majitele?.Count() != item.skutecni_majitele?.Count())
+                                    sameAll = false;
+                                else if (item.skutecni_majitele?.Count() == old.skutecni_majitele?.Count() &&
+                                         item.skutecni_majitele?.Count() > 0)
                                 {
-                                    bool same = false;
-                                    if (oldDict.TryGetValue(sm.GetHashCode(), out var oldSmList))
+                                    var oldDict = old.skutecni_majitele //this was added for big performance boost
+                                        .GroupBy(x => x.GetHashCode())
+                                        .ToDictionary(g => g.Key, g => g.ToList());
+
+                                    foreach (majitel_base sm in item.skutecni_majitele)
                                     {
-                                        foreach (majitel_base oldSm in oldSmList)
+                                        bool same = false;
+                                        if (oldDict.TryGetValue(sm.GetHashCode(), out var oldSmList))
                                         {
-                                            ComparisonResult result = cl.Compare(oldSm, sm);
-                                            bool areEq = result.AreEqual;
-                     
-                                            if (areEq)
+                                            foreach (majitel_base oldSm in oldSmList)
                                             {
-                                                same = true;
-                                                break;
+                                                ComparisonResult result = cl.Compare(oldSm, sm);
+                                                bool areEq = result.AreEqual;
+
+                                                if (areEq)
+                                                {
+                                                    same = true;
+                                                    break;
+                                                }
                                             }
                                         }
-                        
-                                    }
-                                    
-                                    if (same == false)
-                                    {
-                                        sameAll = false;
-                                        break;
+
+                                        if (same == false)
+                                        {
+                                            sameAll = false;
+                                            break;
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        if (sameAll == false)
-                        {
-                            if (debug)
+                            if (sameAll == false)
                             {
-                                if (!System.IO.Directory.Exists("changes"))
-                                    System.IO.Directory.CreateDirectory("changes");
-                                ComparisonResult result = cl.Compare(old, item);
+                                if (debug)
+                                {
+                                    if (!System.IO.Directory.Exists("changes"))
+                                        System.IO.Directory.CreateDirectory("changes");
+                                    ComparisonResult result = cl.Compare(old, item);
 
-                                Console.WriteLine("writing debug object changes for " + item.ico);
+                                    Console.WriteLine("writing debug object changes for " + item.ico);
 
-                                System.IO.File.WriteAllText(root + $"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-old.json", Newtonsoft.Json.JsonConvert.SerializeObject(old, Formatting.Indented));
-                                System.IO.File.WriteAllText(root + $"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-new.json", Newtonsoft.Json.JsonConvert.SerializeObject(item, Formatting.Indented));
-                                System.IO.File.WriteAllText(root + $"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-changes.json", Newtonsoft.Json.JsonConvert.SerializeObject(result.Differences, Formatting.Indented));
+                                    System.IO.File.WriteAllText(
+                                        root + $"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-old.json",
+                                        Newtonsoft.Json.JsonConvert.SerializeObject(old, Formatting.Indented));
+                                    System.IO.File.WriteAllText(
+                                        root + $"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-new.json",
+                                        Newtonsoft.Json.JsonConvert.SerializeObject(item, Formatting.Indented));
+                                    System.IO.File.WriteAllText(
+                                        root + $"changes\\{item.ico}-{System.DateTime.Now:yyyy-MM-dd}-changes.json",
+                                        Newtonsoft.Json.JsonConvert.SerializeObject(result.Differences,
+                                            Formatting.Indented));
+                                }
+
+                                item.UpdateOsobaId();
+                                ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                             }
-                            item.UpdateOsobaId();
-                            ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                         }
-
                     }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e, $"Something went wrong when processing subject {subj.ico}.");
+                        throw;
+                    }
+
 
                     return new Devmasters.Batch.ActionOutputData();
                 }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
@@ -319,24 +341,24 @@ namespace SkutecniMajitele
                 maxDegreeOfParallelism: 6, prefix: $"{name} ITEMS ");
         }
 
-        private static void DownloadFile(string name)
+        private static void DownloadFile(string name, string filepath)
         {
+            _logger.Information($"Downloading {name}");
             System.Net.WebClient wc = new System.Net.WebClient();
             try
             {
-                wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", root+ name + ".xml");
+                wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", filepath);
             }
             catch (Exception e1)
             {
                 try
                 {
                     System.Threading.Thread.Sleep(2000);
-                    wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", root + name + ".xml");
+                    wc.DownloadFile($"https://dataor.justice.cz/api/file/{name}.xml", filepath);
                 }
                 catch (Exception e2)
                 {
-                    Console.WriteLine($"Cannot download https://dataor.justice.cz/api/file/{name}.xml   ex:" +
-                                      e2.Message);
+                    _logger.Error(e2, $"Cannot download https://dataor.justice.cz/api/file/{name}.xml");
                 }
             }
         }
