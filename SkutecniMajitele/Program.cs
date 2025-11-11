@@ -330,7 +330,7 @@ namespace SkutecniMajitele
                     }
                     catch (Exception e)
                     {
-                        _logger.Error(e, $"Something went wrong when processing subject {subj.ico}.");
+                        _logger.Error(e, $"Something went wrong when processing subject [{subj.ico}] from [{name}] file.");
                         throw;
                     }
 
