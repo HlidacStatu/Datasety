@@ -38,8 +38,8 @@ namespace RejstrikTrestuPravnickychOsob
 
         public static Devmasters.Batch.MultiProgressWriter progressWriter =
             new Devmasters.Batch.MultiProgressWriter(
-                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Writer,
-                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Writer
+                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.ProgressWriters.ConsoleWriter),
+                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter)
             );
 
         static void Main(string[] args)
