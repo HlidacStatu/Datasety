@@ -17,10 +17,10 @@ namespace deMinimis
     {
 
 
-        static string subjIdSubReq = @"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:v02=""http://www.pds.eu/vOKO/v0200"" xmlns:rdm=""http://www.pds.eu/RDM_PUB01B"" xmlns:ns=""http://www.mze.cz/ESBServer/1.0"">
+        static string subjIdSubReq = @"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:v02=""http://www.pds.eu/vOKO/v0200"" xmlns:rdm=""http://www.pds.eu/RDM_PUB01D"" xmlns:ns=""http://www.mze.cz/ESBServer/1.0"">
 <soapenv:Header/>
 <soapenv:Body>
-<v02:Request vOKOid=""RDM_PUB01B"">
+<v02:Request vOKOid=""RDM_PUB01D"">
 <v02:RequestContent>
 <rdm:Request>
 <rdm:dotaz_detail>
@@ -35,10 +35,10 @@ namespace deMinimis
 </soapenv:Envelope>
 ";
 
-        static string icoSubReq = @"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:v02=""http://www.pds.eu/vOKO/v0200"" xmlns:rdm=""http://www.pds.eu/RDM_PUB01B"" xmlns:ns=""http://www.mze.cz/ESBServer/1.0"">
+        static string icoSubReq = @"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:v02=""http://www.pds.eu/vOKO/v0200"" xmlns:rdm=""http://www.pds.eu/RDM_PUB01D"" xmlns:ns=""http://www.mze.cz/ESBServer/1.0"">
 <soapenv:Header/>
 <soapenv:Body>
-<v02:Request vOKOid=""RDM_PUB01B"">
+<v02:Request vOKOid=""RDM_PUB01D"">
 <v02:RequestContent>
 <rdm:Request>
 <rdm:dotaz_detail>
@@ -54,10 +54,11 @@ namespace deMinimis
 ";
 
         //DATUMOD 2011-05-09
-        static string icoChangesReq = @"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:v02=""http://www.pds.eu/vOKO/v0200"" xmlns:rdm=""http://www.pds.eu/RDM_PUB01B"" xmlns:ns=""http://www.mze.cz/ESBServer/1.0"">
+        static string icoChangesReq = 
+@"<soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:v02=""http://www.pds.eu/vOKO/v0200"" xmlns:rdm=""http://www.pds.eu/RDM_PUB01D"" xmlns:ns=""http://www.mze.cz/ESBServer/1.0"">
 <soapenv:Header/>
 <soapenv:Body>
-<v02:Request vOKOid=""RDM_PUB01B"">
+<v02:Request vOKOid=""RDM_PUB01D"">
 <v02:RequestContent>
 <rdm:Request>
 <rdm:dotaz_zmeny>
@@ -139,10 +140,10 @@ Hodnoty:
                 .Select(m => m as XElement)
                 .Where(m => m != null && m.HasAttributes)
                 .Where(m => m.Attributes()
-                        .Any(a => a.Name == "xmlns" && a.Value == "http://www.pds.eu/RDM_PUB01B") == true
+                        .Any(a => a.Name == "xmlns" && a.Value == "http://www.pds.eu/RDM_PUB01D") == true
                     )
                     .ToArray();
-            var serializer = new XmlSerializer(typeof(deMinimis.Response.Detail.Response), "http://www.pds.eu/RDM_PUB01B");
+            var serializer = new XmlSerializer(typeof(deMinimis.Response.Detail.Response), "http://www.pds.eu/RDM_PUB01D");
             deMinimis.Response.Detail.Response resObj = null;
             using (var read = res.First().CreateReader())
             {
@@ -165,10 +166,10 @@ Hodnoty:
                 .Select(m => m as XElement)
                 .Where(m => m != null && m.HasAttributes)
                 .Where(m => m.Attributes()
-                        .Any(a => a.Name == "xmlns" && a.Value == "http://www.pds.eu/RDM_PUB01B") == true
+                        .Any(a => a.Name == "xmlns" && a.Value == "http://www.pds.eu/RDM_PUB01D") == true
                     )
                     .ToArray();
-            var serializer = new XmlSerializer(typeof(deMinimis.Response.Detail.Response), "http://www.pds.eu/RDM_PUB01B");
+            var serializer = new XmlSerializer(typeof(deMinimis.Response.Detail.Response), "http://www.pds.eu/RDM_PUB01D");
             deMinimis.Response.Detail.Response resObj = null;
             using (var read = res.First().CreateReader())
             {
@@ -180,6 +181,7 @@ Hodnoty:
            public static deMinimis.Response.Changes.Response GetChanges(DateTime odDatum, DateTime doDatum)
         {
 
+            //string url = "https://epomze.gov.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx";
             string url = "https://epomze.gov.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx";
             string req = icoChangesReq
                 .Replace("#DATUMOD#", odDatum.ToString("yyyy-MM-dd"))
@@ -194,10 +196,10 @@ Hodnoty:
                 .Select(m => m as XElement)
                 .Where(m => m != null && m.HasAttributes)
                 .Where(m => m.Attributes()
-                        .Any(a => a.Name == "xmlns" && a.Value == "http://www.pds.eu/RDM_PUB01B") == true
+                        .Any(a => a.Name == "xmlns" && a.Value == "http://www.pds.eu/RDM_PUB01D") == true
                     )
                     .ToArray();
-            var serializer = new XmlSerializer(typeof(deMinimis.Response.Changes.Response), "http://www.pds.eu/RDM_PUB01B");
+            var serializer = new XmlSerializer(typeof(deMinimis.Response.Changes.Response), "http://www.pds.eu/RDM_PUB01D");
             deMinimis.Response.Changes.Response resObj = null;
             using (var read = res.First().CreateReader())
             {
@@ -212,17 +214,31 @@ Hodnoty:
             public int Timeout { get; set; }
             public Soap() : this(60 * 1000) { } //1min
 
+            bool useProxy = false; //System.Diagnostics.Debugger.IsAttached;
+
             public Soap(int timeout)
             {
                 this.Timeout = timeout;
                 this.Encoding = System.Text.Encoding.UTF8;
-                //this.Proxy = new System.Net.WebProxy("127.0.0.1", 8888);
+                if (useProxy)
+                {
+                    this.Proxy = new System.Net.WebProxy("127.0.0.1", 8888);
+                    ServicePointManager.ServerCertificateValidationCallback =
+        (sender, certificate, chain, sslPolicyErrors) => true;
+                }
             }
 
             protected override WebRequest GetWebRequest(Uri address)
             {
 
                 var request = base.GetWebRequest(address);
+                if (useProxy && request is HttpWebRequest httpRequest)
+                {
+                    httpRequest.ServerCertificateValidationCallback =
+                        (sender, cert, chain, errors) => true;
+                }
+
+
                 request.ContentType = "text/xml";
                 if (request != null)
                 {

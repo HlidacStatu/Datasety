@@ -40,8 +40,8 @@ namespace deMinimis
 
         static Devmasters.Batch.MultiProgressWriter progressWriter =
             new Devmasters.Batch.MultiProgressWriter(
-                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter).Writer,
-                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Writer
+                new Devmasters.Batch.ActionProgressWriter(1.0f, Devmasters.Batch.Manager.DefaultProgressWriter),
+                new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter)
             );
 
         static void Main(string[] arguments)
@@ -161,7 +161,7 @@ namespace deMinimis
                     FixSubject(szrId.ToString(), true); //pokud záznam existuje, bude přepsán (update)
 
                     return new Devmasters.Batch.ActionOutputData();
-                }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
+                }, Devmasters.Batch.Manager.DefaultOutputWriter, new Devmasters.Batch.ActionProgressWriter(),
                 !System.Diagnostics.Debugger.IsAttached, maxDegreeOfParallelism: 6);
 
                 //AddMissingFromJsonDump();
@@ -220,7 +220,7 @@ namespace deMinimis
 
                     }
                     return new Devmasters.Batch.ActionOutputData() { Log = s };
-                }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
+                }, Devmasters.Batch.Manager.DefaultOutputWriter, new Devmasters.Batch.ActionProgressWriter(),
                     !System.Diagnostics.Debugger.IsAttached, maxDegreeOfParallelism: 10);
 
             }
@@ -245,7 +245,7 @@ namespace deMinimis
                 ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
 
                 return new Devmasters.Batch.ActionOutputData();
-            }, Devmasters.Batch.Manager.DefaultOutputWriter, Devmasters.Batch.Manager.DefaultProgressWriter,
+            }, Devmasters.Batch.Manager.DefaultOutputWriter, new Devmasters.Batch.ActionProgressWriter(),
                 !System.Diagnostics.Debugger.IsAttached, maxDegreeOfParallelism: 10);
 
         }

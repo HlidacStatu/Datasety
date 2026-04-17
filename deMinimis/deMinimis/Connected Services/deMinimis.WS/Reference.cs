@@ -254,7 +254,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class ArrayOfSubjekt_type
     {
         
@@ -278,7 +278,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class subjekt_type
     {
         
@@ -547,7 +547,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class identifikator_type
     {
         
@@ -651,7 +651,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class adresa_type
     {
         
@@ -899,7 +899,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class oblast_stav_type
     {
         
@@ -987,7 +987,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class narizeni_stav_type
     {
         
@@ -1075,7 +1075,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class podpora_type
     {
         
@@ -1435,7 +1435,7 @@ namespace deMinimis.WS
     
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public enum podpora_oblast_enum
     {
         
@@ -1457,7 +1457,7 @@ namespace deMinimis.WS
     
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public enum mena_enum
     {
         
@@ -1471,7 +1471,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class rezim_podpory_type
     {
         
@@ -1575,7 +1575,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class priznak
     {
         
@@ -1631,7 +1631,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class ucetni_obdobi
     {
         
@@ -1703,7 +1703,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class ArrayOfSubjektId_type
     {
         
@@ -1728,7 +1728,7 @@ namespace deMinimis.WS
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(RDM_PUB_Response))]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class RDM_PUB_Response_base_type
     {
         
@@ -1752,7 +1752,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class RDM_PUB_Response : RDM_PUB_Response_base_type
     {
         
@@ -1965,7 +1965,7 @@ namespace deMinimis.WS
         private RDM_PUB_Response itemField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Response", Namespace="http://www.pds.eu/RDM_PUB01B", Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("Response", Namespace="http://www.pds.eu/RDM_PUB01D", Order=0)]
         public RDM_PUB_Response Item
         {
             get
@@ -1982,7 +1982,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class dotaz_zmeny_type
     {
         
@@ -2086,7 +2086,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class dotaz_subjektid_type
     {
         
@@ -2112,7 +2112,7 @@ namespace deMinimis.WS
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(dotaz_obec_type))]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class dotaz_jmeno_prijmeni_type
     {
         
@@ -2152,7 +2152,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class dotaz_psc_type : dotaz_jmeno_prijmeni_type
     {
         
@@ -2176,7 +2176,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class dotaz_obec_type : dotaz_jmeno_prijmeni_type
     {
         
@@ -2200,7 +2200,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class dotaz_ic_type
     {
         
@@ -2224,7 +2224,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class dotaz_detail_choice_type
     {
         
@@ -2251,7 +2251,7 @@ namespace deMinimis.WS
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01B")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.pds.eu/RDM_PUB01D")]
     public partial class RDM_PUB_Request
     {
         
@@ -2707,7 +2707,7 @@ namespace deMinimis.WS
         private RDM_PUB_Request itemField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Request", Namespace="http://www.pds.eu/RDM_PUB01B", Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("Request", Namespace="http://www.pds.eu/RDM_PUB01D", Order=0)]
         public RDM_PUB_Request Item
         {
             get
@@ -2722,8 +2722,8 @@ namespace deMinimis.WS
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    [System.ServiceModel.ServiceContractAttribute(Namespace="http://www.pds.eu/vOKO/v0200", ConfigurationName="deMinimis.WS.RDM_PUB01B")]
-    public interface RDM_PUB01B
+    [System.ServiceModel.ServiceContractAttribute(Namespace="http://www.pds.eu/vOKO/v0200", ConfigurationName="deMinimis.WS.RDM_PUB01D")]
+    public interface RDM_PUB01D
     {
         
         // CODEGEN: Generating message contract since the operation process is neither RPC nor document wrapped.
@@ -2779,13 +2779,13 @@ namespace deMinimis.WS
     }
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    public interface RDM_PUB01BChannel : deMinimis.WS.RDM_PUB01B, System.ServiceModel.IClientChannel
+    public interface RDM_PUB01DChannel : deMinimis.WS.RDM_PUB01D, System.ServiceModel.IClientChannel
     {
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Tools.ServiceModel.Svcutil", "2.0.2")]
-    public partial class RDM_PUB01BClient : System.ServiceModel.ClientBase<deMinimis.WS.RDM_PUB01B>, deMinimis.WS.RDM_PUB01B
+    public partial class RDM_PUB01DClient : System.ServiceModel.ClientBase<deMinimis.WS.RDM_PUB01D>, deMinimis.WS.RDM_PUB01D
     {
         
         /// <summary>
@@ -2795,41 +2795,41 @@ namespace deMinimis.WS
         /// <param name="clientCredentials">The client credentials</param>
         static partial void ConfigureEndpoint(System.ServiceModel.Description.ServiceEndpoint serviceEndpoint, System.ServiceModel.Description.ClientCredentials clientCredentials);
         
-        public RDM_PUB01BClient() : 
-                base(RDM_PUB01BClient.GetDefaultBinding(), RDM_PUB01BClient.GetDefaultEndpointAddress())
+        public RDM_PUB01DClient() : 
+                base(RDM_PUB01DClient.GetDefaultBinding(), RDM_PUB01DClient.GetDefaultEndpointAddress())
         {
-            this.Endpoint.Name = EndpointConfiguration.RDM_PUB01BPort.ToString();
+            this.Endpoint.Name = EndpointConfiguration.RDM_PUB01DPort.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
         
-        public RDM_PUB01BClient(EndpointConfiguration endpointConfiguration) : 
-                base(RDM_PUB01BClient.GetBindingForEndpoint(endpointConfiguration), RDM_PUB01BClient.GetEndpointAddress(endpointConfiguration))
-        {
-            this.Endpoint.Name = endpointConfiguration.ToString();
-            ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
-        }
-        
-        public RDM_PUB01BClient(EndpointConfiguration endpointConfiguration, string remoteAddress) : 
-                base(RDM_PUB01BClient.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
+        public RDM_PUB01DClient(EndpointConfiguration endpointConfiguration) : 
+                base(RDM_PUB01DClient.GetBindingForEndpoint(endpointConfiguration), RDM_PUB01DClient.GetEndpointAddress(endpointConfiguration))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
         
-        public RDM_PUB01BClient(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) : 
-                base(RDM_PUB01BClient.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
+        public RDM_PUB01DClient(EndpointConfiguration endpointConfiguration, string remoteAddress) : 
+                base(RDM_PUB01DClient.GetBindingForEndpoint(endpointConfiguration), new System.ServiceModel.EndpointAddress(remoteAddress))
         {
             this.Endpoint.Name = endpointConfiguration.ToString();
             ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
         }
         
-        public RDM_PUB01BClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
+        public RDM_PUB01DClient(EndpointConfiguration endpointConfiguration, System.ServiceModel.EndpointAddress remoteAddress) : 
+                base(RDM_PUB01DClient.GetBindingForEndpoint(endpointConfiguration), remoteAddress)
+        {
+            this.Endpoint.Name = endpointConfiguration.ToString();
+            ConfigureEndpoint(this.Endpoint, this.ClientCredentials);
+        }
+        
+        public RDM_PUB01DClient(System.ServiceModel.Channels.Binding binding, System.ServiceModel.EndpointAddress remoteAddress) : 
                 base(binding, remoteAddress)
         {
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        deMinimis.WS.processResponse deMinimis.WS.RDM_PUB01B.process(deMinimis.WS.processRequest request)
+        deMinimis.WS.processResponse deMinimis.WS.RDM_PUB01D.process(deMinimis.WS.processRequest request)
         {
             return base.Channel.process(request);
         }
@@ -2838,12 +2838,12 @@ namespace deMinimis.WS
         {
             deMinimis.WS.processRequest inValue = new deMinimis.WS.processRequest();
             inValue.Request = Request;
-            deMinimis.WS.processResponse retVal = ((deMinimis.WS.RDM_PUB01B)(this)).process(inValue);
+            deMinimis.WS.processResponse retVal = ((deMinimis.WS.RDM_PUB01D)(this)).process(inValue);
             return retVal.Response;
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-        System.Threading.Tasks.Task<deMinimis.WS.processResponse> deMinimis.WS.RDM_PUB01B.processAsync(deMinimis.WS.processRequest request)
+        System.Threading.Tasks.Task<deMinimis.WS.processResponse> deMinimis.WS.RDM_PUB01D.processAsync(deMinimis.WS.processRequest request)
         {
             return base.Channel.processAsync(request);
         }
@@ -2852,7 +2852,7 @@ namespace deMinimis.WS
         {
             deMinimis.WS.processRequest inValue = new deMinimis.WS.processRequest();
             inValue.Request = Request;
-            return ((deMinimis.WS.RDM_PUB01B)(this)).processAsync(inValue);
+            return ((deMinimis.WS.RDM_PUB01D)(this)).processAsync(inValue);
         }
         
         public virtual System.Threading.Tasks.Task OpenAsync()
@@ -2867,7 +2867,7 @@ namespace deMinimis.WS
         
         private static System.ServiceModel.Channels.Binding GetBindingForEndpoint(EndpointConfiguration endpointConfiguration)
         {
-            if ((endpointConfiguration == EndpointConfiguration.RDM_PUB01BPort))
+            if ((endpointConfiguration == EndpointConfiguration.RDM_PUB01DPort))
             {
                 System.ServiceModel.BasicHttpBinding result = new System.ServiceModel.BasicHttpBinding();
                 result.MaxBufferSize = int.MaxValue;
@@ -2882,7 +2882,7 @@ namespace deMinimis.WS
         
         private static System.ServiceModel.EndpointAddress GetEndpointAddress(EndpointConfiguration endpointConfiguration)
         {
-            if ((endpointConfiguration == EndpointConfiguration.RDM_PUB01BPort))
+            if ((endpointConfiguration == EndpointConfiguration.RDM_PUB01DPort))
             {
                 return new System.ServiceModel.EndpointAddress("https://epomze.gov.cz/ssl/nosso-app/EPO/WS/v2Online/vOKOsrv.ashx");
             }
@@ -2891,18 +2891,18 @@ namespace deMinimis.WS
         
         private static System.ServiceModel.Channels.Binding GetDefaultBinding()
         {
-            return RDM_PUB01BClient.GetBindingForEndpoint(EndpointConfiguration.RDM_PUB01BPort);
+            return RDM_PUB01DClient.GetBindingForEndpoint(EndpointConfiguration.RDM_PUB01DPort);
         }
         
         private static System.ServiceModel.EndpointAddress GetDefaultEndpointAddress()
         {
-            return RDM_PUB01BClient.GetEndpointAddress(EndpointConfiguration.RDM_PUB01BPort);
+            return RDM_PUB01DClient.GetEndpointAddress(EndpointConfiguration.RDM_PUB01DPort);
         }
         
         public enum EndpointConfiguration
         {
             
-            RDM_PUB01BPort,
+            RDM_PUB01DPort,
         }
     }
 }

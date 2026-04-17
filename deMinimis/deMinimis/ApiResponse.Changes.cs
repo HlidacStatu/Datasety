@@ -12,8 +12,8 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
-        [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://www.pds.eu/RDM_PUB01B", IsNullable = false)]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
+        [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://www.pds.eu/RDM_PUB01D", IsNullable = false)]
         public partial class Response
         {
 

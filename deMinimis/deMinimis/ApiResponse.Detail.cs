@@ -15,8 +15,8 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
-        [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://www.pds.eu/RDM_PUB01B", IsNullable = false)]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
+        [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://www.pds.eu/RDM_PUB01D", IsNullable = false)]
         public partial class Response
         {
 
@@ -55,7 +55,7 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
         public partial class ResponseSubjekt
         {
 
@@ -204,7 +204,7 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
         public partial class ResponseSubjektIdentifikator
         {
 
@@ -260,7 +260,7 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
         public partial class ResponseSubjektAdresa
         {
 
@@ -388,7 +388,7 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
         public partial class ResponseSubjektOblast_stav
         {
 
@@ -442,7 +442,7 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
         public partial class ResponseSubjektNarizeni_stav
         {
 
@@ -496,7 +496,7 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
         public partial class ResponseSubjektPodpora
         {
 
@@ -808,7 +808,7 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
         public partial class ResponseSubjektPodporaRezim_podpory
         {
 
@@ -912,7 +912,7 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
         public partial class ResponseSubjektPodporaSeznam_priznaky
         {
 
@@ -935,7 +935,7 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
         public partial class ResponseSubjektPodporaSeznam_priznakyPriznak
         {
 
@@ -988,7 +988,7 @@ namespace deMinimis.Response
         /// <remarks/>
         [System.SerializableAttribute()]
         [System.ComponentModel.DesignerCategoryAttribute("code")]
-        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01B")]
+        [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.pds.eu/RDM_PUB01D")]
         public partial class ResponseSubjektUcetni_obdobi
         {
 
