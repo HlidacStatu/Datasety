@@ -10,8 +10,11 @@ using Serilog;
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Rozhodnuti_UOHS
 {
@@ -49,47 +52,139 @@ namespace Rozhodnuti_UOHS
                 new Devmasters.Batch.ActionProgressWriter(500, new Devmasters.Batch.LoggerWriter(logger, Devmasters.Log.PriorityLevel.Information).ProgressWriter).Writer
             );
 
-        static void Main(string[] _args)
+        static AppSettings settings = null;
+
+        const int ExitCodeSuccess = 0;
+        const int ExitCodeFailure = 1;
+        const int ExitCodeInvalidArguments = 2;
+
+        static async Task<int> Main(string[] _args)
         {
             Console.WriteLine("Rozhodnuti-UOHS \n");
-            Devmasters.Args args = new Devmasters.Args(_args, new[] { "/apiKey" });
-            logger.Info("Starting with params" + string.Join(" ", args.Arguments));
-
-            if (args.MandatoryPresent() == false)
+            try
             {
-                Console.WriteLine("/apikey=xxx [/start=]  [/new] [/num=]");
-                return;            
+                logger.Info("Starting with params " + RunOptions.ToLogString(_args));
+
+                RunOptions options;
+                try
+                {
+                    options = RunOptions.Parse(_args);
+                }
+                catch (RunOptionsException e)
+                {
+                    logger.Error("Invalid command line: {Error}", e.Message);
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine(RunOptions.Usage);
+                    return ExitCodeInvalidArguments;
+                }
+
+                settings = AppSettings.Load(Path.Combine(AppContext.BaseDirectory, AppSettings.FileName));
+                debug = options.Debug;
+
+                InitDS(options.RecreateDataset, options.ApiKey);
+
+                httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Add("Authorization", options.ApiKey);
+
+                var selection = await SelectDecisionIdsAsync(options);
+                logger.Info("{DecisionCount} decision IDs selected for download in {SelectionMode} mode",
+                    selection.Ids.Count, selection.Mode);
+
+                if (options.DryRun)
+                {
+                    logger.Info("Dry run, nothing is downloaded. Selected decision IDs: {DecisionIds}", selection.Ids);
+                    return ExitCodeSuccess;
+                }
+
+                ParsePages(selection.Ids); //stahnuti, parsovani dat z UOHS a vlozeni do Datasetu
+                logger.Info("Finished, {DecisionCount} decision IDs processed", selection.Ids.Count);
+                return ExitCodeSuccess;
             }
-            debug = args.Exists("/debug");
-
-            InitDS(args.Exists("/new"), args["/apiKey"]);
-
-            httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("Authorization", args["/apiKey"]);
-
-
-            //check last Rozhodnuti
-            var res = ds.Search("", 1, "DbCreated", true);
-            int lastId = 0;
-            if (res.Total > 0)
-                lastId = Convert.ToInt32(res.Results.First().Id);
-
-            int num = args.GetNumber("/num", 1500).Value;
-            var start = args.GetNumber("/start", 1500);
-            if (start.HasValue)
-                lastId = start.Value;
-
-            if (lastId == 0)
-                num = 90000;
-
-
-            ParsePages(datasetId, lastId, num); //stahnuti, parsovani dat z UOHS a vlozeni do Datasetu
+            catch (OperationCanceledException)
+            {
+                logger.Warning("Cancelled by user");
+                return ExitCodeFailure;
+            }
+            catch (Exception e)
+            {
+                logger.Fatal("Run failed", e);
+                return ExitCodeFailure;
+            }
+            finally
+            {
+                logger.CloseAndFlush();
+            }
         }
 
-        public static void ParsePages(string datasetId, int startFrom = 10000, int count = 600)
+        /// <summary>
+        /// Chooses decision IDs to download; Ctrl+C cancels the selection (discovery can take minutes).
+        /// Afterwards Ctrl+C terminates the process as usual.
+        /// </summary>
+        static async Task<DecisionIdSelection> SelectDecisionIdsAsync(RunOptions options)
+        {
+            using var cancellation = new CancellationTokenSource();
+            ConsoleCancelEventHandler onCancel = (_, e) =>
+            {
+                e.Cancel = true;
+                cancellation.Cancel();
+            };
+
+            Console.CancelKeyPress += onCancel;
+            try
+            {
+                var selection = await new DecisionIdSelector(settings.Import).SelectAsync(
+                    options,
+                    () => ds.Search("", 1).Total == 0,
+                    FindNewDecisionIdsAsync,
+                    cancellation.Token);
+
+                if (selection.Mode == SelectionMode.IdRange && selection.Ids.Count > 0)
+                    logger.Info("Range mode, decision IDs {FirstId} - {LastId}", selection.Ids[0], selection.Ids[^1]);
+                if (selection.Mode == SelectionMode.EmptyDataset)
+                    logger.Info("Dataset {DatasetId} is empty, processing decision IDs 0 - {LastId}", datasetId, selection.Ids.Count - 1);
+
+                return selection;
+            }
+            finally
+            {
+                Console.CancelKeyPress -= onCancel;
+            }
+        }
+
+        /// <summary>
+        /// Scans the UOHS listing of all areas from the newest decisions plus the recent ID window
+        /// and returns IDs not stored in the dataset yet.
+        /// </summary>
+        static async Task<IReadOnlyList<int>> FindNewDecisionIdsAsync(CancellationToken cancellationToken)
+        {
+            using var listingClient = UohsListingClient.Create(settings.Uohs, logger);
+            var finder = new NewDecisionFinder(
+                settings.Uohs.StopAfterKnownListingPages, settings.Uohs.MaxListingPages,
+                settings.Uohs.RecentIdWindowSize, settings.Uohs.ListingRequestDelay);
+
+            var result = await finder.FindAsync(
+                listingClient.GetPageAsync,
+                id => ds.Api.ApiV2DatasetyDatasetItemExists(ds.DatasetId, id.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                scan => logger.Info("UOHS listing page {PageNumber}: {IdsOnPage} decisions, {NewIdsOnPage} missing in dataset, {TotalNewIds} missing in total",
+                    scan.PageNumber, scan.IdsOnPage, scan.NewIdsOnPage, scan.TotalNewIds),
+                cancellationToken);
+
+            logger.Info("UOHS discovery finished: listing scan {StopReason} after {PagesScanned} pages, {ListingIdCount} listed decisions missing in dataset, "
+                + "{WindowIdCount} more IDs missing in the recent window of {WindowSize} IDs up to {MaxListedId}",
+                result.StopReason, result.PagesScanned, result.ListingIds.Count,
+                result.RecentWindowIds.Count, settings.Uohs.RecentIdWindowSize, result.MaxListedId);
+
+            if (result.StopReason is not DiscoveryStopReason.KnownPagesThresholdReached)
+                logger.Warning("UOHS listing scan ended by {StopReason} before reaching already stored decisions; older missing decisions may exist, download them with /start= /num=",
+                    result.StopReason);
+
+            return result.NewIds;
+        }
+
+        public static void ParsePages(IEnumerable<int> decisionIds)
         {
 
-            Devmasters.Batch.Manager.DoActionForAll<int>(Enumerable.Range(startFrom, count),
+            Devmasters.Batch.Manager.DoActionForAll<int>(decisionIds,
             //jedeme v 2 threadech, bud ohleduplny a nedavej vice
                 (i) =>
                 {
@@ -101,7 +196,7 @@ namespace Rozhodnuti_UOHS
                         //rozhodnutí jsou na samostatnych stránkach, s jednoduchym URL, kde cislo stranky s rozhodnutim postupně roste.
                         // k 1.9.2018 ma posledni rozhodnuti cislo asi 15500
                         string html = "";
-                        url = $"http://www.uohs.cz/cs/verejne-zakazky/sbirky-rozhodnuti/detail-{i}.html";
+                        url = string.Format(System.Globalization.CultureInfo.InvariantCulture, settings.Uohs.DetailUrlTemplate, i);
                         
                         //stahnuti HTML
                         System.Net.WebClient wc = new System.Net.WebClient();
@@ -186,9 +281,8 @@ namespace Rozhodnuti_UOHS
                         if (souvis_urls != null)
                         {
                             item.SouvisejiciUrl = souvis_urls
-                                .Select(m => m.Attributes["href"]?.Value)
+                                .Select(m => UohsLinks.ToAbsoluteUrl(settings.Uohs.LinkBaseUrl, m.Attributes["href"]?.Value))
                                 .Where(m => m != null)
-                                .Select(u => "http://www.uohs.cz" + u)
                                 .ToArray();
                         }
 
@@ -198,10 +292,9 @@ namespace Rozhodnuti_UOHS
                         var documents = page.GetNodes(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Dokumenty')]/parent::tr/td/a");
 
 
-                        item.Rozhodnuti.Url = page.GetNode(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Dokumenty')]/parent::tr/td/a")
-                            ?.Attributes["href"]?.Value;
-                        if (!string.IsNullOrEmpty(item.Rozhodnuti.Url))
-                            item.Rozhodnuti.Url = "http://www.uohs.cz" + item.SouvisejiciUrl;
+                        item.Rozhodnuti.Url = UohsLinks.ToAbsoluteUrl(settings.Uohs.LinkBaseUrl,
+                            page.GetNode(root + "//table[@id='resolution_detail']//tr//th[contains(text(),'Dokumenty')]/parent::tr/td/a")
+                                ?.Attributes["href"]?.Value);
 
                         item.Rozhodnuti.PlainText = page.GetNode("//div[@id='content']//div[@class='res_text']")?.InnerText ?? "";
 
@@ -211,6 +304,11 @@ namespace Rozhodnuti_UOHS
                         
                         ds.AddOrUpdateItem(item, HlidacStatu.Api.V2.Dataset.Typed.ItemInsertMode.rewrite);
                     }
+                    catch (System.Net.WebException e) when ((e.Response as System.Net.HttpWebResponse)?.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        //gap in UOHS numbering (ID without a published decision), not an error
+                        logger.Info("Decision {DecisionId} is not published on UOHS: {Url}", i, url);
+                    }
                     catch (Exception e)
                     {
                         logger.Error(url, e);
@@ -219,7 +317,8 @@ namespace Rozhodnuti_UOHS
                     return new Devmasters.Batch.ActionOutputData();
                 },
                     outputWriter.OutputWriter, progressWriter.ProgressWriter,
-                    !System.Diagnostics.Debugger.IsAttached
+                    !System.Diagnostics.Debugger.IsAttached,
+                    maxDegreeOfParallelism: settings.Import.MaxDegreeOfParallelism
               );
 
 
