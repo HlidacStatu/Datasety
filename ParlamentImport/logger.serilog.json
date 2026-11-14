@@ -1,0 +1,29 @@
+{
+  "Serilog": {
+    "Using": [
+      "Serilog.Sinks.Console",
+      "Serilog.Sinks.File"
+    ],
+    "MinimumLevel": {
+      "Default": "Warning",
+      "Override": {
+        "HlidacStatu.ParlamentImport": "Information",
+        "System.Net.Http": "Warning",
+        "Microsoft": "Error"
+      }
+    },
+    "WriteTo": [
+      {
+        "Name": "File",
+        "Args": {
+          "path": "c:/data/Logs/ParlamentImport/parlamentimport.json",
+          "rollingInterval": "Day",
+          "fileSizeLimitBytes": null,
+          "retainedFileCountLimit": 9,
+          "shared": true,
+          "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog"
+        }
+      }
+    ]
+  }
+}
