@@ -14,15 +14,14 @@ namespace Rozhodnuti_UOHS
     public enum SelectionMode
     {
         IdRange,
-        EmptyDataset,
-        Discovery,
+        Automatic,
     }
 
     public sealed record DecisionIdSelection(SelectionMode Mode, IReadOnlyList<int> Ids);
 
     /// <summary>
-    /// Chooses decision IDs to download: an explicit /start (+ /num) ID range, the whole ID range when the dataset is empty,
-    /// otherwise decisions found on UOHS which are missing in the dataset.
+    /// Chooses decision IDs to download: an explicit /start (+ /num) ID range,
+    /// otherwise the automatic range computed from the dataset and the UOHS listing.
     /// </summary>
     public sealed class DecisionIdSelector(ImportSettings settings)
     {
@@ -30,13 +29,11 @@ namespace Rozhodnuti_UOHS
 
         public async Task<DecisionIdSelection> SelectAsync(
             RunOptions options,
-            Func<bool> isDatasetEmpty,
-            Func<CancellationToken, Task<IReadOnlyList<int>>> discoverNewIds,
+            Func<CancellationToken, Task<IReadOnlyList<int>>> automaticIds,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(options);
-            ArgumentNullException.ThrowIfNull(isDatasetEmpty);
-            ArgumentNullException.ThrowIfNull(discoverNewIds);
+            ArgumentNullException.ThrowIfNull(automaticIds);
 
             if (options.StartId.HasValue)
             {
@@ -44,10 +41,7 @@ namespace Rozhodnuti_UOHS
                 return new DecisionIdSelection(SelectionMode.IdRange, Enumerable.Range(options.StartId.Value, count).ToArray());
             }
 
-            if (isDatasetEmpty())
-                return new DecisionIdSelection(SelectionMode.EmptyDataset, Enumerable.Range(0, settings.EmptyDatasetRangeCount).ToArray());
-
-            return new DecisionIdSelection(SelectionMode.Discovery, await discoverNewIds(cancellationToken));
+            return new DecisionIdSelection(SelectionMode.Automatic, await automaticIds(cancellationToken));
         }
     }
 }

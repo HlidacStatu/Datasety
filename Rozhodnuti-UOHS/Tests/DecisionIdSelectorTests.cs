@@ -8,24 +8,24 @@ namespace Rozhodnuti_UOHS.Tests;
 
 public sealed class DecisionIdSelectorTests
 {
-    static readonly ImportSettings Settings = new(MaxDegreeOfParallelism: 2, RangeModeDefaultCount: 3, EmptyDatasetRangeCount: 4);
+    static readonly ImportSettings Settings = new(MaxDegreeOfParallelism: 2, RangeModeDefaultCount: 3, DatasetIdOverlap: 500, UohsIdLookahead: 200);
 
-    static readonly IReadOnlyList<int> DiscoveredIds = [24509, 24508];
+    static readonly IReadOnlyList<int> AutomaticIds = [24009, 24010];
 
-    static Task<IReadOnlyList<int>> Discover(CancellationToken _) => Task.FromResult(DiscoveredIds);
+    static Task<IReadOnlyList<int>> Automatic(CancellationToken _) => Task.FromResult(AutomaticIds);
 
-    static Task<IReadOnlyList<int>> DiscoveryMustNotRun(CancellationToken _) =>
-        throw new InvalidOperationException("discovery must not run");
+    static Task<IReadOnlyList<int>> AutomaticMustNotRun(CancellationToken _) =>
+        throw new InvalidOperationException("automatic selection must not run");
 
     [Fact]
-    public async Task SelectAsync_NoStartArgument_DiscoversNewDecisions()
+    public async Task SelectAsync_NoStartArgument_UsesAutomaticRange()
     {
         var options = RunOptions.Parse(["/apikey=secret"]);
 
-        var selection = await new DecisionIdSelector(Settings).SelectAsync(options, () => false, Discover);
+        var selection = await new DecisionIdSelector(Settings).SelectAsync(options, Automatic);
 
-        Assert.Equal(SelectionMode.Discovery, selection.Mode);
-        Assert.Equal(DiscoveredIds, selection.Ids);
+        Assert.Equal(SelectionMode.Automatic, selection.Mode);
+        Assert.Equal(AutomaticIds, selection.Ids);
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public sealed class DecisionIdSelectorTests
     {
         var options = RunOptions.Parse(["/apikey=secret", "/start=100"]);
 
-        var selection = await new DecisionIdSelector(Settings).SelectAsync(options, () => false, DiscoveryMustNotRun);
+        var selection = await new DecisionIdSelector(Settings).SelectAsync(options, AutomaticMustNotRun);
 
         Assert.Equal(SelectionMode.IdRange, selection.Mode);
         Assert.Equal([100, 101, 102], selection.Ids);
@@ -44,20 +44,9 @@ public sealed class DecisionIdSelectorTests
     {
         var options = RunOptions.Parse(["/apikey=secret", "/start=0", "/num=2"]);
 
-        var selection = await new DecisionIdSelector(Settings).SelectAsync(options, () => true, DiscoveryMustNotRun);
+        var selection = await new DecisionIdSelector(Settings).SelectAsync(options, AutomaticMustNotRun);
 
         Assert.Equal(SelectionMode.IdRange, selection.Mode);
         Assert.Equal([0, 1], selection.Ids);
-    }
-
-    [Fact]
-    public async Task SelectAsync_EmptyDataset_ReturnsWholeConfiguredRange()
-    {
-        var options = RunOptions.Parse(["/apikey=secret"]);
-
-        var selection = await new DecisionIdSelector(Settings).SelectAsync(options, () => true, DiscoveryMustNotRun);
-
-        Assert.Equal(SelectionMode.EmptyDataset, selection.Mode);
-        Assert.Equal([0, 1, 2, 3], selection.Ids);
     }
 }

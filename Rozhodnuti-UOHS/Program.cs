@@ -117,7 +117,7 @@ namespace Rozhodnuti_UOHS
         }
 
         /// <summary>
-        /// Chooses decision IDs to download; Ctrl+C cancels the selection (discovery can take minutes).
+        /// Chooses decision IDs to download; Ctrl+C cancels the selection.
         /// Afterwards Ctrl+C terminates the process as usual.
         /// </summary>
         static async Task<DecisionIdSelection> SelectDecisionIdsAsync(RunOptions options)
@@ -134,14 +134,11 @@ namespace Rozhodnuti_UOHS
             {
                 var selection = await new DecisionIdSelector(settings.Import).SelectAsync(
                     options,
-                    () => ds.Search("", 1).Total == 0,
-                    FindNewDecisionIdsAsync,
+                    ComputeAutomaticIdsAsync,
                     cancellation.Token);
 
                 if (selection.Mode == SelectionMode.IdRange && selection.Ids.Count > 0)
                     logger.Info("Range mode, decision IDs {FirstId} - {LastId}", selection.Ids[0], selection.Ids[^1]);
-                if (selection.Mode == SelectionMode.EmptyDataset)
-                    logger.Info("Dataset {DatasetId} is empty, processing decision IDs 0 - {LastId}", datasetId, selection.Ids.Count - 1);
 
                 return selection;
             }
@@ -152,33 +149,26 @@ namespace Rozhodnuti_UOHS
         }
 
         /// <summary>
-        /// Scans the UOHS listing of all areas from the newest decisions plus the recent ID window
-        /// and returns IDs not stored in the dataset yet.
+        /// Automatic run: IDs from (highest ID in the dataset - overlap) to (highest ID on the newest UOHS listing page
+        /// of all areas + lookahead).
         /// </summary>
-        static async Task<IReadOnlyList<int>> FindNewDecisionIdsAsync(CancellationToken cancellationToken)
+        static async Task<IReadOnlyList<int>> ComputeAutomaticIdsAsync(CancellationToken cancellationToken)
         {
-            using var listingClient = UohsListingClient.Create(settings.Uohs, logger);
-            var finder = new NewDecisionFinder(
-                settings.Uohs.StopAfterKnownListingPages, settings.Uohs.MaxListingPages,
-                settings.Uohs.RecentIdWindowSize, settings.Uohs.ListingRequestDelay);
+            int maxUohsId;
+            using (var listingClient = UohsListingClient.Create(settings.Uohs))
+                maxUohsId = await listingClient.GetMaxListedDecisionIdAsync(cancellationToken);
 
-            var result = await finder.FindAsync(
-                listingClient.GetPageAsync,
-                id => ds.Api.ApiV2DatasetyDatasetItemExists(ds.DatasetId, id.ToString(System.Globalization.CultureInfo.InvariantCulture)),
-                scan => logger.Info("UOHS listing page {PageNumber}: {IdsOnPage} decisions, {NewIdsOnPage} missing in dataset, {TotalNewIds} missing in total",
-                    scan.PageNumber, scan.IdsOnPage, scan.NewIdsOnPage, scan.TotalNewIds),
-                cancellationToken);
+            var maxDatasetId = NewDecisionRange.FindMaxDatasetId(
+                query => ds.Search(query, 1, "Id", true).Results.Select(item => item.Id),
+                NewDecisionRange.DigitCount(maxUohsId + settings.Import.UohsIdLookahead) + 1);
 
-            logger.Info("UOHS discovery finished: listing scan {StopReason} after {PagesScanned} pages, {ListingIdCount} listed decisions missing in dataset, "
-                + "{WindowIdCount} more IDs missing in the recent window of {WindowSize} IDs up to {MaxListedId}",
-                result.StopReason, result.PagesScanned, result.ListingIds.Count,
-                result.RecentWindowIds.Count, settings.Uohs.RecentIdWindowSize, result.MaxListedId);
+            var range = NewDecisionRange.Compute(
+                maxDatasetId, maxUohsId, settings.Import.DatasetIdOverlap, settings.Import.UohsIdLookahead);
 
-            if (result.StopReason is not DiscoveryStopReason.KnownPagesThresholdReached)
-                logger.Warning("UOHS listing scan ended by {StopReason} before reaching already stored decisions; older missing decisions may exist, download them with /start= /num=",
-                    result.StopReason);
+            logger.Info("Automatic mode: highest ID on UOHS {MaxUohsId}, highest ID in dataset {MaxDatasetId}, decision IDs {FirstId} - {LastId}",
+                maxUohsId, maxDatasetId, range.FirstId, range.LastId);
 
-            return result.NewIds;
+            return range.ToIds();
         }
 
         public static void ParsePages(IEnumerable<int> decisionIds)

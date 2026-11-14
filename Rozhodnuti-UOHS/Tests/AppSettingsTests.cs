@@ -10,20 +10,16 @@ public sealed class AppSettingsTests
         {
           "Uohs": {
             "ListingUrl": "https://uohs.gov.cz/cs/verejne-zakazky/sbirky-rozhodnuti.html",
-            "ListingPageUrlTemplate": "https://uohs.gov.cz/cs/verejne-zakazky/sbirky-rozhodnuti/{0}.html",
             "AreaFilterFormField": "odbor",
             "DetailUrlTemplate": "http://www.uohs.cz/cs/verejne-zakazky/sbirky-rozhodnuti/detail-{0}.html",
             "LinkBaseUrl": "http://www.uohs.cz",
-            "HttpTimeoutSeconds": 60,
-            "ListingRequestDelayMs": 0,
-            "StopAfterKnownListingPages": 5,
-            "MaxListingPages": 1000,
-            "RecentIdWindowSize": 500
+            "HttpTimeoutSeconds": 60
           },
           "Import": {
             "MaxDegreeOfParallelism": 2,
             "RangeModeDefaultCount": 1500,
-            "EmptyDatasetRangeCount": 90000
+            "DatasetIdOverlap": 500,
+            "UohsIdLookahead": 200
           }
         }
         """;
@@ -35,13 +31,10 @@ public sealed class AppSettingsTests
 
         Assert.Equal("odbor", settings.Uohs.AreaFilterFormField);
         Assert.Equal(TimeSpan.FromSeconds(60), settings.Uohs.HttpTimeout);
-        Assert.Equal(TimeSpan.Zero, settings.Uohs.ListingRequestDelay);
-        Assert.Equal(5, settings.Uohs.StopAfterKnownListingPages);
-        Assert.Equal(1000, settings.Uohs.MaxListingPages);
-        Assert.Equal(500, settings.Uohs.RecentIdWindowSize);
         Assert.Equal(2, settings.Import.MaxDegreeOfParallelism);
         Assert.Equal(1500, settings.Import.RangeModeDefaultCount);
-        Assert.Equal(90000, settings.Import.EmptyDatasetRangeCount);
+        Assert.Equal(500, settings.Import.DatasetIdOverlap);
+        Assert.Equal(200, settings.Import.UohsIdLookahead);
     }
 
     [Fact]
@@ -79,11 +72,11 @@ public sealed class AppSettingsTests
     [Fact]
     public void Parse_NumberBelowMinimum_Throws()
     {
-        var json = ValidJson.Replace("\"StopAfterKnownListingPages\": 5", "\"StopAfterKnownListingPages\": 0");
+        var json = ValidJson.Replace("\"HttpTimeoutSeconds\": 60", "\"HttpTimeoutSeconds\": 0");
 
         var error = Assert.Throws<InvalidOperationException>(() => AppSettings.Parse(json));
 
-        Assert.Contains("Uohs:StopAfterKnownListingPages", error.Message);
+        Assert.Contains("Uohs:HttpTimeoutSeconds", error.Message);
     }
 
     [Fact]

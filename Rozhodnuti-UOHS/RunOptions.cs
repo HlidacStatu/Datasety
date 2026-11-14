@@ -14,13 +14,13 @@ namespace Rozhodnuti_UOHS
 
     /// <summary>
     /// Validated command line options.
-    /// <para><c>StartId</c>/<c>Count</c> - explicit ID range mode (/start=N [/num=M]); null StartId = discover new decisions on UOHS.</para>
+    /// <para><c>StartId</c>/<c>Count</c> - explicit ID range mode (/start=N [/num=M]); null StartId = automatic range.</para>
     /// </summary>
     public sealed record RunOptions(string ApiKey, bool Debug, bool RecreateDataset, bool DryRun, int? StartId, int? Count)
     {
         public const string Usage = """
             /apikey=xxx [/start=N [/num=M]] [/new] [/dryrun] [/debug]
-              without /start: downloads decisions listed on UOHS (all areas) which are missing in the dataset
+              without /start: downloads IDs from (highest ID in dataset - overlap) to (highest ID on UOHS, all areas + lookahead)
               /start=N [/num=M]: downloads decision IDs N .. N+M-1
               /new: deletes and recreates the dataset
               /dryrun: only reports the decision IDs which would be downloaded

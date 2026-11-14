@@ -68,24 +68,16 @@ namespace Rozhodnuti_UOHS
             }
 
             var listingUrl = RequireAbsoluteUrl(errors, "Uohs:ListingUrl", raw.ListingUrl);
-            var listingPageUrlTemplate = RequireUrlTemplate(errors, "Uohs:ListingPageUrlTemplate", raw.ListingPageUrlTemplate);
             var areaFilterFormField = RequireText(errors, "Uohs:AreaFilterFormField", raw.AreaFilterFormField);
             var detailUrlTemplate = RequireUrlTemplate(errors, "Uohs:DetailUrlTemplate", raw.DetailUrlTemplate);
             var linkBaseUrl = RequireAbsoluteUrl(errors, "Uohs:LinkBaseUrl", raw.LinkBaseUrl);
             var httpTimeoutSeconds = RequireNumber(errors, "Uohs:HttpTimeoutSeconds", raw.HttpTimeoutSeconds, minimum: 1);
-            var listingRequestDelayMs = RequireNumber(errors, "Uohs:ListingRequestDelayMs", raw.ListingRequestDelayMs, minimum: 0);
-            var stopAfterKnownListingPages = RequireNumber(errors, "Uohs:StopAfterKnownListingPages", raw.StopAfterKnownListingPages, minimum: 1);
-            var maxListingPages = RequireNumber(errors, "Uohs:MaxListingPages", raw.MaxListingPages, minimum: 1);
-            var recentIdWindowSize = RequireNumber(errors, "Uohs:RecentIdWindowSize", raw.RecentIdWindowSize, minimum: 0);
 
-            if (listingUrl == null || listingPageUrlTemplate == null || areaFilterFormField == null
-                || detailUrlTemplate == null || linkBaseUrl == null)
+            if (listingUrl == null || areaFilterFormField == null || detailUrlTemplate == null || linkBaseUrl == null)
                 return null;
 
             return new UohsSettings(
-                listingUrl, listingPageUrlTemplate, areaFilterFormField, detailUrlTemplate, linkBaseUrl,
-                TimeSpan.FromSeconds(httpTimeoutSeconds), TimeSpan.FromMilliseconds(listingRequestDelayMs),
-                stopAfterKnownListingPages, maxListingPages, recentIdWindowSize);
+                listingUrl, areaFilterFormField, detailUrlTemplate, linkBaseUrl, TimeSpan.FromSeconds(httpTimeoutSeconds));
         }
 
         static ImportSettings? ValidateImport(RawImportSettings? raw, List<string> errors)
@@ -99,7 +91,8 @@ namespace Rozhodnuti_UOHS
             return new ImportSettings(
                 RequireNumber(errors, "Import:MaxDegreeOfParallelism", raw.MaxDegreeOfParallelism, minimum: 1),
                 RequireNumber(errors, "Import:RangeModeDefaultCount", raw.RangeModeDefaultCount, minimum: 1),
-                RequireNumber(errors, "Import:EmptyDatasetRangeCount", raw.EmptyDatasetRangeCount, minimum: 1));
+                RequireNumber(errors, "Import:DatasetIdOverlap", raw.DatasetIdOverlap, minimum: 0),
+                RequireNumber(errors, "Import:UohsIdLookahead", raw.UohsIdLookahead, minimum: 0));
         }
 
         static string? RequireText(List<string> errors, string name, string? value)
@@ -156,58 +149,45 @@ namespace Rozhodnuti_UOHS
         sealed class RawUohsSettings
         {
             public string? ListingUrl { get; set; }
-            public string? ListingPageUrlTemplate { get; set; }
             public string? AreaFilterFormField { get; set; }
             public string? DetailUrlTemplate { get; set; }
             public string? LinkBaseUrl { get; set; }
             public int? HttpTimeoutSeconds { get; set; }
-            public int? ListingRequestDelayMs { get; set; }
-            public int? StopAfterKnownListingPages { get; set; }
-            public int? MaxListingPages { get; set; }
-            public int? RecentIdWindowSize { get; set; }
         }
 
         sealed class RawImportSettings
         {
             public int? MaxDegreeOfParallelism { get; set; }
             public int? RangeModeDefaultCount { get; set; }
-            public int? EmptyDatasetRangeCount { get; set; }
+            public int? DatasetIdOverlap { get; set; }
+            public int? UohsIdLookahead { get; set; }
         }
     }
 
     /// <summary>
     /// UOHS web settings.
-    /// <para><c>ListingUrl</c> - search form of the decision collection; POSTing it with an empty area resets the filter to all areas.</para>
-    /// <para><c>ListingPageUrlTemplate</c> - listing page 2, 3, ... ({0} = page number); uses the filter stored in the session cookie.</para>
+    /// <para><c>ListingUrl</c> - search form of the decision collection; POSTing it with an empty area returns the newest decisions of all areas.</para>
     /// <para><c>AreaFilterFormField</c> - name of the "Oblast" select in the search form.</para>
     /// <para><c>DetailUrlTemplate</c> - decision detail ({0} = decision ID); IDs are shared by all areas.</para>
     /// <para><c>LinkBaseUrl</c> - prepended to relative links (documents, related decisions) found on a detail page.</para>
-    /// <para><c>ListingRequestDelay</c> - pause between two listing page requests, to be gentle to the UOHS server.</para>
-    /// <para><c>StopAfterKnownListingPages</c> - discovery stops after this many consecutive pages with nothing missing in the dataset.</para>
-    /// <para><c>MaxListingPages</c> - safety limit of listing pages scanned in one run.</para>
-    /// <para><c>RecentIdWindowSize</c> - number of IDs up to the highest listed ID which are always checked against the dataset;
-    /// catches decisions published late, which the listing (ordered by the date of legal force) shows deep behind the stop point.</para>
     /// </summary>
     public sealed record UohsSettings(
         string ListingUrl,
-        string ListingPageUrlTemplate,
         string AreaFilterFormField,
         string DetailUrlTemplate,
         string LinkBaseUrl,
-        TimeSpan HttpTimeout,
-        TimeSpan ListingRequestDelay,
-        int StopAfterKnownListingPages,
-        int MaxListingPages,
-        int RecentIdWindowSize);
+        TimeSpan HttpTimeout);
 
     /// <summary>
     /// Import settings.
     /// <para><c>MaxDegreeOfParallelism</c> - number of decision detail pages downloaded in parallel.</para>
     /// <para><c>RangeModeDefaultCount</c> - number of IDs processed in /start range mode when /num is not given.</para>
-    /// <para><c>EmptyDatasetRangeCount</c> - number of IDs (from 0) processed when the dataset is empty.</para>
+    /// <para><c>DatasetIdOverlap</c> - the automatic run starts this many IDs below the highest ID stored in the dataset.</para>
+    /// <para><c>UohsIdLookahead</c> - the automatic run ends this many IDs above the highest ID listed on UOHS.</para>
     /// </summary>
     public sealed record ImportSettings(
         int MaxDegreeOfParallelism,
         int RangeModeDefaultCount,
-        int EmptyDatasetRangeCount);
+        int DatasetIdOverlap,
+        int UohsIdLookahead);
 }
